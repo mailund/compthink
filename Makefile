@@ -27,6 +27,9 @@ book.pdf: $(SOURCE_CHAPTERS) Makefile templates/latex-template.tex
 book.epub: $(SOURCE_CHAPTERS) Makefile
 	$(PANDOC) $(PANDOC_EPUB_OPTS) -o $@ $(SOURCE_CHAPTERS)
 
+wc: $(SOURCE_CHAPTERS)
+	wc -w $(SOURCE_CHAPTERS)
+
 chapters/%.md: chapters/%.ipynb
 	jupyter nbconvert $< --to Markdown
 
