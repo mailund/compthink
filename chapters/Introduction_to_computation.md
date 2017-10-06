@@ -13,7 +13,7 @@ The purpose of this book is to introduce computational thinking and basic proble
 
 To understand how to implement algorithms at different levels of abstractions, however, we *will* use some Python specific language constructions. We will usually first solve a new problem with the basic programming constructions you can find in any other language, but to illustrate how different language constructions can change both the readability and performance of an algorithm, we will often supplement the low-level solutions with more "Pythonic" solutions---the kind of solutions you would actually write if you were familiar with Python.
 
-To get the full benefit out of this book, you must practice. And practice a lot. Programming can look deceptively easy---at least for the complexity level we consider in this book---but it is substantially harder to write your own code than it is to read and understand code already written.
+To get the full benefit out of this book, you must practice. And practice a lot. Programming can look deceptively easy---at least for the complexity level we consider in this book---but it is substantially harder to write your own code than it is to read and understand code already written. Without exercising the skills involved in computational thinking and algorithmic programming, you will at best get a superficial understanding. Watching the Olympics doesn't prepare you for athletics. Each chapter has an exercise set associated with it, and you should expect to use at least as much time doing exercises as you spend reading the chapters if you want the full benefit out of the book.
 
 
 **FIXME: where to get exercises to use after each chapter.**

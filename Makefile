@@ -1,6 +1,13 @@
 
 CHAPTERS := 000_header.md \
 			Introduction_to_computation.md \
+			Introducing_Python.md \
+			Loops_and_sequences.md \
+			Conditional_statements.md \
+			List_comprehension.md \
+			Tables.md \
+			Functions.md
+
 
 SOURCE_CHAPTERS := $(foreach chapter,$(CHAPTERS),chapters/$(chapter))
 
