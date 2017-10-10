@@ -29,10 +29,10 @@ PANDOC_EPUB_OPTS := $(PANDOC_OPTS_ALL) \
                     --epub-cover-image=cover.png
 
 book.pdf: $(SOURCE_CHAPTERS) Makefile templates/latex-template.tex
-	$(PANDOC) $(PANDOC_PDF_OPTS) -o $@ $(SOURCE_CHAPTERS)
+	cat $(SOURCE_CHAPTERS) | sed 's/.png){#fig:/){#fig:/' | $(PANDOC) $(PANDOC_PDF_OPTS) -o $@
 
 book.epub: $(SOURCE_CHAPTERS) Makefile
-	$(PANDOC) $(PANDOC_EPUB_OPTS) -o $@ $(SOURCE_CHAPTERS)
+	cat $(SOURCE_CHAPTERS) | sed 's/.png){#fig:/){#fig:/' | $(PANDOC) $(PANDOC_EPUB_OPTS) -o $@ $(SOURCE_CHAPTERS)
 
 wc: $(SOURCE_CHAPTERS)
 	wc -w $(SOURCE_CHAPTERS)
