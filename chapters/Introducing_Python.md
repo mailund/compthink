@@ -71,18 +71,31 @@ We will not make much of a distinction between printing values or displaying the
 
 ## Simple calculations in Python
 
-
-```python
-
-```
-
-    hello, world!
-
+The simplest way you can use Python is as a calculator. You can write arithmetic expressions in a code cell and evaluate it to get the result.
 
 
 ```python
-
+2 + 2
 ```
+
+
+
+
+    4
+
+
+
+
+```python
+3 * 5
+```
+
+
+
+
+    15
+
+
 
 ## Printing and formatting output
 

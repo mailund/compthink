@@ -13,7 +13,8 @@ SOURCE_CHAPTERS := $(foreach chapter,$(CHAPTERS),chapters/$(chapter))
 
 PANDOC := pandoc
 
-PANDOC_OPTS_ALL :=  -S --toc \
+PANDOC_OPTS_ALL :=  --standalone --toc \
+					-f markdown+smart \
                     --top-level-division=chapter \
                     --filter pandoc-crossref \
                     --filter pandoc-citeproc
