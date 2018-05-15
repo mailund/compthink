@@ -27,21 +27,21 @@ jupyter notebook
 
 and hit Enter. The result will be similar to that seen in [@fig:running-jupyter].
 
-![Running Jupyter.](figures/running-jupyter.png){#fig:running-jupyter width=100%}
+![Running Jupyter.](figures/running-jupyter){#fig:running-jupyter}
 
 Starting up Jupyter should also open your web-browser with a window showing the directory in which you started Jupyter. I started the server in an empty directory, and my browser opened up looking like in [@fig:empty-jupyter].
 
-![Jupyter opened in an empty directory.](figures/empty-jupyter.png){#fig:empty-jupyter width=100%}
+![Jupyter opened in an empty directory.](figures/empty-jupyter){#fig:empty-jupyter}
 
 If you click the *New* button in the upper right corner, you can create a new file in this directory. You have several choices here, but we will always go with a Python 3 Notebook, see [@fig:new-jupyter-notebook].
 
-![Creating a new notebook.](figures/new-jupyter-notebook.png){#fig:new-jupyter-notebook width=100%}
+![Creating a new notebook.](figures/new-jupyter-notebook){#fig:new-jupyter-notebook}
 
 The new notebook you create this way will open up. At the top of the page, you will see that it is named "Untitled", see [@fig:untitled-jupyter-notebook]. You can click on the title and rename the notebook, see [@fig:renaming-jupyter-notebook].
 
-![Untitled new notebook.](figures/untitled-jupyter-notebook.png){#fig:untitled-jupyter-notebook width=100%}
+![Untitled new notebook.](figures/untitled-jupyter-notebook){#fig:untitled-jupyter-notebook}
 
-![Renaming the new notebook.](figures/renaming-jupyter-notebook.png){#fig:renaming-jupyter-notebook width=100%}
+![Renaming the new notebook.](figures/renaming-jupyter-notebook){#fig:renaming-jupyter-notebook}
 
 Below the menu and tool bar in the notebook you have the notebook proper. A notebook consists of one or more "cells". In the new notebook we just created there is a single cell. That is the box with "In [ ]: " in front of a field where you can type. Cells come in different types; you can go to the "Cell" menu and then select "Cell Type" to see the options. In the exercises associated with this book we will only use two types: Markdown and Code. Markdown cells are text cells; we use these to write prose. Markdown is a language for marking up text (the name is a pun on "mark up"), so we can make text italic or bold and we can format text into lists and such. The code cells contain Python code. Markdown cells are just text until you double click on them; when you do, you can edit the text. Code cells have "In [ ]: " in front of them and you can edit code in the gray area inside them. The "In [ ]: " is a prompt and a leftover from the IPython program that Jupyter is a descendant of.
 
@@ -53,7 +53,7 @@ print("hello, world!")
 
 You can then evaluate it. You can do this by hitting the "play" button in the tool bar, by selecting "Run Cells" in the "Cell" menu, or by pressing Shift-Enter. When you evaluate the cell, the result of the evaluation will be shown below the input part of the cell and a new cell will be created below, see [@fig:hello-world-jupyter-notebook].
 
-!["Hello, world" in a notebook.](figures/hello-world-jupyter-notebook.png){#fig:hello-world-jupyter-notebook width=100%}
+!["Hello, world" in a notebook.](figures/hello-world-jupyter-notebook){#fig:hello-world-jupyter-notebook}
 
 When you evaluate the cell, you will notice that "In [ ]: " changes to "In [1]: ". The number here, one, indicates that it is the first cell you evaluated. The cells in a notebook are evaluated when you explicitly choose to evaluate them, and each time a cell is evaluated the number is increased. You can see, from the numbers to the left of the code input, the order in which cells have been evaluated.
 
@@ -63,7 +63,7 @@ If the dependencies and order in which you evaluate cells start to confuse you, 
 
 When you evaluate a cell, any output you print will be shown below the input code. In addition, unless the last expression in a cell evaluate to `None`, a special value in Python that indicate nothingness, the result of the final expression will also be printed. In the "hello, world!", example above, the last (and only) expression was the `print` command, and this command returns `None`, so no value was printed. The "hello, world!" that was printed in the cell was the side effect of printing; it wasn't the *result* of the print expression. To see the difference, try putting just the string `"hello, world!"` in the next cell and evaluate it (see [@fig:hello-world-jupyter-notebook-2]).
 
-!["Hello, world", printing and evaluating.](figures/hello-world-jupyter-notebook-2.png){#fig:hello-world-jupyter-notebook-2 width=100%}
+!["Hello, world", printing and evaluating.](figures/hello-world-jupyter-notebook-2){#fig:hello-world-jupyter-notebook-2}
 
 The result appear similar to the print cell, but you have "Out[2]: " to the left of the `"hello, world!"` output, and that output is in quotes. The "Out[2]: " tells us that this is the result we get from evaluating the cell (the number is the same as the "In[2]: " number the cell got when we evaluated it). The string `"hello, world!"` is an expression that evaluates to the string itself, and because this string is not `None`, Jupyter displays it.
 
@@ -95,7 +95,7 @@ The simplest way you can use Python is as a calculator. You can write arithmetic
 
     15
 
-
+## Working with strings
 
 ## Printing and formatting output
 
@@ -103,3 +103,9 @@ The simplest way you can use Python is as a calculator. You can write arithmetic
 ```python
 
 ```
+
+## Statements and variables
+
+## Conditional statements
+
+## Loops

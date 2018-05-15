@@ -1,4 +1,0 @@
-
-# Loops and sequences
-
-

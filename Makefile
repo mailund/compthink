@@ -1,12 +1,10 @@
 
 CHAPTERS := 000_header.md \
 			Introduction_to_computation.md \
-			Introducing_Python.md \
-			Loops_and_sequences.md \
-			Conditional_statements.md \
-			List_comprehension.md \
-			Tables.md \
-			Functions.md
+			Introducing_Python.md
+
+CHAPTERS := 000_header.md \
+			Introduction_to_computation.md \
 
 
 SOURCE_CHAPTERS := $(foreach chapter,$(CHAPTERS),chapters/$(chapter))
@@ -30,16 +28,16 @@ PANDOC_EPUB_OPTS := $(PANDOC_OPTS_ALL) \
                     --epub-cover-image=cover.png
 
 book.pdf: $(SOURCE_CHAPTERS) Makefile templates/latex-template.tex
-	cat $(SOURCE_CHAPTERS) | sed 's/.png){#fig:/){#fig:/' | $(PANDOC) $(PANDOC_PDF_OPTS) -o $@
+	$(PANDOC) $(PANDOC_PDF_OPTS) $(SOURCE_CHAPTERS) -o $@
 
 book.epub: $(SOURCE_CHAPTERS) Makefile
-	cat $(SOURCE_CHAPTERS) | sed 's/.png){#fig:/){#fig:/' | $(PANDOC) $(PANDOC_EPUB_OPTS) -o $@ $(SOURCE_CHAPTERS)
+	$(PANDOC) $(PANDOC_EUPB_OPTS) $(SOURCE_CHAPTERS) -o $@
 
 wc: $(SOURCE_CHAPTERS)
 	wc -w $(SOURCE_CHAPTERS)
 
-chapters/%.md: chapters/%.ipynb
-	jupyter nbconvert $< --to Markdown
+#chapters/%.md: chapters/%.ipynb
+#	jupyter nbconvert $< --to Markdown
 
 clean:
 	rm book.pdf book.epub
