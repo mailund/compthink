@@ -1,18 +1,18 @@
 
-CHAPTERS := 000_header.md \
-			Introduction_to_computation.md \
-			Introducing_Python.md
+CHAPTERS := 000_header.yml \
+			Introduction_to_computation.txt \
+			Introducing_Python.txt \
+               Introduction_to_algorithms.txt \
 
-CHAPTERS := 000_header.md \
-			Introduction_to_computation.md \
+CHAPTERS := 000_header.yml \
+               Introduction_to_algorithms.txt \
 
 
 SOURCE_CHAPTERS := $(foreach chapter,$(CHAPTERS),chapters/$(chapter))
 
 PANDOC := pandoc
 
-PANDOC_OPTS_ALL :=  --standalone --toc \
-					-f markdown+smart \
+PANDOC_OPTS_ALL :=  --standalone --toc -f markdown+smart \
                     --top-level-division=chapter \
                     --filter pandoc-crossref \
                     --filter pandoc-citeproc
