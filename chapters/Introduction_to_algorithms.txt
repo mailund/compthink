@@ -78,10 +78,60 @@ From this list of pairs of cities, we want to design an algorithm that determine
 
 ### A reductionist approach to designing algorithms
 
-The first and perhaps the most important lesson about designing algorithms is this: if you cannot see an immediate solution to your problem, try to break the problem into subproblems and see if you can solve these.
+The first and perhaps the most important lesson about designing algorithms is this: if you cannot see an immediate solution to your problem, try to break the problem into subproblems and see if you can solve these. This is generally a good recipe for solving any problems in life—and, incidentally, what recipes do. It might seem like an insurmountable task to cook a large dinner, but a dinner can be split into different dishes and each dish is prepared in a number of smaller steps, and each of the small steps are manageable. When I write a book, I can’t attack the writing as a single task. I break the book into chapters, then chapters into sections, and sections into paragraphs and paragraphs into sentences.
+
+There must be some system in the madness of breaking down a problem into smaller steps. We should ensure that the smaller steps are easier to take than it is to solve the full problem, and we should ensure that if we take all the steps we have solved the full problem. These two requirements are, not coincidentally, similar to the requirements we had for a recipe being an algorithm. When we break a problem into smaller steps, such that the steps are easier, we are making a kind of progress, and this progress should lead us to termination; when we know that the steps, when all are taken, solves the original problem, we have a correct algorithm.
+
+In our original problem we have the question of whether city 0 is connected to city 13, which we cannot immediately answer. What we can answer is whether two cities are neighbours—we could simply run through the list of roads and check if there is one between the two cities. If we could reduce the first problem to the second, we would have a solution to our original problem.
+
+How we can get from testing neighbour-ness to general connectedness might not be obvious, but if we rephrase the two questions to look more similar, it might give us an idea for how to proceed.
+
+* **Original problem:** Is it possible to get from city $i$ to city $j$ by visiting no more than $n$ cities along the way.
+* **Neighbour problem:** Is it possible to get from city $i$ to city $j$ by visiting no intermediate cities.
+
+The rephrasing of the original problem is not *entirely* the original problem. Instead of only considering city 0 and city 13, we have made the problem a little harder by wanting to answer it for any cities $i$ and $j$. Also, we have added a constraint, $n$, for the maximum number of cities we visit while going from $i$ to $j$. If $N$ is the number of cities, though, the question of whether it is possible to get from city $i$ to city $j$ is the same as asking if you can do it in less than $N$ steps. Any route that goes through the same city twice can be shortened by removing a circular detour, so if a road from $i$ to $j$ is possible at all, it can be done by visiting less than $N$ intermediate cities.
+
+Obviously, the neighbour problem is a special case of the first problem we listed above, and as we just argued, so is the original question of whether we can get from city 0 to city 13. They all simply differ in what we use for the number of intermediate cities along the route—$n=0$ for the neighbour problem and $n=N$ for the original problem.
+
+To get to $n=N$ from $n=0$ we use another general trick: *induction*. You might have seen this trick used form proving mathematical theorems. Induction works simply like this: if you can show that you have a solution for $n=0$ and that whenever you have a solution for some arbitrary $n$ you can turn that into a solution for $n+1$, then you also have a solution for some desired $n=N$.[^induction-and-algorithms]
+
+[^induction-and-algorithms]: There is a close correspondence between algorithms and proofs by induction, that is not shared for example by proofs by contradiction. When you prove something by contradiction, you prove that some assumption will lead you to conclude something that you know is false. If you use this to prove that a route exists between cities 0 and 13, you will know that such a route exists, but usually have no idea about how to find it. With proofs by induction, the step you take to get from $n$ to $n+1$ usually tells you more than simply that a step is *possible*; it tells you what the step *is*. Therefore, induction proofs are often called constructive proofs. If we wanted to, we could use the step we take in the proof in this chapter to compute a path from city 0 to city 13, but we leave that for [Chapter @sec:trees-and-graphs].
 
 ### Assertions and invariants
 
+To ensure that the steps that the algorithm that we are designing comprise of truly solve the problem at hand, we need to know exactly what we can expect to be handled by each step. One way to do this, is to make explicit claims about what should be true before and after each step we take. Such steps are usually called *assertions*, and the claims we make for what should be true *before* a step are called *pre-conditions* and the claims that should be true *after* a step are called *post-conditions*. To prove that the algorithm works according to plan, we need each step to ensure its post-conditions assuming its pre-conditions are met. If each step taken in the algorithm does this, and we can show two additional properties, we have a correct algorithm. These additional properties are simply that the pre-conditions for the first step must be satisfied for all valid input and that the post-conditions for the last step must imply that we have a solution for the problem at hand.
+
+For the concrete problem of finding out if there is a path from city 0 to city 13, we will define the property, $\mathrm{connected}_n(i,j)$, which is true if and only if there is a path from $i$ to $j$ that goes through no more than $n$ intermediate cities. Further, we will assume that we can represent connectedness in a table `table`, such that `table[i] == table[j]` means that we know there exists a path between $i$ and $j$. Finally, let $\mathrm{consistent}(\mathtt{table},\mathrm{connected},n)$ denote that `table[i] == table[j]` if and only if $\mathrm{connected}_n(i,j)$, i.e. the table considers two cities connected if and only if they are connected in less than $n$ steps.
+
+The algorithm will now have this form:
+
+1. Initialise `table` such that `table[i] != table[j]` for all $i\neq j$.
+2. Process all road-edges.
+3. $\{\mathrm{consistent}(\mathtt{table},\mathrm{connected},0)\}$
+4. Now, for $n=0,\ldots,N-1$ do:
+
+    4.1. $\{\mathrm{consistent}(\mathtt{table},\mathrm{connected},n)\}$
+
+    4.2. Update `table` such that `table[i] == table[j]` if and only if $\mathrm{connected}_n(i,j)$.
+
+    4.3. $\{\mathrm{consistent}(\mathtt{table},\mathrm{connected},n+1)\}$
+
+5. $\{\mathrm{consistent}(\mathtt{table},\mathrm{connected},N)\}$
+6. Return `table[0] == table[13]`.
+
+In this listing of steps, I have put assertions in curly braces. They are usually not part of the algorithm as such; they do not represent any actions that the computer must take when running the algorithm. They are merely properties that we must show are satisfied at the different locations of the algorithm, and that will help us prove that the algorithm works the way it is intended.
+
+We need to figure out how to implement `table` and how to update it for each step, of course, but let us first see how this algorithm matches an inductive proof and how we can exploit this to show that, if it terminates, it answers the problem we are interested in.
+
+The first assertion we make is in line 3. Here, we say that after reading in all the direct connections between cities, `table[i]` equals `table[j]` if and only if there is a direct road between cities $i$ and $j$. The last assert we make is in line 5, where we we make the same claim about `table` except that the connections should be in $n$ or fewer steps, i.e. `table[i]` is equal to `table[j]` if the two cities are connected at all. Obviously, if this statement is true, then `table[0] == table[13]` if and only if we can find a way from city 0 to city 13, so if the property is true (and we ever reach this step) we will return the correct answer.
+
+The property in line 3 is a pre-condition for the loop and the property in line 5 is a post-condition for the loop. Inside the loop we make two additional assertions, in lines 4.1 and 4.3. These are pre- and post-conditions for the loop-body and captures what we would call the induction step in a proof by induction. We have a property for $n$ and need to ensure the same property for $n+1$. We usually do not make the assertion twice but for updated $n$ as we do in this listing. Instead, we associate an assertion with the loop in general and call it a *loop-invariant*. A loop-invariant, however, is just a short way of specifying that a property must be true for iteration $n$ (or whatever index we use to specify the iteration we are about to execute) *before* we execute the loop-body and must be true for $n+1$ *after* we have executed the body.
+
+Loops are not always identified by a single iteration variable as here, where $n$ counts how many times we have executed the loop-body. We have such a variable in `for`-loops, but usually not in `while`-loops. We should always have some measure of progress we can use to capture the state before and after a loop-body, though.
+
+Now, without knowing how any of the algorithmic steps are performed, we can show that the algorithm, if it terminates, will compute the right answer. This follows because we can show that before we enter the loop, the loop invariant is satisfied—just put $n=0$—and when we exit the loop we satisfy $\{\mathrm{consistent}(\mathtt{table}, \mathrm{connected}, N)$—just set $n=N-1$—and the latter we have already argued ensures that we get the right answer.
+
+If the steps in lines 1, 2, 4, and 4.2 all terminate and all satisfy their pre- and post-condition, we have built an algorithm that terminates and is correct.
 
 
 
