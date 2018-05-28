@@ -404,7 +404,36 @@ We will now look as long as there are candidates left. In the loop, we take the 
 
 **Exercise:** Implement and test this algorithm.
 
+## Longest increasing substring
 
+Assume you have a list of numbers, for example
 
+```python
+x = [12, 45, 32, 65, 78, 23, 35, 45, 57]
+```
+
+**Exercise:** Design an algorithm that finds the longest sub-sequence `x[i:j]` such that consecutive numbers are increasing, i.e. `x[k] < x[k+1]` for all `k` in `range(i,j)`  (or one of the longest, if there are more than one with the same length).
+
+*Hint:* One way to approach this is to consider the longest sequence seen so far and the longest sequence up to a given index into `x`. From this you can formalise invariants that should get you through.
+
+## Compute the powerset of a set
+
+The *powerset* $P(S)$ of a set $S$ is the set that contains all possible subsets of $S$. For example, if $S=\{a,b,c\}$, then 
+
+$$P(S) = \{\emptyset,\{a\}, \{b\}, \{c\}, \{a,b\}, \{a,c\}, \{b,c\}, \{a,b,c\}\}$$
+
+**Exercise:** Assume that $S$ is represented as a list. Design an algorithm that prints out all possible subsets of $S$. Prove that it terminates and is correct.
+
+*Hint:* You can solve this problem by combining the numerical base algorithm with an observation about the binary representation of a number and a subset of $S$. We can represent any subset of $S$ by the indices into the list representation of $S$. Given the indices, just pick out the elements at those indices. One way to represent a list of indices is as a binary sequence. The indices of the bits that are 1 should be included, the indices where the bits are 0 should not. If you can generate all the binary vectors of length `k=len(S)`, then you have implicitly generated all subsets of $S$. You can get all these bit vectors by getting all the numbers from zero to $2^k$ and extracting the binary representation.
+
+## Longest increasing subsequence
+
+Notice that this problem has a different name from the previous and is not exactly the same problem.
+
+Assume, again, that you have a list of numbers. We want to find the longest sub-sequence of increasing numbers, but this time we are not looking for consecutive indices `i:j`, but a sequence of indices $i_0,i_1,\ldots,i_m$ such that $i_k<i_{k+1}$ and $x[i_k] < x[i_{k+1}]$.
+
+**Exercise** Design an algorithm for computing the longest (or a longest) such sequence of indices $i_0,i_1,\ldots,i_m$.
+
+*Hint:* This problem is harder than the previous one, but you can brute force it by generating *all* subsequences and checking if the invariant is satisfied. This is a *very* inefficient approach, but we need to learn a little more about algorithms before we will see a more efficient solution.
 
 
