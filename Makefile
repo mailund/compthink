@@ -27,11 +27,13 @@ PANDOC_EPUB_OPTS := $(PANDOC_OPTS_ALL) \
                     -t epub3 --toc-depth=1 \
                     --epub-cover-image=cover.png
 
+all: book.pdf book.epub wc
+
 book.pdf: $(SOURCE_CHAPTERS) Makefile templates/latex-template.tex
 	$(PANDOC) $(PANDOC_PDF_OPTS) $(SOURCE_CHAPTERS) -o $@
 
 book.epub: $(SOURCE_CHAPTERS) Makefile
-	$(PANDOC) $(PANDOC_EUPB_OPTS) $(SOURCE_CHAPTERS) -o $@
+	$(PANDOC) $(PANDOC_EPUB_OPTS) $(SOURCE_CHAPTERS) -o $@
 
 wc: $(SOURCE_CHAPTERS)
 	wc -w $(SOURCE_CHAPTERS)
