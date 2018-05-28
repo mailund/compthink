@@ -1,0 +1,89 @@
+# Solutions to exercises
+
+## Introduction to algorithms
+
+### Above or below
+
+```python
+for guess in range(20,0,-1):
+    result = input_selection(
+        "How is my guess {}?".format(guess), 
+        ["low", "hit", "high"]
+    )
+    if result == "hit":
+        print("Wuhuu!")
+        break
+    else:
+        print("I must have been too hight, right? ", result)
+```
+
+```python
+lower_bound = 1
+upper_bound = 20
+while True:
+    guess = int((upper_bound + lower_bound) / 2)
+    print("{} is my guess in [{},{}]".format(
+        guess, lower_bound, upper_bound)
+    )
+    result = input_selection(
+        "How is my guess {}?".format(guess),
+        ["low", "hit", "high"]
+    )
+    if result == "hit":
+        print("Wuhuu!")
+        break
+    elif result == "low":
+        lower_bound = guess + 1
+    else:
+        upper_bound = guess - 1
+```
+
+
+### Finding square roots
+
+**FIXME: solution:**
+
+```python
+def babylonian_sqrt(S, epsilon):
+    lower_bound = 0
+    upper_bound = S
+    x = upper_bound / 2
+    while (upper_bound - lower_bound) > epsilon:
+        x = (lower_bound + upper_bound) / 2
+        if x**2 > S:
+            lower_bound = S/x
+            upper_bound = x
+        else:
+            lower_bound = x
+            upper_bound = S/x
+    return x
+
+babylonian_sqrt(2, 1e-5)
+```
+
+
+### Changing numerical base
+
+```python
+def print_base(n, b):
+    base_b = []
+    while n > 0:
+        base_b.append(digits[n % b])
+        n //= b
+    print("".join(reversed(base_b)))
+```
+
+### The sieve of Eratosthenes
+
+```python
+def eratosthenes(n):
+    candidates = list(range(2, n+1))
+    primes = []
+    while len(candidates) > 0:
+        p = candidates[0]
+        candidates = [m for m in candidates if m % p != 0]
+        primes.append(p)
+    return primes
+```
+
+

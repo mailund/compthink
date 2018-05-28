@@ -1,11 +1,15 @@
 
 CHAPTERS := 000_header.yml \
-			Introduction_to_computation.txt \
-			Introducing_Python.txt \
+			   Introduction_to_computation.txt \
+			   Introducing_Python.txt \
                Introduction_to_algorithms.txt \
+               Trees_and_graphs.txt \
+               Solutions.txt
 
 CHAPTERS := 000_header.yml \
                Introduction_to_algorithms.txt \
+               Trees_and_graphs.txt \
+               Solutions.txt
 
 
 SOURCE_CHAPTERS := $(foreach chapter,$(CHAPTERS),chapters/$(chapter))

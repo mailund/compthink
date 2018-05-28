@@ -43,7 +43,51 @@ Before we worry about algorithmic complexity and efficiency, however, we need to
 
 ## Designing algorithms
 
+We will explore the tricks for developing algorithms through an example. Consider this problem: You are in city $A$ and want to know if it is possible to get to city $B$, and to answer this question, you have a map available. The problem is a toy example of a real problem. No matter which pair of cities you can think of, you can get from one to the other. There are no city or set of cities that are completely cut off from the rest of the world. But we could ask the question if it is possible to *drive* from city $A$ to city $B$—which isn’t possible for all pairs of cities in the world—and then we would have the same problem. Or we could ask if it is possible to get from city $A$ to city $B$ in less than three hours—in which case we have a slightly harder problem, but still a similar one. Or, we could even ask, what is the shortest route from $A$ to $B$—if we could solve that problem we could use it to solve all the others. Later, in [Chapter @sec:trees-and-graphs], we will see an efficient algorithm for solving the shortest route problem, but for now, we will only consider the first question: is it possible to get from $A$ to $B$?
+
+Consider the map in [@fig:simplified-map]. This is a simplification of a real map of roads between cities. We do not care about the actual landscape the roads pass through, only how cities are connected. So, in this map, we abstract cities to be nodes in a network, and we connect two cities by a line if there is a road between them. It is a simplification of a real map, but a simplification that might be familiar to you from subway maps, where the actual geography is usually not visualised but the connection between stations is.
+
+![Simplified map we can use to determine if we can get from $A$ to $B$.](figures/simplified-map){#fig:simplified-map}
+
+Another simplification is this: we only name cities $A$ and $B$. We assign a number to all cities, so we can refer to them, but we only care to name $A$ and $B$. We can simplify the problem slightly more and ask, “is it possible to get from the city with index 0 to the city with index 13?”, and then we do not even need to name these two cities.
+
+From the figure, you can probably immediately tell that city number 0 and city number 13 are connected (and by several routes), but this partly because the map is very simple, with few cities and partly because it is laid out in a way that makes it easy for your brain to detect the connections. With thousands or millions of connected towns and cities, it would not be so easy to see if two selected cities are connected. It would not be trivial for you to answer the question either, if you got the information in the form that a computer would most likely get it. Our brains are very good at handling visual input, and you can intuitively answer the question on this small map. You probably cannot tell *how* you solve the problem; you just know the answer. You can train computers to “see” in some ways, but it is not the most straightforward approach to telling them about the connectedness of cities—and most likely, if we took that approach, they would run into the same limitations as our brains—they could answer the question for small and well laid out graphs but could not handle very large graphs.
+
+The input we will give the computer is a list of the direct connections:
+
+```python
+roads = [
+	(0, 1), (0, 2), (0, 3),
+	(1, 4), (1, 5),
+	(2, 5), (2, 6),
+	(3, 6), (3, 7),
+	(4, 8),
+	(5, 9),
+	(6, 9),
+	(7, 10),
+	(8, 11),
+	(8, 12),
+	(9, 13),
+	(10, 13)
+]
+```
+
+The roads are represented as pairs of cities. In this example, the first city in a pair has an index that is smaller than the second city in the pair, but we do not mean to imply any order to the pair; if there is a road from $i$ to $j$ there is also a road from $j$ to $i$.
+
+From this list of pairs of cities, we want to design an algorithm that determines if the city at index 13 can be reached from the city at index 0.
+
+### A reductionist approach to designing algorithms
+
+The first and perhaps the most important lesson about designing algorithms is this: if you cannot see an immediate solution to your problem, try to break the problem into subproblems and see if you can solve these.
+
 ### Assertions and invariants
+
+
+
+
+### Measuring progress
+
+**FIXME: potential or something that ensure that we make progress in each iteration**
 
 ### Exercises on Sequential algorithms
 
@@ -257,88 +301,3 @@ We will now look as long as there are candidates left. In the loop, we take the 
 ## Algorithmic complexity
 
 
-## Answers to exercises
-
-### Above or below
-
-```python
-for guess in range(20,0,-1):
-    result = input_selection(
-        "How is my guess {}?".format(guess), 
-        ["low", "hit", "high"]
-    )
-    if result == "hit":
-        print("Wuhuu!")
-        break
-    else:
-        print("I must have been too hight, right? ", result)
-```
-
-```python
-lower_bound = 1
-upper_bound = 20
-while True:
-    guess = int((upper_bound + lower_bound) / 2)
-    print("{} is my guess in [{},{}]".format(
-        guess, lower_bound, upper_bound)
-    )
-    result = input_selection(
-        "How is my guess {}?".format(guess),
-        ["low", "hit", "high"]
-    )
-    if result == "hit":
-        print("Wuhuu!")
-        break
-    elif result == "low":
-        lower_bound = guess + 1
-    else:
-        upper_bound = guess - 1
-```
-
-
-### Finding square roots
-
-**FIXME: solution:**
-
-```python
-def babylonian_sqrt(S, epsilon):
-    lower_bound = 0
-    upper_bound = S
-    x = upper_bound / 2
-    while (upper_bound - lower_bound) > epsilon:
-        x = (lower_bound + upper_bound) / 2
-        if x**2 > S:
-            lower_bound = S/x
-            upper_bound = x
-        else:
-            lower_bound = x
-            upper_bound = S/x
-    return x
-
-babylonian_sqrt(2, 1e-5)
-```
-
-
-### Changing numerical base
-
-```python
-def print_base(n, b):
-    base_b = []
-    while n > 0:
-        base_b.append(digits[n % b])
-        n //= b
-    print("".join(reversed(base_b)))
-```
-
-### The sieve of Eratosthenes
-
-```python
-def eratosthenes(n):
-    candidates = list(range(2, n+1))
-    primes = []
-    while len(candidates) > 0:
-        p = candidates[0]
-        candidates = [m for m in candidates if m % p != 0]
-        primes.append(p)
-    return primes
-```
