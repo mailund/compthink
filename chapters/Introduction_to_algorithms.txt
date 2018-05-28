@@ -96,7 +96,101 @@ An outline of the algorithm could look like this:
 
 To ensure that the steps that the algorithm that we are designing comprise of truly solve the problem at hand, we need to know exactly what we can expect to be handled by each step. One way to do this, is to make explicit claims about what should be true before and after each step we take. Such steps are usually called *assertions*, and the claims we make for what should be true *before* a step are called *pre-conditions* and the claims that should be true *after* a step are called *post-conditions*. To prove that the algorithm works according to plan, we need each step to ensure its post-conditions assuming its pre-conditions are met. If each step taken in the algorithm does this, and we can show two additional properties, we have a correct algorithm. These additional properties are simply that the pre-conditions for the first step must be satisfied for all valid input and that the post-conditions for the last step must imply that we have a solution for the problem at hand.
 
+The essential property we want satisfied while we run our algorithm is this: if city $i$ and city $j$ are connected through any of the roads we have seen so far, then $s_i=s_j$. There are other properties that we will leave implicit, such as $S$ being a set of disjoint sets of cities where all cities are represented. That is important as well, but we won’t make it explicit as such. We will instead focus on properties for how we represent sets and ensure that this representation guarantees that two cities are in the same set if they can be reached through the roads seen so far.
 
+There are many different ways to implement sets and many ways to implement their union, but so far, the only data structure you have seen is lists, so that is what we will use. We will have a list, call it $S$ for set, that holds a value for each city, $i$. This value is our representation of a set. If you can pick one element in a set as a representative of the set, and do so consistently so the same set is always represented by the same value, then you can use that element to represent the set. For our sets, we will pick the city with the highest index. We will require the following: `S[i]` contains the largest index of a city, reachable from $i$, via the roads seen so far. Call this property $I(S, R)$ where $S$ is the set of sets and $R$ is the set of the roads I have seen so far. I use $I$ because I want it as an invariant, i.e., I want it always to be true. I won’t manage that *exactly*, but it will be true most of the time.
+
+Now, with this property about the set $S$, I will annotate the algorithm like this:
+
+1. Start with a set of singleton sets `S[i] = i` for all cities $i$.
+2. $\{ I(S, \emptyset) \}$
+3. For each new road $r=(p,q)$, let $R$ denote the roads we have seen so far.
+
+    3.1. $\{ I(S, R) \}$
+
+    3.2. Set $S$ to $S - s_p - s_q + s_p \cup s_q$ 
+
+    3.3. $\{ I(S, R\cup\{(p,q)\}) \}$
+
+4. $\{ I(S, R) \}$ where $R$ is the set of all our roads.
+5. Once all roads have been processed, check if `S[0] == S[13]`.
+
+For the initialisation in line 1 you can iterate through the cities and append their indices to a list or you can create the right list succinctly like this:
+
+```python
+N = 14 # number of cities
+S = list(range(N))
+```
+
+The statements wrapped in curly brackets are the assertions we make about the state of the algorithm. They are not part of the algorithm as such. We never consider them something the algorithm has to do, although we sometimes write code that checks if they are satisfied when debugging an algorithm. They help us guide the design of the algorithm and later they will help us prove correctness.
+
+Actually, we can prove correctness right now if we simply assume that the steps *between* the assertions will satisfy them. The condition in line 2—a post-condition for the initialisation in line 1 but a pre-condition for the loop—ensures that we have the right set when we haven’t seen any nodes. The conditions in line 3.1 and 3.3 guarantees us that we update the set correctly for each new road we see, so we always know if two cities are connected via the roads seen so far. Finally, we know from line 4 that when we exit the loop, our set $S$ is a partition of cities that exactly matches which are reachable from each other, and thus, using the set we can answer the question of whether we can get from city 0 to city 13 in line 5.
+
+The conditions in lines 3.1 and 3.3 are the same except for 3.3 having processed one more road than 3.1. Often, we will lump such two conditions together and call it a *loop invariant*. We want loop invariants always to be true just before we execute a loop body and always to be true, in an updated form, when we finish executing the loop body. If we focus on the loop, where the real work will be done, we have a pre-condition (for the loop) at line 2 and a post-condition at line 4. In between we have the loop invariant, lines 3.1 and 3.3. To get the algorithm to work correctly we need to guarantee the following: 
+
+ * Before we enter the loop the pre-condition must be true and it must also imply that the loop invariant is satisfied.
+ * As long as the loop invariant is satisfied before we execute the body of the loop, it must also be satisfied after we have executed the body.
+ * If the loop invariant is true when we exit the loop, then this must imply the post-condition for the loop.
+
+That the pre-condition guarantees the loop invariant before we process the first road, and that the loop invariant after we have processed the last road guarantees the post-condition, are almost trivial to see in this particular algorithm. Before the first road, $R=\emptyset$ making conditions in lines 2 and 3.1 the same, and after the last road, $(p,q)$, is processed, $R\cup\{(p,q)\}$ will be the set of all roads, making the condition on line 3.3 the same as the post-condition for the loop on line 4. If the step in line 3.2 updates $S$ correctly, by merging the sets on either side of the road $(p,q)$, then the loop invariant is satisfied after we have processed each road. Some details are missing in step 3.2, though, so we need to get those sorted out.
+
+To get the final piece of the problem into place, we consider the property $I(S,R)$ in more detail. It states that $S[i]$ should contain the highest index for cities that are connected to $i$. This means that, if $s_i$ is the set that contains $i$, then for all $j\in s_i$, $S[j]=S[i]$, because *all* cities in set $s_i$ points to the largest index in the set. This means that we can use the list `S` both to check if two sets are equal, but also to get all elements in a set. The set $s_i$ is represented by some index $k$ where `S[i] == k`. All other elements in the set are those $j$ with `S[j] == k`.
+
+When we want to merge the sets $s_p$ and $s_q$ when processing road $(p,q)$ we can first check if the sets are different in the first place. If `S[p] == S[q]`, the sets are already the same, and we do not need to do anything. If not, we need to first find the representative element for the union of the two. That will be `max(S[p],S[q])`. We then need to update all elements in $s_p$ and $s_q$ to point to this element.
+
+We can implement the loop like this:
+
+```python
+for p, q in roads:
+	rep_p = S[p]
+	rep_q = S[q]
+	new_rep = max(rep_p, rep_q)
+	for i in range(N):
+		if S[i] == rep_p or S[i] == rep_q:
+			S[i] = new_rep
+```
+
+If we run this algorithm and print the content of `S` at each step, we will get this:
+
+```python
+# Initial state
+S = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+# Entering loop...
+S = [1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+S = [2, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+S = [3, 3, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+S = [4, 4, 4, 4, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+S = [5, 5, 5, 5, 5, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+S = [5, 5, 5, 5, 5, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+S = [6, 6, 6, 6, 6, 6, 6, 7, 8, 9, 10, 11, 12, 13]
+S = [6, 6, 6, 6, 6, 6, 6, 7, 8, 9, 10, 11, 12, 13]
+S = [7, 7, 7, 7, 7, 7, 7, 7, 8, 9, 10, 11, 12, 13]
+S = [8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 10, 11, 12, 13]
+S = [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 11, 12, 13]
+S = [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 11, 12, 13]
+S = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 12, 13]
+S = [11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 12, 13]
+S = [12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 13]
+S = [13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13]
+S = [13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13]
+# After loop
+S = [13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13]
+```
+  
+You can check yourself that the states during the algorithm satisfy the invariants. Just because the algorithm does the right thing on this example, however, doesn’t guarantee that it will on all input. We need to prove that if the loop invariant is satisfied before executing the loop body, which is this code
+
+```python
+	rep_p = S[p]
+	rep_q = S[q]
+	new_rep = max(rep_p, rep_q)
+	for i in range(N):
+		if S[i] == rep_p or S[i] == rep_q:
+			S[i] = new_rep
+```
+
+the loop invariant will also be satisfied after the body is executed, but with one more road processed. For this algorithm, proving that the loop invariant is satisfied is relatively simple. We know that the invariant is satisfied if the set of sets, $S$, is updated correctly, which means that all elements in $s_p$ and all elements in $s_q$ should now be in $s_p\cup s_q$, i.e., for all $i\in s_p$ and all $i\in s_q$, `S[i] = k` where $k$ is the representative for the set $s_p\cup s_q$. The loop (inside the outer-loop body) identifies all the cities we need to update and does the update. So we are good.
+
+Breaking down the steps we need to take to solve a problem, and then asserting what should hold true before and after any step, is a very powerful approach both to designing algorithms and to proving their correctness. It is not necessarily easy, however. It might look simple when following the steps taken when I have written them down, but I had to work at getting just the right invariants in this example, and I already knew how the algorithm would work. When you don’t know how the final algorithm will look, it gets harder. As with everything else in life, though, it gets easier with practice, so do not skip the exercises later in this chapter. In many of the algorithms, you need to come up with invariants to prove correctness, and in a few of the exercises you also need to derive an algorithm from scratch.
 
 ### Measuring progress
 
