@@ -243,11 +243,64 @@ The second and third conditions to the termination function should be more strai
 
 For our example algorithm, conditions two and three are easy to prove. In each iteration, we decrease `a` while `m` never changes, so the termination function must decrease by the same amount that `a` is decreased by. This guarantees the second condition. For the third condition, we simply observe that when $t(a,m)=m-a \le 0$, the condition `a >= m` must be `False`.
 
-**FIXME** 
+Let us consider another, equally simple, example. Say we want to print out the bits that the binary representation of a number is. We can attack this problem in two different ways. We can can use arithmetic where we can get the least significant bit by taking modulus two and then shift the remaining bits down by dividing by two.
 
-- [ ] Example with more complex termination function.
+```python
+reverse_bits = []
+while n > 0:
+	reverse_bits.append(n % 2)
+	n //= 2
+print(reverse_bits[::-1])
+```
 
-### Exercises on Sequential algorithms
+or we can consider the the individual bits using bit-wise operators and explicitly take out the least significant bit by AND-ing with 1 and explicitly shift the bits in a number by one:
+
+```python
+reverse_bits = []
+while n > 0:
+	reverse_bits.append(n & 1)
+	n >>= 1
+print(reverse_bits[::-1])
+```
+
+Here, `&` is the bit-wise AND-operation and `>>` the bit-wise SHIFT operation; we shift by one bit in the example.[^bitwise_operations]
+
+In either algorithm, the loop-condition is `n > 0`, so a natural choice for the termination function is $t(n) = n$. Let us check if that works. Obviously, the function maps the algorithmic state to a number, the value of the variable `n`. This variable is decreased in each iteration—regardless of whether you divide by two or shift the bit-pattern of `n` one to the right, the result is the same, `n` is half as big as before. When `n` is eventually at zero, the loop-condition is false. So this would be a termination function that proves that this algorithm terminates.
+
+[^bitwise_operations]: If you are not familiar with bit-wise operations, you shouldn’t worry about it here. They are usually much faster than division and modulus and when we are explicitly considering bits in a number, they are expressing our intents clearer than the arithmetic operations. We won’t be using bit-wise operations in this book, since most algorithms are not based on such low-level operations; I simply mention them here for completeness of the example.
+
+As a final example, where the termination function depends on a precision and where it doesn’t simply depend on the variables in the loop condition, we can consider finding roots of a function, i.e., values where it is zero. We consider a simple polynomial
+
+$$p(x) = x^3 - 3 x^2 + 1$$
+
+This polynomial is positive at $x=0$, where $p(0)=1$, and negative at $x=1$, where $p(1) = -1$, so from basic calculus we know that somewhere between zero there is an $x$ such that $p(x)=0$. To find that point,^[This polynomial has three real roots, but only one between zero and one, so the one we are looking for is $x\approx 0.65720$.] we will keep reducing the interval we search in until the midpoint of the interval is within $\epsilon$ of $0$, i.e. we look for an $x$ where $|p(x)|<\epsilon$.
+
+The algorithm looks like this:
+
+```python
+a = 0 ; b = 1
+x = (a + b) / 2
+epsilon = 0.01
+
+val = x ** 3 - 3 * x ** 2 + 1
+while abs(val) > epsilon:
+	if val > 0:
+		a = x
+	else:
+		b = x
+	x = (a + b) / 2
+	val = x ** 3 - 3 * x ** 2 + 1
+```
+
+In the algorithm, we set `x` to the midpoint between `a` and `b`, two variables that define our interval and that starts out as 0 and 1 respectively. We then get the value of the polynomial in that midpoint and check if it is positive or negative. We know it should be positive to the left of the root and negative to the right of the root, so if our value is not sufficiently close to zero, we simply move one of the interval endpoints to the right or left accordingly.
+
+To construct a termination function for this algorithm we need a little bit of calculate. We need to know that as $x$ tends toward the root we are looking for, $r$, the polynomial will tend towards zero (from negative or positive numbers, depending on whether we approach from the left or right), i.e. $p(x)\to 0$ as $x\to r$. This tells us that if we keep decreasing the size of the interval $[a,b]$, $x$ will tend to $r$ and $p(x)$ will tend to zero. We don’t know how close $x$ needs to be to $r$ before $p(x)<\epsilon$, but we do know that such a number exist, and we can call it $\delta$.
+
+That gives us the termination function we are after: $t(a,b)=b-a-\delta$. Clearly, this is a mapping from algorithmic states to a number, even if it is not a mapping of the variables that appear in the loop-condition. It decreases in each iteration because we cut the size of the interval in half when we replace an endpoint with a midpoint. Once $|x-r|<\delta$ the termination function will be negative, but at the same time $|p(x)|<\epsilon$ by definition of $\delta$, and the loop-condition will be `False`.
+
+The last example is a bit more complicated than the previous two, but usually, coming up with a termination function is not that complicated, and the situation is more like the first two examples than the last. There is even less reason to despair, because in most cases, you don’t *need* to come up with a termination function. Anytime you use a `for`-loop over a finite sequence, you can simply use the number of remaining elements for your termination function, and that works for all `for`-loops over finite sequences. 
+
+### Exercises on algorithms
 
 The following exercises tests that have understood algorithms and algorithmic design in sufficient detail to reason about termination and correctness and that you have enough experience with Python programming to implement simple sequential (also known as iterative) algorithms.  Here, by sequential, I simply mean that the algorithms iterate through one or more loops to achieve their goal.
 
@@ -411,7 +464,7 @@ Try it out.
 
 You can extract the base $b$ representation of a number by building a list of digits starting with the smallest. You can use `digits[i % b]` to get the last digit and remember that in a list. Then we need to move on to the next digit. Now, if the number we are processing is $n = b^0 \times a_0 + b^1\times a_1 + b^2 \times a_2 + \cdots + b^m a_m$, then $a_0$ is the remainder in a division by $b$ and the digit we just extracted. Additionally, if $/$ denotes integer division, $n/b=b^0\times a_1 + b^1 \times a_2 + \cdots b^{m-1}a_m$. So, we can get the next digit by first dividing $n$ by $b$ and then extract the smallest digit.
 
-If you iteratively extract the lowest digit and put it in a list and then reduce the number by dividing it by $b$, you should eventually have a list with all the digits, although in reverse order. If your list is named `lst`, you can reverse it using this function call `reversed(lst)`.
+If you iteratively extract the lowest digit and put it in a list and then reduce the number by dividing it by $b$, you should eventually have a list with all the digits, although in reverse order. If your list is named `lst`, you can reverse it using this expression `lst[::-1]`. The expression says that we want `last` from the beginning to the end—the default values of a range when we do not provide anything—in steps of negative one.
 
 **Exercise:** Flesh out an algorithm, based on the observations above, that can print any integer in any base $b\le 16$. Show that your method terminates and outputs the correct string of digits.
 

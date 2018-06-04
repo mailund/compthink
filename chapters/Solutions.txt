@@ -70,7 +70,7 @@ def print_base(n, b):
     while n > 0:
         base_b.append(digits[n % b])
         n //= b
-    print("".join(reversed(base_b)))
+    print("".join(base_b[::-1]))
 ```
 
 ### The sieve of Eratosthenes
