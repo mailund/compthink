@@ -194,7 +194,58 @@ Breaking down the steps we need to take to solve a problem, and then asserting w
 
 ### Measuring progress
 
-**FIXME: potential or something that ensure that we make progress in each iteration**
+When we loop we often do not know in advance how many steps we need to do a given computation. When you use a `for`-loop, you iterate over a number of elements in a sequence, and the length of that sequence often depends on the input.
+
+Whenever we use a variable number of computations to solve a problem, we have the issue of termination. To have a proper algorithm, we need to ensure that we only do a finite number of computations on any input we provide the algorithm with. To ensure this, we want each computation to take us closer to the final solution. If we can, somehow, associate a measure of progress towards the ultimate solution to each computation, in such a way that we will always reach the solution and not simply move asymptotically towards it, then we can prove that our algorithm will eventually terminate.
+
+We usually do not worry about capturing the progress we make towards our goal when we are not in a loop. Computations we make outside of a loop are only ever done once, so there is no issue with them not terminating. We usually do not worry about `for`-loops either, since in most cases they iterate over each element in a finite sequence. It is possible to create infinite sequences in Python, but we will not consider such constructions in this book, so all `for`-loops we know will terminate. We might not know exactly how many times a loop body will be executed, but we know that it is finite as long as the sequence we iterate over is finite.
+
+The real issue is when we have `while`-loops. With those, we keep iterating until the loop condition evaluates to `False`, so we need to ensure that this will eventually happen.
+
+Consider this problem, given two numbers, `n` and `m`, we want to compute how many times `m` divides `n` and what the remainder is. We can easily do this in Python using the (integer) division and modulus operator
+
+```python
+n = 42
+m = 11
+print(n // m, n % m)
+```
+
+but assume, for the sake of the example, that we did not have those operators. A simple approach to solving the problem would then be to repeatedly remove `m` from `n` until we are left with a number less than `m`. In Python, this could look like this:
+
+```python
+a = n ; p = 0
+while a >= m:
+	a -= m
+	p += 1
+print(p, a)
+```
+
+After running this algorithm, `p` will be `n // m` and `a` will be `n % m`. I will leave it as an exercise for the reader to come up with a loop invariant that can be used to prove correctness of this and focus on how we prove that the computation terminates.
+
+To ensure that the loop terminates, we must prove that eventually `a >= m` will be false, i.e., that eventually `a` will be less than `m`. It should be obvious that this happens with this simple algorithm, since we decrease `a` in each iteration and we never increase it, but to formalise this reasoning we can say that we associate with the loop a *termination* function, $t$, that measures how close we are to the point where the loop condition is false. Thinking in terms of such a function will help us when the loops are more complicated than this one.
+
+Such a termination function should have the following properties:
+
+1. The termination function maps the algorithm’s state to a number.
+2. In each iteration, it is decreasing.
+3. The loop condition is `False` when the termination function is at or below zero.
+
+For the first point, we need to know what we mean by the   
+“algorithm’s state”. This is simply the value of all the variables we use in the algorithm. We want the termination function to be a function of the variable’s values to a number. We don’t need to use all the variables, but if it depends on none of them, then the value it gives us will never change, and we cannot ensure the other two points. In our simple algorithm here, we have a loop condition that depends only on `a` and `m` and so will our termination function. We define it to be
+
+$$t(a,m) = a - m$$
+
+It is not always the case that a termination function only depends on the variables used in the loop condition. Sometimes, we cannot guarantee that these variables capture the entire progress made towards loop-termination in each function body, and then we have to make it depend on more variables.
+
+The second and third conditions to the termination function should be more straightforward to interpret. If we can show that $t(a,m)$ decreases in each iteration and that $t(a,m)\le 0$ implies that the loop condition is `False`, then we are guaranteed termination.[^asymptotic_convergence]
+
+[^asymptotic_convergence]: Here we are implicitly also assuming that the function doesn’t converge asymptotically towards zero. That is, it is not sufficient to require that $t$ always decreases if it can get arbitrarily close to zero but never reach zero. There are cases where we use algorithms to approximate a value to within a given acceptable error. In such cases, we need to require that it converge to a negative number. For example, if we have an algorithm that approximates a number, $x$, by a computed value $\hat{x}$, to within an error $\epsilon$, i.e., it computes a value $\hat{x}$ such that $|x-\hat{x}|<\epsilon$, then we we can use a termination function that is $t(\hat{x})=|x-\hat{x}|-\epsilon$. If $\hat{x}$ moves asymptotically towards $x$, then $|x-\hat{x}$ converges to zero but might not necessarily reach zero. It will, however, if we set up the algorithm correctly, get within a distance less than $\epsilon$ at some point, and at that point, the termination function will be negative.
+
+For our example algorithm, conditions two and three are easy to prove. In each iteration, we decrease `a` while `m` never changes, so the termination function must decrease by the same amount that `a` is decreased by. This guarantees the second condition. For the third condition, we simply observe that when $t(a,m)=m-a \le 0$, the condition `a >= m` must be `False`.
+
+**FIXME** 
+
+- [ ] Example with more complex termination function.
 
 ### Exercises on Sequential algorithms
 
