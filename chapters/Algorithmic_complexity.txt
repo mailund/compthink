@@ -1,2 +1,226 @@
 
-# Algorithmic complexity
+# Algorithmic efficiency
+
+As a general rule, we want our algorithms to work as efficiently as possible, which usually means that we want them to solve the problem they are designed for quickly and using as few resources, such as memory or disk space, as possible. This is just a rule of thumb, of course, because we also need to factor in programmer time—if you need a problem solved a month from now, and you have the choice between an algorithm that can solve the problem in two weeks and takes one week to implement, that is preferable over an algorithm that can solve the problem in an hour but takes a month to implement.
+
+It is notoriously hard to estimate how long it will take to implement a given algorithm, however, as this depends on the skills of the programmer and which libraries and programming language abstractions he has available, and we will not attempt to do that here. With experience, you will get a feel for how hard it will be to implement a given algorithm, and while you are unlikely to ever be able to accurately estimate exactly how much work goes into implementing one, you will be able to determine which of two choices is the more complex algorithm. Unless there are good reasons for wanting a more complex but potentially more efficient algorithm, you should go for the simplest algorithm that can get the job done. Sometimes, the simplest algorithm *will* be too slow for your problem and you have to replace it with a more complex one, or sometimes you expect to run your algorithm many times on many data sets, and spending a little more programming time for faster execution down the line might pay off, but as a general rule, you do not want to spend more time programming than what is warranted for your problem. Programmer-time is much more valuable than computer-time, so simple algorithms that can be implemented quickly are generally preferable to complex algorithms that are hard to implement.
+
+This chapter is not about the complexity of algorithms in the sense of how complicated they are to implement, however, but about how efficiently they solve a problem. That is, the chapter is about how fast you can expect an algorithm to execute. Whenever you have the choice between two algorithms that looks like they are roughly equally complicated to implement, you want to go with the one that is likely to be the most efficient of the two.
+
+The best way to measure which of two algorithms is superior for solving a given problem is, of course, to program the best implementations of the two that you can manage and then measure how fast they are on your data. Whichever you stopwatch tells you is the best, clearly is. That, of course, is not an option if your focus is on actually solving a problem rather than comparing two algorithms. To solve your problem that way, you have to solve it twice. You need to implement both algorithms and then run both of them on your actual data. What we need is a way of reasoning about how likely it is that one algorithm is better than another without using a stop-watch.
+
+The way we reason about algorithmic efficiency is similar to how we reason about the physical world when we do science: we use a model of a computer that is much simpler than the real thing, but one we can reason about without too many complications. We then work out how many primitive operations an algorithm needs to make on the input we give it. This is not a completely accurate measurement of how long the actual algorithm will run on an actual computer, but it is a good estimate.
+
+To make it even simpler to reason about efficiency than this, we often don’t care about counting the number of primitive operations accurately either. We will only care about how the number of computations depend on the input in an asymptotic sense that should be clear by the end of this chapter, but loosely means that we only care about whether an algorithm needs to make a number of computations that is, say, linear or quadratic in the input size, and we do not care what the actual number of computations are; we would consider functions such as $2x^2+x$ and $100x^2+1000x$ the same but different from $500x$. This might sound a bit sloppy, but there is a mathematical underpinning that justifies this, and by using this approach we can very quickly determine which of two algorithms is likely to be faster than the other.
+
+## The RAM model of a computer and primitive operations
+
+Any actual computer you will ever use is a very complex machine. At its core is a gazillion transistors wired together to implement different logical operations in hardware. The hardware in your computer handles both simple computations, such as comparing numbers or doing arithmetic, and manages how data is moved around. Data is stored different places in such a computer; you have persistent storage on disk, that lives outside of running programs, and while programs run, you have data moving between different layers of memory hierarchies. At the core of the computer is one or more central processing units, or CPUs, that do actual computations. Data needs to be moved to these CPUs for them to compute on it. They can hold some data themselves, in what is called *registers*, and they can do computations on such data very quickly. There is only a finite number of registers, though, so data needs to be moved to and from these registers. Below registers are several layers of memory called *caches*, and the closer caches are to the registers, the faster that can happen. Below caches you have *random-access memory*, or RAM, and below that, disks, which can be solid state or actual rotating disks, or some combination thereof.
+
+The levels of the memory hierarchy is vital to actual performance of an algorithm. Every time you move data from one level to the next, the time it takes to access it grows by orders of magnitude. Your CPUs can make billions or trillions of computations in the time it takes the computer to move data from your disk to a register. Moving data up and down the memory hierarchy, however, is handled automatically by the computer so we don’t have to deal with it explicitly. We can construct algorithms that ignores the memory hierarchy completely and still get well-working programs. Considering the memory hierarchy can help us improve the running time of a program immensely, but doing this also greatly complicates our algorithms, and in many cases solutions will depend on the actual hardware of the computer we execute such algorithms on.
+
+I am mentioning all this to make it clear that considering any actual computer greatly complicates how we can reason about the actual performance of an algorithm. If we have to consider any actual computer, or even a simplified model of one that takes vital information such as memory hierarchy into consideration, reasoning about running time becomes practically impossible. When we reason about algorithmic complexity, we use much simpler models, and a traditional model is the so-called *RAM model*, where RAM again stands for random-access memory.
+
+The key property of the RAM model is that we assume that any data we need, we can access in constant time. We assume that there is such a thing as a *computer word*, which you should think of as a number or a string character or a primitive piece of data like that. We cannot store arbitrarily large numbers in computer words, but we assume that if the size of the input data for your algorithm is $n$ such primitive pieces of data, then a computer word can contain numbers up to $n$. Put in another bit, if your input data is of size $n$, then you can represent $\lceil \log_2 n \rceil$ bits in a computer word, since that is the number of bits you need to represent numbers up to $n$. Any computer word in our input data, or any computer word we create in our algorithm, can be accessed on constant time. We ignore that some computer words can be accessed much faster than others; they are all just accessible in constant time. We also assume that we can compare computer words in constant time, and that any arithmetic operation we do on numbers that can be stored in a single computer word can be done in constant time, ignoring that dividing numbers on a real computer will take longer than comparing them and such.
+
+The reason we have to be a little careful about what we consider a computer word is exactly because we want to make the assumption about how fast we can make computations on them. We want our abstract computer words to roughly match what the actual computer can work with in its registers. In the hardware of a real computer, the different operations you can do on numbers and bit-patterns are wired together, so the CPUs consider operating on words in registers as primitive operations. The time it takes actual hardware to do a primitive operation depends on what that operation is. The hardware for multiplication is more complex than the hardware for simple comparison. But the time it takes a CPU to do a primitive operation is captured in the hardware and will always be some constant amount of time; it doesn’t depend on the size of the input to the algorithm you are executing. To actually compare two numbers that can be up to $n$ large, we need to compare $\lceil \log_2 n \rceil$ bits, so it *isn’t* constant time. If we assume, however, that any number that is smaller than the input size *can* be represented in a physical register, then the hardware *can* operate on it in constant time. On any actual computer, the size of the numbers it can represent is bounded by a constant, but so is the size of any data we can actually give the computer, and if we start assuming that all our input data is bounded by a constant, then the mathematics we use to reason about algorithmic efficiency becomes meaningless. We have to consider the size of the input a variable that is not constant, and it is to make those two ends meet that we make assumptions about how large numbers we can represent in computer words.
+
+You rarely have to worry about this when you think about algorithmic efficiency, though. As long as you do not work with numbers that are larger than the size of the input, the RAM model says that
+
+1. You can compare numbers in constant time.
+2. You can access any computer word in constant time.
+3. You can do any arithmetic or bit-wise operation on computer words in constant time.
+
+This is a great simplification of actual hardware. If we make these simple assumptions about how fast our model of a computer can do computations, and we assume that all such operations take the same amount of time, then we can simply count how many of these primitive operations an algorithm will do on any given input to get an estimate of how fast it will run.
+
+Let us try counting primitive operations in a small example. Let us assume that we have a list of numbers,
+
+```python
+numbers = [1, 2, 3, 4, 5]
+```
+
+In this case, we have $n=5$ numbers. We usually do not count the operations it takes to get our input. Sometimes, we need to read it in from disk, or in this example, we need to tell Python what the numbers are, and this will take around $n$ operations to create this list. If the data is part of our input, however, we do not count those instructions. The reason for this is that there are many algorithms where we use less than $n$ operations to answer questions about our data, and we do not want to have our analysis of the efficiency of these dominated by how long it takes to get the input. Such algorithms are used as building blocks for other algorithms that will responsible for getting the input in the right form for what we need, and we consider that a cost of the other algorithm. If you need to create a list as part of your algorithm, the number of operations that take have to be included in the accounting, but we simply assume that the input is present before we start counting.
+
+Let us now consider the task of adding all these numbers up. We can do this using this algorithm:
+
+```python
+accumulator = 0
+for n in numbers:
+	accumulator += n
+```
+
+First, we create a variable to store intermediate values, `accumulator`. Then we have a `for`-loop that runs over our input and for each input number add that number to `accumulator`. Initialising a variable with a number amounts to setting a computer word to a value, so it takes 1 operation in our RAM model. Adding two numbers is also a single operation, and on all modern computers you can add a number to an existing computer word as a single operation, so we consider `accumulator += n` as a single operation—if you want to think about it as `accumulator = accumulator + n` you can count it as two operations. If we consider updating `accumulator` a single operation, we have $1 + n$ operations for initialising and updating `accumulator`. It is less straightforward to know how many operations we spend on the `for`-loop however. That depends on how Python handles `for`-loop statements. The `for`-loop construction is not as primitive as the RAM model. We can implement the same loop using a `while`-loop, however, using only primitive operations:
+
+```python
+accumulator = 0
+length = len(numbers)
+i = 0
+while i < length:
+	n = numbers[i]
+	accumulator += n
+	i += 1
+```
+
+Here, we have a clearer view of the primitive operations a `for`-loop likely implements. To iterate over a list we need to know how long it is.^[In Python, iterating over sequences doesn’t actually require that we know how many elements we have, because the `for`-loop construction is vastly more powerful than what we implement with this simple `while`-loop, but using the length is the simplest we can do if we implement the `for`-construction ourselves.] The statement
+
+```python
+length = len(numbers)
+```
+
+isn’t actually primitive either. It uses Python’s `len` function to get the length of a sequence, and we don’t know how many primitive operations *that* takes. If we assume, however, that lists store their lengths in a single computer word, which they really do, and that `len` simply gets that computer word, which is not far from the truth, we can consider this statement a single operation as well.^[Again we have an operation that Python provides for us, like the `for`-loop construction, that is actually more powerful than we give it credit for when we count the number of primitive operations the operation takes. We have to stop somewhere for the example, however, so this is as deep I want to take us down the rabbit hole.]
+
+```python
+accumulator = 0.        # one operation
+length = len(numbers).  # one operation
+```
+
+We then initialise the variable `i` that we use to keep track of how many elements we have processed. That is also a single primitive operation.
+
+The `while`-loop construction does two things. It evaluates its condition and if it is `True` it executes the code in the loop body; if it is `False`, it sends the program to the point right after the loop to start executing the statements there, if any. We call such an operation a *branching operation* because it sends the point of execution to one of two places, and such an operation is implemented as a single instruction in hardware, so we will count the decision of where to continue execution as a single operation. We need to evaluate the loop condition first, however, which is a single numeric comparison, so that takes another primitive operation. We evaluate the loop-condition once for each element in `numbers`, i.e., $n$ times, so now we have:
+
+```python
+accumulator = 0         # one operation
+length = len(numbers).  # one operation
+i = 0                   # one operation
+while i < length:       # 2n operations 
+  ...
+```
+
+Each of the statements inside the loop body will be evaluated $n$ times, so we just need to figure out how many operations are needed for each of the statements there and multiply that with $n$. The last two statements are simple, they update a number by adding another number to them, and that is a single operation.
+
+```python
+accumulator = 0         # one operation
+length = len(numbers).  # one operation
+i = 0                   # one operation
+while i < length:       # 2n operations 
+	n = numbers[i]      # ? * n operations
+	accumulator += n    # 2n operations
+	i += 1              # 2n operations
+```
+
+The remaining question is how many operations it takes to compute `n = numbers[i]`. Here, we need to understand what something like `numbers[i]` means. Once again, we use a Python construction that we do not necessarily know how many operations take to execute. To understand that, we need to know how Python represents lists in computer memory, and that is beyond the scope of this chapter. You will have to take my word on this, but it is possible to get the $i$’th element in a list by adding two computer words and then reading one, so we count this as two operations and end up with:
+
+```python
+accumulator = 0         # one operation
+length = len(numbers).  # one operation
+i = 0                   # one operation
+while i < length:       # 2n operations 
+	n = numbers[i]      # 2n operations
+	accumulator += n    # n operations
+	i += 1              # n operations
+```
+
+If we add it all up, we get that to compute the sum of $n$ numbers this way, we need to use $3 + 6n$ primitive operations.
+
+If we assume that all `for`-loops are implemented by first capturing the length of the sequence, then setting a counter to zero, and then iterating thought the sequence, comparing the counter with the length as the loop-condition and incrementing the counter at the end of the loop-body, and accessing elements in the sequence by indexing, i.e., that `for`-loop
+
+```python
+for element in a_list:
+	# do something
+```
+
+can be translated into this `while`-loop
+
+```python
+length = length(a_list)        # 1 operation
+counter = 0                    # 1 operation
+while counter < length:        # 2n operations
+    element = a_list[counter]  # 2n operations
+    # do something
+    counter += 1               # n operations
+```
+
+we can say that a `for`-loop iterating over a sequence of length $n$ takes $5n + 2$ operations. If we go back to our original `for`-loop adding algorithm we then get
+
+```python
+accumulator = 0       # 1 operation
+for n in numbers:     # 5n + 2 operations
+	accumulator += n  # n operations
+```
+
+which gives us the same $6n + 3$ operations as before.
+
+If you feel a bit overwhelmed by how difficult it is to count the number of primitive operations in something as simple as this, I understand and feel with you. If it is this hard to count operations in the abstract RAM model, where we even make some assumptions about how many operations Python needs to implement its operations, you will understand why we do not even attempt to take into account that different operations take different time and that data access time depends on memory hierarchies.
+
+The good news is that we very rarely do count the number of operations an algorithm needs this carefully. Remember that I said, at the beginning of the chapter, that we generally consider functions such as $2x^2+x$ and $100x^2+1000x$ the same. We will also consider $6n + 3$ the same as $n$ general number of operations, in a way I will explain a little later. First, however, you should try to count primitive operations in a few examples yourself.
+
+### Counting primitive operations execises
+
+**Exercise:** Consider this way of computing the mean of a sequence of numbers:
+
+```python
+accumulator = 0
+for n in numbers:
+	accumulator += n
+mean = accumulator / len(numbers)
+```
+
+Count how many primitive operations it takes. To do it correctly you need to distinguish between updating a variable and assigning a value to a new one. Updating the accumulator `accumulator += n` usually maps to a single operation on a CPU because it involves changing the value of a number that is most likely in a register. Assigning to a new variable, as in
+
+```python
+mean = accumulator / len(numbers)
+```
+
+doesn’t update `accumulator` with a new value, rather it needs to compute a division, which is one operation (and it needs `len(numbers)` before it can do this, which is another operation), and then write the result in a new variable, which is an additional operation.
+
+**Exercise:** Consider this alternative algorithm for computing the mean of a sequence of numbers:
+
+```python
+accumulator = 0
+length = 0
+for n in numbers:
+	accumulator += n
+	length += 1
+mean = accumulator / length
+```
+
+How many operations are needed here? Is it more or less efficient than the previous algorithm?
+
+## Best-case, worst-case, and average-case efficiency
+
+When computing the sum of a sequence of numbers, the number of operations we need is independent of what the actual numbers are, so we could express the number of operations as a function of the number of numbers, $n$. Things are not always that simple.
+
+Consider this algorithm for determine if a number $x$ is in the sequence of numbers `numbers`:
+
+```python
+in_list = False
+for n in numbers:
+	if n == x:
+		in_list = True
+		break
+```
+
+Here, we assume that both `numbers` and `x` are initialised beforehand. The algorithm sets a variable, `in_list`, to `False`—one primitive operation—and then iterates through the numbers. This would usually cost us $5n + 2$ operations for the `for`-loop, but notice that we `break` if we find the value in the list. We won’t spend more than $5n + 2$ operations on the `for`-loop, but we might spend less. Let us say that we iterate $m$ times, so the cost of the `for`-loop is $5m + 2$ instead. Then we can count operations like this:
+
+```python
+in_list = False           # 1 operation
+for n in numbers:         # 5m + 2 operations
+	if n == x:            # 2m operations
+		in_list = True    # 1 operation 
+		break             # 1 operation
+```
+
+The `if`-statement is a branching operation just like the `while`-loop; we need to compare two numbers, which is one operation, and then decide whether we continue executing inside the `if`-body or whether we continue after the `if`-block, which is another operation. Inside the `if`-block, we have two primitive operations. Setting the variable `in_list` is a primitive operation like before, and `break` is another branching operation, that does not need a comparison first, that simply moves us to after the loop. These two operations are only executed once, since they are only executed when the `n == x` expression evaluates to `True` and we leave the loop right after that.
+
+When we add up all the operations we find that the algorithm takes $7m + 5$ operations in total, where $m$ depends on the input. It is not unusual that the running time of an algorithm depends on the the actual input, but taking that into account vastly complicates the analysis. The analysis is greatly simplified if we count the running time as a function of the size of the input, $n$, and do not have to consider the actual data in the input.
+
+For this simple search algorithm, we clearly cannot reduce the running time to a function of $n$, because it depends on how soon we see the value $x$ in the sequence, if at all. To get out of the problem, we usually consider one of three cases: the *worst-case* complexity of an algorithm, the *best-case* complexity, or the *average-case* complexity.
+
+To get the worst-case estimate of the number of operations the algorithm needs to take, we need to consider how the data can have a form where the algorithm needs to execute the maximum number of operations it can possibly do. In the search, if $x$ is not found in the sequence we will have to search the entire sequence, which is as bad as it gets, so the worst-case time usage is $7n + 5$. If the very first element in `numbers` is $x$, then $m=1$, which is as good as it gets, so the best-case running time is $12$ operations.
+
+The average-case is much harder to pin down. To know how well our algorithm will work on average we need consider our input as randomly sampled from some distribution—it does not make sense to think of averages over something that doesn’t have an underlying distribution the data could come from, because then we would have nothing to average over. Because of this, we will generally not consider average-case complexities in this book. Average-case complexity is an important part of so-called randomised algorithms, where randomness is explicitly used in algorithms, and where we have some control over the data. To get a feeling for how we would reason about average-case complexity, imagine for a second that $x$ is in the `numbers` list but at a random location. I realise that would make it very silly to run the algorithm in the first place, since the result will always be `True`, but indulge me for a second. If $x$ is a random number from `numbers`, then the probability that it is at index $j=1,\ldots,n$ and is $1/n$, in which case $m=j$. The mean $m$ is then $\mathrm{E}[m]=\sum_{j=1}^n j/n$ which is $\frac{n+1}{2}$. Plugging that into $7m + 5$ we get the average-case time usage $7/2(n+1)+5$.
+
+Of the three cases, we are usually most concerned with the worst-case performance of an algorithm. The average-case is of interest if we have to run the algorithm many times over data that is distributed in a way that matches the distributions we use for the analysis—where the average over the input the algorithm will actually be run on matches the average-case analysis—but for any single input, it does not tell us much about how long the algorithm will actually run. The best-case is only hit by luck, unless we can somehow control what the data looks like, so relying on that in our analysis is often overly optimistic. The worst-case performance, however, gives us some guarantees about how fast the algorithm will be on any data, however pathological, we give it.
+
+### Exercises
+
+Recall the guessing game from last chapter, where one play thinks a number between 1 and 20 and the other has to guess it. We had three strategies for the guesser:
+
+1. Start with 1. If it isn't the right number, it has to be too low--there are no smaller numbers the right one could be. So if it isn't 1, you guess it is 2. If it isn't, you have once again guessed too low, so now you try 3. You continue by incrementing your guess by one until you get the right answer.
+2. Alternatively, you start at 20. If the right number is 20, great, you got it in one guess, but if it is not, your guess must be too high--it cannot possibly be too small. So you try 19 instead, and this time you work your way down until you get the right answer.
+3. Tired of trying all numbers from one end to the other, you can pick this strategy: you start by guessing 10. If this is correct, you are done, if it is too high, you know the real number must be in the interval $[1,9]$, and if the guess is too low, you know the right answer must be in the interval $[11,20]$--so for your next guess, you pick the middle of the interval it must be. With each new guess, you update the interval where the real number can be hidden and pick the middle of the new interval.
+
+**Exercise:** Identify the best- and worst-case scenarios for each strategy and derive the best-case and worst-case time usage.
+
+## Asymptotic running time and big-Oh notation
+

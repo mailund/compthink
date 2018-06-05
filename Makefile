@@ -8,7 +8,7 @@ CHAPTERS := 000_header.yml \
                Solutions.txt
 
 CHAPTERS := 000_header.yml \
-               Introduction_to_algorithms.txt \
+               Algorithmic_complexity.txt \
                
 
 SOURCE_CHAPTERS := $(foreach chapter,$(CHAPTERS),chapters/$(chapter))
@@ -30,7 +30,7 @@ PANDOC_EPUB_OPTS := $(PANDOC_OPTS_ALL) \
                     -t epub3 --toc-depth=1 \
                     --epub-cover-image=cover.png
 
-all: book.pdf book.epub wc
+all: book.pdf wc
 
 book.pdf: $(SOURCE_CHAPTERS) Makefile templates/latex-template.tex
 	$(PANDOC) $(PANDOC_PDF_OPTS) $(SOURCE_CHAPTERS) -o $@
