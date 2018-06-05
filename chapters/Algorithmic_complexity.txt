@@ -71,7 +71,7 @@ isn’t actually primitive either. It uses Python’s `len` function to get the 
 
 ```python
 accumulator = 0.        # one operation
-length = len(numbers).  # one operation
+length = len(numbers)   # one operation
 ```
 
 We then initialise the variable `i` that we use to keep track of how many elements we have processed. That is also a single primitive operation.
@@ -80,7 +80,7 @@ The `while`-loop construction does two things. It evaluates its condition and if
 
 ```python
 accumulator = 0         # one operation
-length = len(numbers).  # one operation
+length = len(numbers)   # one operation
 i = 0                   # one operation
 while i < length:       # 2n operations 
   ...
@@ -90,7 +90,7 @@ Each of the statements inside the loop body will be evaluated $n$ times, so we j
 
 ```python
 accumulator = 0         # one operation
-length = len(numbers).  # one operation
+length = len(numbers)   # one operation
 i = 0                   # one operation
 while i < length:       # 2n operations 
 	n = numbers[i]      # ? * n operations
@@ -102,7 +102,7 @@ The remaining question is how many operations it takes to compute `n = numbers[i
 
 ```python
 accumulator = 0         # one operation
-length = len(numbers).  # one operation
+length = len(numbers)   # one operation
 i = 0                   # one operation
 while i < length:       # 2n operations 
 	n = numbers[i]      # 2n operations
@@ -212,7 +212,7 @@ The average-case is much harder to pin down. To know how well our algorithm will
 
 Of the three cases, we are usually most concerned with the worst-case performance of an algorithm. The average-case is of interest if we have to run the algorithm many times over data that is distributed in a way that matches the distributions we use for the analysis—where the average over the input the algorithm will actually be run on matches the average-case analysis—but for any single input, it does not tell us much about how long the algorithm will actually run. The best-case is only hit by luck, unless we can somehow control what the data looks like, so relying on that in our analysis is often overly optimistic. The worst-case performance, however, gives us some guarantees about how fast the algorithm will be on any data, however pathological, we give it.
 
-### Exercises
+### Exercise
 
 Recall the guessing game from last chapter, where one play thinks a number between 1 and 20 and the other has to guess it. We had three strategies for the guesser:
 
@@ -220,7 +220,120 @@ Recall the guessing game from last chapter, where one play thinks a number betwe
 2. Alternatively, you start at 20. If the right number is 20, great, you got it in one guess, but if it is not, your guess must be too high--it cannot possibly be too small. So you try 19 instead, and this time you work your way down until you get the right answer.
 3. Tired of trying all numbers from one end to the other, you can pick this strategy: you start by guessing 10. If this is correct, you are done, if it is too high, you know the real number must be in the interval $[1,9]$, and if the guess is too low, you know the right answer must be in the interval $[11,20]$--so for your next guess, you pick the middle of the interval it must be. With each new guess, you update the interval where the real number can be hidden and pick the middle of the new interval.
 
-**Exercise:** Identify the best- and worst-case scenarios for each strategy and derive the best-case and worst-case time usage.
+Identify the best- and worst-case scenarios for each strategy and derive the best-case and worst-case time usage.
 
 ## Asymptotic running time and big-Oh notation
+
+As we have seen, counting the actual number of primitive operations used by an algorithm quickly becomes very tedious. Considering that all operations are not equal, different arithmetic operations will take different time to compute, and considering that memory hierarchies make access to different data more or less expensive, often by orders of magnitude, it also seems to be a waste of time to be that precise in counting operations. If adding ten numbers can be much faster than multiplying three, why should we worry that the first involves nine operations and the second only two? In fact, we very rarely do count the actual operations, and when we do, it is for very simple but important algorithms—and when we do, we also take into account the hardware the operations will run on, so such counting doesn’t generalise from one computer to another. What we really care about is how the running time (or memory or disk space usage, or whatever critical resource our algorithm uses) grows as a function of the input size in some rough sense, that we will now consider.
+
+When we consider a function of the input size, $f(n)$, we care about the *order* of $f$. We classify functions into classes and only care about which class $f$ belongs to, not what the actual function $f$ is. Given a function $f$ we define its “order class” $O(f)$ as:
+
+$$O(f) = \left\{\, g(n): \exists c\in\mathbb{R}^+, n_0\in\mathbb{N} : \forall n\in\mathbb{N} \geq n_0 :
+	0 \leq g(n) \leq c f(n) \,\right\}$$
+	
+Put into words, this means that the class of functions of order $f$ are those functions $g(n)$ that, as $n$ goes to infinity, will eventually be dominated by $f(n)$ times a positive constant $c$.
+
+If $g$ is in $O(f)$ we write $g\in O(f)$, as per usual mathematical notation, but you will often also see it written as $g=O(f)$. This is abuse of notation, but you might run into it, so I should mention it, even if I will not use that notation myself.
+
+Consider functions $f(n) = 10n + 100$ and $g(n) = 3n + 100,000$. We have $g\in O(g)$ because, eventually, a line with incline 10 will grow faster than one with incline 3, so eventually, regardless of where the lines intersect the $y$-axis, the former will be above the latter. We also have $f\in O(g)$ because we can simply multiply $g(n)$ by $10/3$ and it is already above $f(n)$ because it intersects the $y$ axis at a higher value. This “big-Oh” notation is not symmetric, however. Consider the function $h(n)=n^2$. We have both $f\in O(h)$ and $g\in O(h)$ because, regardless of where a line intersects the $y$-axis, $n^2$ will eventually be larger than the line. We do *not* have $h\in O(f)$, however, for exactly the same reason. There is no constant $n_0$ after which a line, regardless of what its intercept is, will always be larger than $n^2$.
+
+When we write $f\in O(g)$ we provide an *upper bound* on $f$. We know that as $n$ goes to infinity, $f(n)$ will be bounded by $cg(n)$ for some constant $c$. The upper bound need not be exact, however, as we saw with $h(n)$. We have a separate notation for that, the “big-Theta$ notation:
+
+$$\Theta(f) = \left\{\,
+g(n): \exists c_1,c_2\in\mathbb{R}^+, n_0\in\mathbb{N} : \forall n\in\mathbb{N} \geq n_0 :
+	0 \leq c_1 f(n) \leq g(n) \leq c_2 f(n)
+\,\right\}$$
+
+The class of functions $\Theta(f)$ are those that, depending on which constant you multiply them with, can be both upper- and lower-bounds of $f(n)$ as $n$ goes to infinity. This notation *is* symmetric: $g\in\Theta(f)$ if and only if $f\in\Theta(g)$. For our two lines, $f(n) = 10n + 100$ and $g(n) = 3n + 100,000$, we have $f\in\Theta(g)$ and $g\in\Theta(f)$, and we can in good conscience write $\Theta(f)=\Theta(g)$ as they are the same classes of functions. We can also write $O(f(n))=O(g(n))=O(n)$ since these are also the same classes, but $O(f)\neq O(h)$ because $O(h(n))=O(n^2)$ is a large class than $O(n)$. There are functions that are bounded, up to a constant, by $n^2$ that are not bounded by $n$, regardless of which constant we multiply to $n$.
+
+The big-Oh notation can be thought of as saying something like “less than or equal to”. When we say that $g\in O(f)$ we are saying that $g$ doesn’t grow faster than $f$, up to some constant and after a certain $n_0$. Because the notation is concerned with what happens as $n$ goes to infinity, it captures *asymptotic behaviour*. This is just a math term for saying that we concern ourselves with what a function does as it moves towards a limit, in this case infinity. When we analyse algorithms, we usually care more about how efficient they are on large input data compared to how they behave on small input data, so we care about their asymptotic efficiency more than we care about the details of how they behave for small $n$.
+
+Consider algorithms that use $n^2$ versus $10n + 100$ operations on input of size $n$. For small $n$, the $n^2$ algorithm will use fewer operations than the $10n + 100$ algorithm, but unless we expect that the input size will always be small, the $10n + 100$ algorithm is superior. As $n$ grows, it will eventually be *much* faster than the $n^2$ algorithm.
+
+When we have an algorithm that uses $f(n)$ operations for input of size $n$, and we know $f\in O(g)$, then we know that $g$ will eventually bound the running time for the algorithm. We will say that “the algorithm runs in time $O(g)$”—or usually qualify that we consider worst-case complexity, say, by saying that “the algorithm runs in worst-case time $O(g)$”.
+
+Consider the example from earlier where we added $n$ numbers together. We counted that this involved $6n + 3$ primitive operations. If we pick any constant $c>6$, then $cn$ will eventually be larger than $6n + 3$, so we can say that the algorithm runs in time $O(n)$. The cost of each individual operation will vary according the the actual hardware you will execute the algorithm on, and it will not be the same cost for each operation, so knowing that the running time is linear, i.e., that the algorithm runs in time $O(n)$, is much more important to know than knowing the exact number of operations. Therefore, we usually do not care about the actual number of operations but only the big-Oh of them.
+
+The big-Oh notation is the most used notation of the two we have seen. It is sometimes easier to show that an algorithm does not do more than a certain number of operations, $f(n)$, that to show that it doesn’t do fewer. In many cases, we can show that an algorithm’s running time is in big-Theta, $\Theta(f)$, which gives us more information about the actual running time, but it can at times be harder to get such an exact function of its running time. When we use big-Oh, it is not a problem to over-count how many operations we actually use; when we use big-Theta, we have to get it right.
+
+### Other classes
+
+In the vast majority of times when we use this asymptotic notation, we use big-Oh. We often do that even when we know that an algorithm’s complexity accurately and could use big-Theta. This is simply because we usually care much more about bounding the running time of an algorithm than we do about getting the running time exactly right. For completeness, however, I will quickly define a few more classes, in case you run into these outside fo this book.
+
+The big-Oh class of a function is all functions it is an upper bound of. If $g\in O(f)$, then after some $n_0$ and for some constant $c$, $g(n) \leq c f(n)$. If we can change the inequality sign to be less, rather than less-than, we get a different class of functions, called “little-oh”:
+
+$$o(f) = \left\{\, g(n): \exists c\in\mathbb{R}^+, n_0\in\mathbb{N} : \forall n\in\mathbb{N} \geq n_0 :
+	0 \leq g(n) < c f(n) \,\right\}$$
+	
+If $g\in o(f)$ then we know that $g\in O(f)$ but that $f\not\in O(g)$. Asymptotically, $f$ grows strictly faster than $g$.
+
+We also have notation for lower bounds, similar to big-Oh and little-oh: we have big-Omega and little-omega:
+
+$$\Omega(f) = \left\{\, g(n): \exists c\in\mathbb{R}^+, n_0\in\mathbb{N} : \forall n\in\mathbb{N} \geq n_0 :
+	0 \leq f(n) \leq c g(n) \,\right\}$$
+$$\omega(f) = \left\{\, g(n): \exists c\in\mathbb{R}^+, n_0\in\mathbb{N} : \forall n\in\mathbb{N} \geq n_0 :
+	0 \leq f(n) < c g(n) \,\right\}$$
+
+These captures lower bounds, strict or otherwise, and since $g\in\Theta(f)$ means that, asymptotically, we have both that $f$ can dominate $g$ and that $g$ can dominate $f$, we have that $g\in\Theta(f)$ is equivalent to saying $g\in O(f)$ as well as $g\in\Omega(f)$.
+
+When we reason about an algorithms efficiency, we care about upper bounds and use the oh-notation; if we instead worry about how intrinsically complex problems are, we usually care about the lower bounds for any algorithm that solves them will have to be, and use the omega-notation. If we have a problem that we know requires $\Omega(f)$ to solve, but we also have an algorithm that solves it in $O(f)$, we have a tight bound of $\Theta(f)$. We do not concern ourselves much with the complexity of problems in this book, but it will come up from time to time, so keep this in mind.
+
+### Properties of complexity classes
+
+These classes of functions have a few rules that are easy to derive, although we will not do this here, that can help us reason about them in general. As long as we do not use the strict upper- and lower-bound classes, a function is going to be in its own class:
+
+$$f \in \Theta(f)$$
+$$f \in O(f)$$
+$$f \in \Omega(f)$$
+
+There is a symmetry between upper- and lower bounds:
+
+$$f\in O(g) \quad\text{ if and only if }\quad g\in\Omega(f)$$
+$$f\in o(g) \quad\text{ if and only if }\quad g\in\omega(f)$$
+
+Furthermore, there is transitivity in these senses:
+
+$$f\in\Theta(g) \land g\in\Theta(h) \implies f\in\Theta(h)$$
+$$f\in O(g) \land g\in O(h) \implies f\in O(h)$$
+$$f\in\Omega(g) \land g\in\Omega(h) \implies f\in\Omega(h)$$
+$$f\in o(g) \land g\in o(h) \implies f\in o(h)$$
+$$f\in\omega(g) \land g\in\omega(h) \implies f\in\omega(h)$$
+
+I have personally found very few opportunities where these rules have been useful, but if you can see why the rules must be true, you have taken a big step towards understanding this asymptotic function notation.
+
+### Reasoning about algorithmic efficiency using big-Oh notation
+
+Here is how we would reason about an algorithm when using big-Oh notation. Everything that we only do once, is simply $O(1)$. Regardless of what the actual cost of an operation is, say $c$, it is still $O(1)$ because $O(1)=O(c)$ for all constants. It also doesn’t matter how many things we do, as long as we do them once, because $O(1 + 1)=O(1)$, after all, $O(2)=O(1)$. Whenever we loop over $n$ elements, that loop costs us $O(n)$ operations. Any operation that happens inside the loop body can be multiplied by $n$ to account for its cost. It doesn’t matter if we actually *do* compute that operation for each iteration; the big-Oh notation gives us an upper bound for the running time, so if we count an operation more often than we really should, that is okay.
+
+In the summation algorithm, we therefore have:
+
+```python
+accumulator = 0       # O(1)
+for n in numbers:     # O(n)
+	accumulator += n  # n * O(1)
+```
+
+where $n \times O(1)$ should be read as $O(n)$—we are really saying that we do something that has a constant cost, say $c$, but we do it $n$ times, so we do something that costs $cn$ which is in $O(n)$.
+
+With the search algorithm, we can reason similarly and get:
+
+```python
+in_list = False           # O(1)
+for n in numbers:         # O(n)
+	if n == x:            # n * O(n)
+		in_list = True    # n * O(n)
+		break             # n * O(n)
+```
+
+We know that we only ever execute the body of the `if`-statement once, but it is easier just to multiply all the operations inside the loop by $n$, and since the big-Oh notation only guarantees us that we have an upper bound, it works out okay.^[In this particular case, we could just as easily count the `if`-body as constant time as well, but it doesn’t matter for the big-Oh analysis. The entire algorithm runs in $\Theta(n)$, so we are not even ending up with a strict upper bound but the actual asymptotic running time.]
+
+To make the big-Oh reasoning about these algorithms even easier, can work out how to add big-Oh expressions together.
+
+### Doing arithmetic in big-Oh
+
+
+
+- [ ] Important complexity classes
+- [ ] Examples
+- [ ] Exercises
 

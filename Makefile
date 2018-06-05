@@ -8,6 +8,11 @@ CHAPTERS := 000_header.yml \
                Solutions.txt
 
 CHAPTERS := 000_header.yml \
+			   Introduction_to_computation.txt \
+               Introduction_to_algorithms.txt \
+               Algorithmic_complexity.txt \
+
+CHAPTERS := 000_header.yml \
                Algorithmic_complexity.txt \
                
 
