@@ -320,9 +320,9 @@ With the search algorithm, we can reason similarly and get:
 ```python
 in_list = False           # O(1)
 for n in numbers:         # O(n)
-	if n == x:            # n * O(n)
-		in_list = True    # n * O(n)
-		break             # n * O(n)
+	if n == x:            # n * O(1)
+		in_list = True    # n * O(1)
+		break             # n * O(1)
 ```
 
 We know that we only ever execute the body of the `if`-statement once, but it is easier just to multiply all the operations inside the loop by $n$, and since the big-Oh notation only guarantees us that we have an upper bound, it works out okay.^[In this particular case, we could just as easily count the `if`-body as constant time as well, but it doesn’t matter for the big-Oh analysis. The entire algorithm runs in $\Theta(n)$, so we are not even ending up with a strict upper bound but the actual asymptotic running time.]
@@ -331,9 +331,127 @@ To make the big-Oh reasoning about these algorithms even easier, can work out ho
 
 ### Doing arithmetic in big-Oh
 
+When analysing algorithms like we just did, we often end up with multiplying a function to a big-Oh class, as we did with $nO(1)$, and if we want to combine a number of computations where we know their big-Oh class, we need to add them together, that is we want to know what $O(f) + O(g)$ means. 
 
+First, we need to know how to do arithmetic on functions, but that is probably familiar to you. If you have a function $f$ and multiply it with a constant, $c$, you have $cf$ which is the function $h(n)=c f(n)$. Similarly, $f+c$ is the function $h(n)=f(n) + c$. If you have two functions, $f$ and $g$, then $fg$ is the function $h(n)=f(n)g(n)$ and $f+g$ is the function $h(n)=f(n)+g(n)$.
+
+
+For the rules for doing arithmetic with big-Oh notation let $f$, $f_1$, $f_2$, $g$, $g_1$, and $g_2$ denote functions.
+
+The first important rule is this:
+
+$$f_1\in O(g_1) \land f_2\in O(g_2) \implies f_1+f_2\in O(g_1+g_2)$$
+
+We can also write this as:
+
+$$O(f) + O(g) = O(f + g).$$
+
+Since $f+f$ is the same as $2f$ we furthermore have that
+
+$$f_1\in O(g) \land f_2\in O(g) \implies f_1+f_2\in O(g)$$
+
+This means that if we can bound two separate pieces of the running time of an algorithm by the same function, then the entire algorithm’s running time is bounded by that. Because of the transitivity rules for big-Oh this also means that if $f\in O(g)$ then $f+g\in O(g)$. So when we add together different parts of a runtime analysis, whenever one part dominates the other, we can simply discard the dominated part. So, if we add a constant number of operations, $O(1)$, to a linear number of operations, $O(n)$, as we have to in our examples, we end up with something that is still linear $O(n)$.
+
+We also have a rule for multiplying functions:
+
+$$f_1\in O(g_1) \land f_2\in O(g_2) \implies f_1f_2\in O(g_1g_2)$$
+
+or
+
+$$O(f)\times O(g) = O(fg).$$
+
+This rule is particularly useful when we reason about loops. The time it takes to execute a loop over $n$ elements is $O(n)$ times the time it takes to execute the loop body, which could be some function $f(n)$, so the total running time for such a loop is $n\times f(n)\in O(n f(n))$.
+
+We also have rules for multiplying into big-Oh classes:
+
+$$f \cdot O(g) = O(fg)$$
+
+We can use this in our examples where we have expressions such as $n\times O(1)$. This simply becomes $O(n)$. From this rule it follows that when $c$ is a non-zero constant we have:
+
+$$c \cdot O(f) = O(f)$$
+
+You can see this simply by considering $c$ a constant function: $c(n) = c$ and then apply the previous rule. 
+
+We can now apply these rules to get a final, big-Oh, running time for our example algorithms. Consider first the summation:
+
+```python
+accumulator = 0       # O(1)
+for n in numbers:     # O(n)
+	accumulator += n  # n * O(1)
+```
+
+We have to work out $O(1) + O(n) + n\times O(1)$. This is the same as $O(1) + O(n) + O(n)$ by the rule for how to multiply into a big-Oh class, and then, by the addition rule, we get $O(1 + n + n)=O(n)$.
+
+For the search we have
+
+```python
+in_list = False           # O(1)
+for n in numbers:         # O(n)
+	if n == x:            # n * O(1)
+		in_list = True    # n * O(1)
+		break             # n * O(1)
+```
+
+which breaks down to $O(1) + O(n) + 3\times n\times O(1) = O(n)$.
+
+Consider now a different algorithm:
+
+```python
+for i in range(1,len(numbers)):
+	x = numbers[i]
+	j = i - 1
+	while x < numbers[j]:
+		numbers[i], numbers[j] = numbers[j], x
+		i -= 1 ; j -= 1
+```
+
+This is an algorithm called “bubble sort”, and we return to it in the next chapter where we prove that it sorts `numbers`. Here, we will just consider its running time. The algorithm consists of two nested loops. So we reason as follows: the outer loop iterates over `numbers`, which gives us an $O(n)$ contribution. It doesn’t include the first element in `numbers`, but that doesn’t change anything since $O(n-1)=O(n)$. Inside the loop body we have two constant time contributions and an inner loop. The constant contributions gives us $O(1)$ and the inner loop is bounded by $O(n)$—we prove this in the next chapter. So we have the running time 
+
+$$O\left(n\right)\times\left(O\left(1\right)+O\left(n\right)\right)=O\left(n^2\right).$$
+
+In other words, this sorting algorithm runs in quadratic time. Or rather, we should say that its *worst-case* running time is $O\left(n^2\right)$. In the analysis, we assumed that the inner loop could execute $n$ iterations; if the list is already sorted, then `x < numbers[j]` is always `False`, and the inner loop will actually take constant time. So the *best-case* running time is only $O(n)$.
+
+Now consider this algorithm, called *binary search*. This is another algorithm we return to in the next chapter. It searches for a number, $x$, in a sorted list of numbers using the third strategy from the guessing game we have seen a few times by now. It has an interval in which to search, bounded by `low` and `high`, and if $x$ is in the list, we know that it must be between these two indices. We pick the midpoint between these two numbers and check if we have found $x$, in which case we terminate the search. If we haven’t, we check if the midpoint number is smaller or larger than $x$. If it is smaller, we move `low` up to the midpoint plus one—if $x$ is in the sorted list it must be later than the midpoint. If it is larger, we move `high` down to the midpoint. We do not move it to the midpoint minus one. If we did, it is possible to miss the index where $x$ is hiding; this can happen if the interval is of length one and `low` is the index where $x$ resides, as we will see next chapter.
+
+```python
+low, high = 0, len(numbers)
+found = False
+while low < high:
+	mid = (low + high) // 2
+	if numbers[mid] == x:
+		found = True
+		break
+	elif numbers[mid] < x:
+		low = mid + 1
+	else:
+		high = mid
+```
+
+We can analyse its complexity as follows: we have some constant time operations at the beginning, $O(1)$, and then a loop. It is less obvious how many iterations the loop will make in this algorithm than in the previous ones we have looked at, but let us call that number $m$. Then the loop takes time $O(m)$ times the time it takes to execute the loop body. All the operations inside the loop are constant time, $O(1)$, so we have
+
+$$O\left(1\right)+O\left(m\right)\times O\left(1\right)=O\left(m\right).$$
+
+Of course, this isn’t quite satisfying. We don’t know what $m$ is, and we want the running time to be a function of $n$.
+
+The interval we are searching in decreases in each iteration, so if we start with an interval of size $n$ we could, correctly, argue that the loop is bounded by $n$ as well, and derive a running time of $O(n)$. This is correct; $O(n)$ is an upper bound for the (worst-case) complexity. In fact, however, the algorithm us much faster than that. It actually runs in $O(\log_2 n)$, where $\log_2$ is the base-two logarithm. To see this, consider how much we shrink the interval by in each iteration. When we update the interval, we always shrink the interval to half the size of the previous one. So we can ask ourselves, how many times can you halve $n$ before you get below one? That is $\lceil\log_2 n\rceil$, so $m$ is bounded by $O(\lceil\log_2 n\rceil)$. We typically do not include the rounding-up notation when we write this but consider it implicit, so we simply write $O(\log_2 n)$.
+
+### Important complexity classes
 
 - [ ] Important complexity classes
-- [ ] Examples
+
+### Asymptotic complexity exercises
+
+#### Bubble sort
+
+Consider the bubble sort algorithm. We argued that the worst-case running time was $O\left(n^2\right)$ but the best-case running time was $O\left(n\right)$.
+
+**Exercise:** Describe what the input data, `numbers`, should look like to actually achieve the worst- and best-case running times.
+
+### Binary search
+
+We argued that the worst-case running time for binary search is $O\left(\log n\right)$. **Exercise:** What is the best-case running time, and what would the input data look like to achieve it?
+
+
+
 - [ ] Exercises
 
