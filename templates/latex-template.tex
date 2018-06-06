@@ -50,6 +50,9 @@
 \usepackage{amssymb}
 
 \usepackage{graphicx}
+\makeatother
+\let\Oldincludegraphics\includegraphics
+\renewcommand{\includegraphics}[1]{\Oldincludegraphics[width=\textwidth]{#1}}
 \usepackage[protrusion=true,expansion=true]{microtype}
 \usepackage[pass, paperwidth=16cm, paperheight=23cm, bindingoffset=.5in]{geometry}
 \setlength{\pdfpagewidth}{\paperwidth}

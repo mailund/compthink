@@ -437,7 +437,19 @@ The interval we are searching in decreases in each iteration, so if we start wit
 
 ### Important complexity classes
 
-- [ ] Important complexity classes
+Some complexity classes pop up again and again in algorithms, so you should get familiar with them. From fastest to slowest, these are:
+
+* Constant time: $O(1)$. This is, obviously, the best you can achieve asymptotically, but since it does not depend on the input size, we very rarely see algorithms running in this time. 
+* Logarithmic time: $O(\log n)$. We saw that binary search was one such algorithm. Generally, we see this complexity when we can reduce the size of the input we look at by a fixed fraction in each iteration of a loop. Typically, we can cut the data in half and we get a base-two logarithm, but since the difference between two different-based logarithms is a constant, $\log_a(x)=1/\log_b(a)\cdot\log_b(x)$, we rarely write the base in big-Oh notation.
+* Linear time: $O(n)$. We saw several examples of linear time algorithms in this chapter. Whenever we do something where we have to, in the worst case, examine all our input, the complexity will be at least this.
+* Log-linear time: $O(n\log n)$. We haven’t seen examples of this class yet, but it will show up several times in the Divide-and-conquer chapter.
+* Quadratic time: $O(n^2)$. We saw that bubble sort had this complexity. This complexity often shows up when we have nested loops.
+* Cubic time: $O(n^3)$. This is another class we haven’t seen yet, but when we have three levels of nested loops, we see it. If you multiply two $n\times n$ algorithms the straightforward way,^[It is possible to multiply matrices faster than this, but that is beyond this book.]  $C=AB$, you have to compute $n\times n$ values in $C$, and for each $c_{ij} = \sum_k a_{ik}b_{kj}$, you sum $n$ values together, giving you a total running time of $n^3$.
+* Exponential time: $O(2^n)$. You should avoid this complexity like the plague. Even for tiny $n$, this running time is practically for ever. It does, unfortunately, pop up in many important optimisation problems where we do not know of any faster algorithms. If you have a problem that can only be solved in this complexity, you should try to modify the problem to something you can solve more efficiently, or you should try to approximate the solution instead of getting the optimal solution. Algorithms that run in this complexity are rarely worth considering.
+
+In [@fig:function-growth] I have plotted the growth of the different classes. As you can see in the upper-left frame, logarithmic growth is very slow compared to linear growth. On the upper-right you can see that log-linear growth is slower than linear, but compared to quadratic time, it is much faster. Cubic time, lower-left, is much slower than quadratic time, and exponential time, lower-right, just grows to infinity before you even get started.
+
+![Growth of different complexity classes.](figures/function-growth){#fig:function-growth}
 
 ### Asymptotic complexity exercises
 
@@ -450,8 +462,4 @@ Consider the bubble sort algorithm. We argued that the worst-case running time w
 ### Binary search
 
 We argued that the worst-case running time for binary search is $O\left(\log n\right)$. **Exercise:** What is the best-case running time, and what would the input data look like to achieve it?
-
-
-
-- [ ] Exercises
 

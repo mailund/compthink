@@ -40,14 +40,8 @@ all: book.pdf wc
 book.pdf: $(SOURCE_CHAPTERS) Makefile templates/latex-template.tex
 	$(PANDOC) $(PANDOC_PDF_OPTS) $(SOURCE_CHAPTERS) -o $@
 
-book.epub: $(SOURCE_CHAPTERS) Makefile
-	$(PANDOC) $(PANDOC_EPUB_OPTS) $(SOURCE_CHAPTERS) -o $@
-
 wc: $(SOURCE_CHAPTERS)
 	wc -w $(SOURCE_CHAPTERS)
-
-#chapters/%.md: chapters/%.ipynb
-#	jupyter nbconvert $< --to Markdown
 
 clean:
 	rm book.pdf book.epub
