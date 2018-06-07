@@ -405,17 +405,17 @@ Consider now a different algorithm:
 ```python
 for i in range(1,len(numbers)):
 	x = numbers[i]
-	j = i - 1
-	while x < numbers[j]:
-		numbers[i], numbers[j] = numbers[j], x
-		i -= 1 ; j -= 1
+	j = i
+	while j > 0 and numbers[j-1] > numbers[j]:
+		numbers[j-1], numbers[j] = numbers[j], numbers[j-1]
+		j -= 1
 ```
 
-This is an algorithm called “bubble sort”, and we return to it in the next chapter where we prove that it sorts `numbers`. Here, we will just consider its running time. The algorithm consists of two nested loops. So we reason as follows: the outer loop iterates over `numbers`, which gives us an $O(n)$ contribution. It doesn’t include the first element in `numbers`, but that doesn’t change anything since $O(n-1)=O(n)$. Inside the loop body we have two constant time contributions and an inner loop. The constant contributions gives us $O(1)$ and the inner loop is bounded by $O(n)$—we prove this in the next chapter. So we have the running time 
+This is an algorithm called “insertion sort”, and we return to it in the next chapter where we prove that it sorts `numbers`. Here, we will just consider its running time. The algorithm consists of two nested loops. So we reason as follows: the outer loop iterates over `numbers`, which gives us an $O(n)$ contribution. It doesn’t include the first element in `numbers`, but that doesn’t change anything since $O(n-1)=O(n)$. Inside the loop body we have two constant time contributions and an inner loop. The constant contributions gives us $O(1)$ and the inner loop is bounded by $O(n)$—we prove this in the next chapter. So we have the running time 
 
 $$O\left(n\right)\times\left(O\left(1\right)+O\left(n\right)\right)=O\left(n^2\right).$$
 
-In other words, this sorting algorithm runs in quadratic time. Or rather, we should say that its *worst-case* running time is $O\left(n^2\right)$. In the analysis, we assumed that the inner loop could execute $n$ iterations; if the list is already sorted, then `x < numbers[j]` is always `False`, and the inner loop will actually take constant time. So the *best-case* running time is only $O(n)$.
+In other words, this sorting algorithm runs in quadratic time. Or rather, we should say that its *worst-case* running time is $O\left(n^2\right)$. In the analysis, we assumed that the inner loop could execute $n$ iterations; if the list is already sorted, then `numbers[j-1] > numbers[j]` is always `False`, and the inner loop will actually take constant time. So the *best-case* running time is only $O(n)$.
 
 Now consider this algorithm, called *binary search*. This is another algorithm we return to in the next chapter. It searches for a number, $x$, in a sorted list of numbers using the third strategy from the guessing game we have seen a few times by now. It has an interval in which to search, bounded by `low` and `high`, and if $x$ is in the list, we know that it must be between these two indices. We pick the midpoint between these two numbers and check if we have found $x$, in which case we terminate the search. If we haven’t, we check if the midpoint number is smaller or larger than $x$. If it is smaller, we move `low` up to the midpoint plus one—if $x$ is in the sorted list it must be later than the midpoint. If it is larger, we move `high` down to the midpoint. We do not move it to the midpoint minus one. If we did, it is possible to miss the index where $x$ is hiding; this can happen if the interval is of length one and `low` is the index where $x$ resides, as we will see next chapter.
 
@@ -502,3 +502,9 @@ Recall the Sieve of Eratosthenes from the previous chapter.
 **Exercise:** Derive an upper bound for its running time. 
 
 **Exercise:** Is there a difference between its best-case and worst-case running time?
+
+### Merging
+
+Recall the *merging* algorithm from the previous chapter.
+
+**Exercise:** Show that you can merge two sorted lists of size $n$ and $m$, respectively, into one sorted list containing the elements from the two, in time $O(n+m)$.

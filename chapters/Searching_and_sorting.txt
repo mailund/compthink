@@ -4,7 +4,7 @@ In this chapter we will explore two key problems that are the foundations of man
 
 ## Searching
 
-We first consider the simplest of the two problems: searching.  Given a list of numbers, `numbers`, and a value, `x`, we want to determine if `x` is in `numbers`. We have one solution to this problem that does not make any assumptions about `numbers`, where we need a *linear search*, and one where we assume that `numbers` are sorted, where we can use *binary search*. The former takes worst-case linear time, thus the name, while the latter only takes logarithmic time. Because of their running time, you should prefer the latter over the former, as a rule of thumb. However, the cost of sorting before you can use binary search should also be taken into account. If you search for $m$ elements in a sequence of $n$ numbers[^search_types], linear search will take time $O(mn)$ while binary search will take time $O(S(n)+m\log n)$ where $S(n)$ is the cost of sorting $n$ numbers. The sorting algorithms we see in this chapter take time $O(n^2)$ or $O(n)$, depending on whether we can bound the values of the numbers. For general numbers it can be shown that any sorting algorithm must take time $\Omega(n\log n)$, and we shall see algorithms that run in this time in the chapter on divide-and-conquer.
+We first consider the simplest of the two problems: searching.  Given a list of numbers, `numbers`, and a value, `x`, we want to determine if `x` is in `numbers`. We have one solution to this problem that does not make any assumptions about `numbers`, where we need a *linear search*, and one where we assume that `numbers` are sorted, where we can use *binary search*. The former takes worst-case linear time, thus the name, while the latter only takes logarithmic time. Because of their running time, you should prefer the latter over the former, as a rule of thumb. However, the cost of sorting before you can use binary search should also be taken into account. If you search for $m$ elements in a sequence of $n$ numbers[^search_types], linear search will take time $O(mn)$ while binary search will take time $O(S(n)+m\log n)$ where $S(n)$ is the cost of sorting $n$ numbers. The sorting algorithms we see in this chapter take time $O(n^2)$ or $O(n)$, depending on whether we can bound the values of the numbers. For general numbers it can be shown that any sorting algorithm must take time $\Omega(n\log n)$, and we shall see algorithms that run in this time in when we return to sorting after the divide-and-conquer chapter.
 
 [^search_types]: In this chapter we assume we are working with numbers, but we can search in any type of data. If the data does not have a total order to it, we have to use linear search; if we can define an ordering on the type we search in, we can use both algorithms.
 
@@ -73,13 +73,55 @@ We already discussed the algorithms running time in the previous chapter, but to
 
 ## Sorting
 
-When we sort a sequence of elements
+The sorting problem is this: given a sequence of elements $x$ of length $n$, create a new sequence $y$ that contain the same element as $x$ but such that $y[i]\leq y[i+1]$ for $i=0,\ldots,n-1$. That sounds simple enough, but there’s a devil in the details.
 
-### Bubble sort
+First of all, what kind of order do we mean when we write $a\leq b$. Not all kinds types of data have a total order. For some data, which we will not consider in this chapter, it is possible to have a *partial order*, which means that for *some* elements $a$ and $b$ we can determine if $a<b$ or $a>b$, but not all. In such a case, we do not require $y[i]\leq y[i+1]$, but only that $y[i]\not\geq y[i+1]$. This is know as *topological sorting*.
 
-### Insertion sort
+In this chapter, we assume that our elements have a *total order*, which means that for any two elements, $a$ and $b$, (exactly) one of these three relations are true: $a<b$, $a=b$, our $a>b$. This is true for numbers or when we consider the alphabetical order, also known as *lexical* order, of strings.
 
-### Bucket sort
+Another issue is whether elements $a=b$ are identical. This might sound trivial, after all, if $a=b$ it means they are the same objects, but it doesn’t actually mean this. To sort elements we need some order on them, but this does not mean that two elements that are identical with respect to this order are indistinguishable. If we sort a list of people by their last name, then we consider “John Doe” and “Jane Doe” as equal with relation to the order—after all “Doe” equals “Doe”—but that does not mean that “John” equals “Jane”. We can resolve this by first sorting by last name and then by first name, but this raises a new problem. If we first sort by last name and then by first name, do we risk of messing up the first order. If we sort “John Doe”, “John Smith”, and “Jane Doe” by last name we get the order “John Doe”, “Jane Doe”, and “Joe Smith” (or maybe we get “Jane Doe”, “John Doe”,  and “Joe Smith” since “Jane Doe” and “John Doe” are equal with respect to last name). If we then sort by first name, we mess up the first sort, because now we might get “Jane Doe”, “Joe Smith”, and “John Doe”.
 
-### Radix sort
+When we only sort elements based on part of their value, an algorithm can be *stable* or *unstable*. If it is stable it means that elements we consider equal end up in the same order as they appear in the input, if it is unstable, there is no such guarantee. We can sort by last name and then first name using a stable sort algorithm in the opposite order: first name first and last name last. If we sort by first name, we get “Jane Doe”, “Joe Smith” and “John Doe”. If we then sort by last name with a stable sort, “Jane Doe” must appear before “John Doe” because that is the order they are in when we apply the stable sort.
+
+When we sort elements based on part of the data they constitute of we call that part their *key*. When we sort elements, it is based on their keys and we consider two elements equal in their order if they keys are equal. If keys are the only thing we are sorting, i.e., there is no additional data associated with the values beside their keys, then a stable and an unstable algorithm are indistinguishable.
+
+Another issue is how we can compare elements. If all we can do is test which of the three relationships they have, $a<b$, $a=b$, or $a>b$ we are doing what is called *comparison sort*. It can be shown that this cannot be done faster, by any algorithm, than $\Omega(n \log n)$. If our elements are totally ordered and positive integer numbers with values less than some $m$, however, we can sort them in time $O(n+m)$, which if $m\in O(n)$ is linear time. We will see how later in this chapter.
+
+Yet another issue is whether we can sort $x$ by modifying it, turning $x$ into $y$. This issue is relevant for the memory complexity of a sorting algorithm. We have only focused on running time complexity in the previous chapter, but how much memory is used by an algorithm can be equally important. An algorithm that modifies $x$ and only uses a constant amount of extra memory has a $O(1)$ memory usage—we do not count the size of our input as part of the memory cost, just as we do not count the size of the input list when we do binary search. Some algorithms require more memory than that and inherently produce a new list for $y$. You can, of course, always produce a new list for $y$ even if the algorithm you use is based on modifying its input because you can always copy $x$ first, but that takes up extra $O(n)$ memory. Algorithms that modify their input when sorting $x$ are called *in place* and can use less than $O(n)$ memory. Algorithms that produce a new list cannot use less than $O(n)$ memory.
+
+Python lists have a builtin sorting method
+
+```python
+x.sort()
+```
+
+that implements an algorithm known as Timsort (named after Tim Peters who implemented it). This is a comparison based stable sorting algorithms that runs in worst-case time $O(n\log n)$ and best-case time $O(n)$ with $O(n)$ memory usage. **FIXME: in place?**
+
+Calling `x.sort()` modifies `x`, but Python also provides a way to get a sorted copy:
+
+```python
+y = sorted(x)
+```
+
+This uses the same Timsort algorithm as `x.sort()`; it just doesn’t modify `x` but creates a new copy.
+
+In this chapter we will three comparison based, in-place sorting algorithms that runs in worst-case $O(n^2)$ and use $O(1)$ memory (in addition to the input). Two of them, *insertion sort* and *bubble sort* are stable and have a best-case running time of $O(n)$. The third, *selection sort*, is not stable and has a best-case running time of $O(n^2)$.
+
+After considering comparison based sorting we consider two non-comparison based stable algorithms: *bucket sort* and its big brother *radix sort*. Bucket sort assume that we sort positive integer keys with a max value of $m$ and runs in worst- and best-case $O(n+m)$ while using $O(m)$ memory if we only sort keys but $O(n+m)$ if we have additional data associated with our elements. Radix sort relaxes the  requirement that the keys should be less than $m$ in magnitude but instead assume that we can split keys into $k$ sub-keys that are bounded by $m$. It then uses bucket sort on these keys $k$ times, achieving a best- and worst-case running time of $O(k(m+n)$. Neither of these algorithms are in-place.
+
+### Comparison sorts
+
+#### Insertion sort
+
+#### Bubble sort
+
+### Selection sort
+
+
+
+### Non-comparison sorts
+
+#### Bucket sort
+
+#### Radix sort
 
