@@ -73,6 +73,8 @@ We already discussed the algorithms running time in the previous chapter, but to
 
 ## Sorting
 
+When we sort a sequence of elements
+
 ### Bubble sort
 
 ### Insertion sort
