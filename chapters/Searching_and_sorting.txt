@@ -1,0 +1,81 @@
+# Searching and sorting
+
+In this chapter we will explore two key problems that are the foundations of many other algorithms: searching for an element in a sequence and sorting a sequence. These are very fundamental problems and Python has builtin functionality for solving them, and in most cases where you need to solve this problems, you should just use the existing implementations. They are well engineered and optimised, so you are not likely to implement faster solutions. We consider them here to get a better feeling for algorithms and how to analyse them. That being said, sometimes your data is in a form where customised algorithms will be better than the builtin solutions, so we also discuss pros and cons of the algorithms.
+
+## Searching
+
+We first consider the simplest of the two problems: searching.  Given a list of numbers, `numbers`, and a value, `x`, we want to determine if `x` is in `numbers`. We have one solution to this problem that does not make any assumptions about `numbers`, where we need a *linear search*, and one where we assume that `numbers` are sorted, where we can use *binary search*. The former takes worst-case linear time, thus the name, while the latter only takes logarithmic time. Because of their running time, you should prefer the latter over the former, as a rule of thumb. However, the cost of sorting before you can use binary search should also be taken into account. If you search for $m$ elements in a sequence of $n$ numbers[^search_types], linear search will take time $O(mn)$ while binary search will take time $O(S(n)+m\log n)$ where $S(n)$ is the cost of sorting $n$ numbers. The sorting algorithms we see in this chapter take time $O(n^2)$ or $O(n)$, depending on whether we can bound the values of the numbers. For general numbers it can be shown that any sorting algorithm must take time $\Omega(n\log n)$, and we shall see algorithms that run in this time in the chapter on divide-and-conquer.
+
+[^search_types]: In this chapter we assume we are working with numbers, but we can search in any type of data. If the data does not have a total order to it, we have to use linear search; if we can define an ordering on the type we search in, we can use both algorithms.
+
+### Linear search
+
+Linear search is straightforward. We loop over all the elements in `numbers` and compare them in turn to `x`. If we see `x` we break the search and report that we found it. If we reach the end of `numbers` without having seen `x`, we report that it wasn’t found.
+
+```python
+found = False
+for n in numbers:
+	if x == n:
+		found = True
+		break
+```
+
+The builtin solution in Python for linear search uses the `in` keyword:
+
+```python
+x in numbers
+```
+
+That this algorithm has a worst-case running time of $O(n)$ is equally straightforward. The `for`-loop has to run over all the $n$ elements in `numbers` if it doesn’t find $x$ and breaks early. The best-case running time is obviously $O(1)$ because we could get lucky and find $x$ in the very first iteration.
+
+### Binary search
+
+We already saw the binary search algorithm in the previous chapter. It looks like this:
+
+```python
+low, high = 0, len(numbers)
+found = None
+while low < high:
+	mid = (low + high) // 2
+	if numbers[mid] == x:
+		found = mid
+		break
+	elif numbers[mid] < x:
+		low = mid + 1
+	else:
+		high = mid
+```
+
+The algorithm works by keeping track of an interval, `[low,high)`, in which $x$ must be, if it is in the list at all. In each iteration of the `while`-loop we look at the mid-point of the interval (rounded down if the midpoint is not an integer). If the midpoint is equal to $x$ we are done. If it is less than $x$, we know that $x$ must be found in the interval `[mid+1,high)`. The elements are sorted, so if the midpoint is less than $x$, then all elements to the left of the midpoint are less than $x$ as well. If the midpoint is greater than $x$, then we know that all elements to the right of the midpoint are greater than $x$ as well, so if $x$ is in the list, then it must be in the interval $[low,mid)$. Notice the asymmetry in the updated intervals. When we increase `low` we use `mid+1`, but when we decrease `high` we use `mid`. This is a consequence of how we represent the interval. We include the point at `low` in the interval but not the point at `high`. So, when we decrease `high` to `mid`, we have already eliminated the point at `mid` from the search, just as when we increase `low` to `mid+1`.
+
+**Exercise:** Consider a modified solution where we set `high` to `mid-1` instead of `mid`. Give an example where the algorithm would give you the wrong answer.
+
+The builtin solution in Python is implemented in the module `bisect` and looks like this:
+
+```python
+import bisect
+print(bisect.bisect(numbers, x))
+```
+
+The `bisect` algorithm does something *slightly* different from our implementation. It returns an index where $x$ is found, or where it should be put if we want to insert it. We just consider the simpler problem of determining if $x$ is there.
+
+The `numbers` list[^random_access_bsearch] has to be sorted for the algorithm to work. It is this property that gives us information about where to continue the search if the midpoint of the interval is smaller or larger than $x$. If the list were not sorted, knowing whether the midpoint is smaller than or larger than $x$ would give us no information about where $x$ would be found if it were in the list.
+
+[^random_access_bsearch]: The algorithm also exploits that we can do random-access into `numbers`. We can always do that for Python lists, but there are other ways to represent sequential data where this is not true. For those, we need to use linear search.
+
+To hone our skills at reasoning about algorithms, we will formally prove termination and correctness. Termination first. For our termination function we take `high-low`. Clearly, if this function is at or below zero, the `while`-loop condition is false. To see that it decreases in each iteration, we consider the two options for updating the interval. If we set `low` to `mid + 1`, we clearly reduce `high-low`. To see that we also decrease the size of the interval when we update `high`, we observe that `mid < high` when we use integer-division when updating `mid`.
+
+**Exercise:** If we updated `low` by setting it to `mid` instead of `mid + 1`, our reasoning about the termination function fails. Give an example where this would result in the loop never terminating.
+
+To prove correctness, we specify the loop-invariant: `x` is not in the interval `[0,low)` and not in the interval `[high,n)`. This invariant guarantees us that if we reach the point where the `[low,high)` interval is empty, then `x` was not in `numbers`. Since we do not set `found` to true unless we actually see $x$, we also know that we do not report that $x$ *is* in `numbers` unless it is.
+
+## Sorting
+
+### Bubble sort
+
+### Insertion sort
+
+### Bucket sort
+
+### Radix sort
+

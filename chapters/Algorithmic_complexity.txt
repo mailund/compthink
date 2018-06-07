@@ -13,7 +13,7 @@ The way we reason about algorithmic efficiency is similar to how we reason about
 
 To make it even simpler to reason about efficiency than this, we often don’t care about counting the number of primitive operations accurately either. We will only care about how the number of computations depend on the input in an asymptotic sense that should be clear by the end of this chapter, but loosely means that we only care about whether an algorithm needs to make a number of computations that is, say, linear or quadratic in the input size, and we do not care what the actual number of computations are; we would consider functions such as $2x^2+x$ and $100x^2+1000x$ the same but different from $500x$. This might sound a bit sloppy, but there is a mathematical underpinning that justifies this, and by using this approach we can very quickly determine which of two algorithms is likely to be faster than the other.
 
-## The RAM model of a computer and primitive operations
+## The RAM model of a computer and its primitive operations
 
 Any actual computer you will ever use is a very complex machine. At its core is a gazillion transistors wired together to implement different logical operations in hardware. The hardware in your computer handles both simple computations, such as comparing numbers or doing arithmetic, and manages how data is moved around. Data is stored different places in such a computer; you have persistent storage on disk, that lives outside of running programs, and while programs run, you have data moving between different layers of memory hierarchies. At the core of the computer is one or more central processing units, or CPUs, that do actual computations. Data needs to be moved to these CPUs for them to compute on it. They can hold some data themselves, in what is called *registers*, and they can do computations on such data very quickly. There is only a finite number of registers, though, so data needs to be moved to and from these registers. Below registers are several layers of memory called *caches*, and the closer caches are to the registers, the faster that can happen. Below caches you have *random-access memory*, or RAM, and below that, disks, which can be solid state or actual rotating disks, or some combination thereof.
 
@@ -220,7 +220,7 @@ Recall the guessing game from last chapter, where one play thinks a number betwe
 2. Alternatively, you start at 20. If the right number is 20, great, you got it in one guess, but if it is not, your guess must be too high--it cannot possibly be too small. So you try 19 instead, and this time you work your way down until you get the right answer.
 3. Tired of trying all numbers from one end to the other, you can pick this strategy: you start by guessing 10. If this is correct, you are done, if it is too high, you know the real number must be in the interval $[1,9]$, and if the guess is too low, you know the right answer must be in the interval $[11,20]$--so for your next guess, you pick the middle of the interval it must be. With each new guess, you update the interval where the real number can be hidden and pick the middle of the new interval.
 
-Identify the best- and worst-case scenarios for each strategy and derive the best-case and worst-case time usage.
+**Exercise:** Identify the best- and worst-case scenarios for each strategy and derive the best-case and worst-case time usage.
 
 ## Asymptotic running time and big-Oh notation
 
@@ -300,6 +300,12 @@ $$f\in o(g) \land g\in o(h) \implies f\in o(h)$$
 $$f\in\omega(g) \land g\in\omega(h) \implies f\in\omega(h)$$
 
 I have personally found very few opportunities where these rules have been useful, but if you can see why the rules must be true, you have taken a big step towards understanding this asymptotic function notation.
+
+One rule that can be very useful is this: if $f\in\Theta(g)$, i.e., there exists $c_1,c_2\in\mathbb{R}^+$ such that $c_1g(n)\leq f(n)\leq c_2g(n)$ as $n$ goes to infinity, then we also have
+
+$$c_1 \leq \frac{f(n)}{g(n)} \leq c_2.$$
+
+This means that if we believe that an algorithm runs in time $f\in\Theta(g)$, we can experimentally measure its running time and divided it by $g(n)$. If we are right about the running time, this should converge be between two constants. In other words, $f(n)/g(n)$ should flatten out as $n$ goes to infinity; not completely, because it can fluctuate between $c_1$ and $c_2$, but it will eventually be bounded by these two constants. In practice, the ratio often does converge to a single constant non-zero. If we are wrong about the complexity, this doesn’t happen. If $f\in o(g)$, then the ratio will converge to zero and not a positive constant, while if $f\in\omega(g)$, the ratio will grow unbounded.
 
 ### Reasoning about algorithmic efficiency using big-Oh notation
 
@@ -453,6 +459,30 @@ In [@fig:function-growth] I have plotted the growth of the different classes. As
 
 ### Asymptotic complexity exercises
 
+In the following exercises, you can test your understanding of the big-Oh notation and in how you derive upper bounds for algorithm’s running time.
+
+#### Function growth
+
+Consider the classes 
+
+1. $O(\log n)$, $o(\log n)$, $\Omega(\log n)$ and $\omega(\log n)$
+3. $O(n)$, $o(n)$, $\Omega(n)$, and $\omega(n)$
+4. $O(n^2)$, $o(n^2)$, $\Omega(n^2)$, and $\omega(n^2)$
+5. $O(2^n)$, $o(2^n)$, $\Omega(2^n)$, and $\omega(2^n)$
+
+**Exercise:** For each of the functions below, determine which of the 20 classes it belongs in. Remember that the complexity classes overlap, so for example, if $f\in o(g)$ then $f\in O(g)$ as well, and if $f\in\Theta(g)$ then $f\in O(g)$ as well as $\Omega(g)$ (but $f\not\in o(g)$ and $f\not\in\omega(g)$).
+
+1. $f(n) = 23n$
+2. $f(n) = 42n^2 - 100n$
+3. $f(n) = n/\log n$
+4. $f(n) = \log(n)/n$
+5. $f(n) = n^2/\log n$
+6. $f(n) = \log n + \log(n)/n$
+7. $f(n) = 5^n - n^3$
+8. $f(n) = n!$
+9. $f(n) = 2^n/n$
+10. $f(n) = $\log\left(\log n\right)$
+
 #### Bubble sort
 
 Consider the bubble sort algorithm. We argued that the worst-case running time was $O\left(n^2\right)$ but the best-case running time was $O\left(n\right)$.
@@ -461,5 +491,14 @@ Consider the bubble sort algorithm. We argued that the worst-case running time w
 
 ### Binary search
 
-We argued that the worst-case running time for binary search is $O\left(\log n\right)$. **Exercise:** What is the best-case running time, and what would the input data look like to achieve it?
+We argued that the worst-case running time for binary search is $O\left(\log n\right)$.
 
+**Exercise:** What is the best-case running time, and what would the input data look like to achieve it?
+
+### Sieve of Eratosthenes
+
+Recall the Sieve of Eratosthenes from the previous chapter. 
+
+**Exercise:** Derive an upper bound for its running time. 
+
+**Exercise:** Is there a difference between its best-case and worst-case running time?
