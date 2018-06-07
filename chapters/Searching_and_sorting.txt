@@ -69,6 +69,8 @@ To hone our skills at reasoning about algorithms, we will formally prove termina
 
 To prove correctness, we specify the loop-invariant: `x` is not in the interval `[0,low)` and not in the interval `[high,n)`. This invariant guarantees us that if we reach the point where the `[low,high)` interval is empty, then `x` was not in `numbers`. Since we do not set `found` to true unless we actually see $x$, we also know that we do not report that $x$ *is* in `numbers` unless it is.
 
+We already discussed the algorithms running time in the previous chapter, but to recall: if we reduce the size of a problem from $n$ to $n/2$ in each iteration, and only use $O(1)$ per iteration, then the running time amounts to how many times we can divide $n$ by two until we reach a size of one. That is the base-two logarithm of $n$, so the worst-case running time of binary search is $O(n \log n)$.
+
 ## Sorting
 
 ### Bubble sort
