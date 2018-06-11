@@ -77,7 +77,7 @@ The sorting problem is this: given a sequence of elements $x$ of length $n$, cre
 
 First of all, what kind of order do we mean when we write $a\leq b$. Not all kinds types of data have a total order. For some data, which we will not consider in this chapter, it is possible to have a *partial order*, which means that for *some* elements $a$ and $b$ we can determine if $a<b$ or $a>b$, but not all. In such a case, we do not require $y[i]\leq y[i+1]$, but only that $y[i]\not\geq y[i+1]$. This is know as *topological sorting*.
 
-In this chapter, we assume that our elements have a *total order*, which means that for any two elements, $a$ and $b$, (exactly) one of these three relations are true: $a<b$, $a=b$, our $a>b$. This is true for numbers or when we consider the alphabetical order, also known as *lexical* order, of strings.
+In this chapter, we assume that our elements have a *total order*, which means that for any two elements, $a$ and $b$, (exactly) one of these three relations are true: $a<b$, $a=b$, or $a>b$. This is true for numbers or when we consider the alphabetical order, also known as *lexical* order, of strings.
 
 Another issue is whether elements $a=b$ are identical. This might sound trivial, after all, if $a=b$ it means they are the same objects, but it doesn’t actually mean this. To sort elements we need some order on them, but this does not mean that two elements that are identical with respect to this order are indistinguishable. If we sort a list of people by their last name, then we consider “John Doe” and “Jane Doe” as equal with relation to the order—after all “Doe” equals “Doe”—but that does not mean that “John” equals “Jane”. We can resolve this by first sorting by last name and then by first name, but this raises a new problem. If we first sort by last name and then by first name, do we risk of messing up the first order. If we sort “John Doe”, “John Smith”, and “Jane Doe” by last name we get the order “John Doe”, “Jane Doe”, and “Joe Smith” (or maybe we get “Jane Doe”, “John Doe”,  and “Joe Smith” since “Jane Doe” and “John Doe” are equal with respect to last name). If we then sort by first name, we mess up the first sort, because now we might get “Jane Doe”, “Joe Smith”, and “John Doe”.
 
@@ -95,7 +95,7 @@ Python lists have a builtin sorting method
 x.sort()
 ```
 
-that implements an algorithm known as Timsort (named after Tim Peters who implemented it). This is a comparison based stable sorting algorithms that runs in worst-case time $O(n\log n)$ and best-case time $O(n)$ with $O(n)$ memory usage. **FIXME: in place?**
+that implements an algorithm known as *Timsort* (named after Tim Peters who implemented it). This is a comparison based stable sorting algorithms that runs in worst-case time $O(n\log n)$ and best-case time $O(n)$ with $O(n)$ memory usage. It is not entirely in-place and uses worst-case $O(n)$ memory, but it does modify the input list.^[Timsort modifies the input list in-place when it can get away with it but uses additional memory to speed up the computations.]
 
 Calling `x.sort()` modifies `x`, but Python also provides a way to get a sorted copy:
 
@@ -111,12 +111,124 @@ After considering comparison based sorting we consider two non-comparison based 
 
 ### Comparison sorts
 
-#### Insertion sort
-
-#### Bubble sort
+The discussion at the beginning of this section was rather long and this point might have been lost in all the discussion, so please recall that when we talk about comparison based sorting we assume that we can answer which of the following relations are true, $a<b$, $a=b$, or $a>b$. We do not assume anything else about the elements.
 
 ### Selection sort
 
+A very straightforward comparison sort algorithm is *selection sort*. It works similar to how you might sort elements by hand. You keep a list of sorted elements and a set of yet-to-be sorted elements and one by one you pick the smallest of the unsorted elements and append it to the list of sorted elements. Selection sort follows this strategy but keeps the list of sorted and the set of unsorted elements in the input list, doing in-place sorting and using $O(1)$ additional space. It uses a variable, $i$, that iterates from zero to $n-1$, where $n$ is the length of the input list. The elements below $i$ are kept sorted and are less than or equal to the elements above $i$. Formalised as a loop invariant we can write this as
+
+$$I_1: \forall j\in[0,i) : x[j-1] \leq x[j]$$
+
+and 
+
+$$I_2: \forall j\in[0,i), \forall k\in[i,n) : x[j] \leq x[k]$$
+
+where $x$ is the sequence to be sorted.
+
+If $i$ iterates from $0$ to $n-1$, then in the last iteration, when $i$ is incremented form $n-1$ to $n$, invariant $I_1$ guarantees us that all elements in the range $[0,n)$ are sorted, so the loop invariant guarantees correctness. (We still have to guarantee that we satisfy the invariant, of course). The algorithm will consist of two loops, one nested inside the other, but both will be `for`-loops, iterating through finite length sequences, so termination is also guaranteed.
+
+In each iteration, we locate the index of the smallest element in the range $[i,n)$, call it $j$, and we swap $x[i]$ and $x[j]$, see [@fig:selection-sort-swap] From invariant $I_2$ we know that the $x[j]$ we locate is greater than or equal to all elements in the range $[0,i)$, so when we put it at index $i$, the range $[0,i+1)$ is sorted, satisfying $I_1$. Since $x[j]$ was the smallest element in the range $[i,n)$, we also know that for all $\ell \in [i,n): x[j] \leq x[\ell]$, so after we swap $x[i]$ and $x[j]$—we can call the resulting list $x^\prime$—we have $\ell \in [i+1,n) : x^\prime[i]=x[j]\leq x[\ell]$, satisfying $I_2$. Thus, swapping the smallest element in $[i,n)$ into position $x[i]$ and incrementing $i$ each iteration satisfy the loop invariants, so the algorithm is correct.
+
+![Swapping $x[i]$ and $x[j]$ in selection sort.](figures/selection-sort-swap){#fig:selection-sort-swap}
+
+Implemented in Python, the algorithm looks as follows:
+
+```python
+infinity = float("inf")
+for i in range(len(x) - 1):
+	# find index of smallest elm in x[i:]
+	min_idx, min_val = 0, infinity
+	for j in range(i, len(x)):
+		if x[j] < min_val:
+			min_idx, min_val = j, x[j]
+			
+	# swap x[i] and x[j] puts
+	# x[j] at the right position
+	x[i], x[min_idx] = min_val, x[i]
+```
+
+If we start with this input sequence
+
+```python
+x = [1, 3, 2, 4, 5, 2, 3, 4, 1, 2, 3]
+```
+
+the states in the algorithm are given by these lists
+
+```python
+[1] [3, 2, 4, 5, 2, 3, 4, 1, 2, 3]
+[1, 1] [2, 4, 5, 2, 3, 4, 3, 2, 3]
+[1, 1, 2] [4, 5, 2, 3, 4, 3, 2, 3]
+[1, 1, 2, 2] [5, 4, 3, 4, 3, 2, 3]
+[1, 1, 2, 2, 2] [4, 3, 4, 3, 5, 3]
+[1, 1, 2, 2, 2, 3] [4, 4, 3, 5, 3]
+[1, 1, 2, 2, 2, 3, 3] [4, 4, 5, 3]
+[1, 1, 2, 2, 2, 3, 3, 3] [4, 5, 4]
+[1, 1, 2, 2, 2, 3, 3, 3, 4] [5, 4]
+[1, 1, 2, 2, 2, 3, 3, 3, 4, 4] [5]
+[1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 5] []
+```
+
+as they look at the end of each outer `for`-loop body, where the first list shows the elements in the range $[0,i+1)$ and the second list the elements in the range $[i+1,n)$—before the loop body, we have $[0,i)$ sorted but at the end of the body we have $[0,i+1)$ sorted, which is what I show here.
+
+In each iteration, we locate the smallest element amongst those not yet sorted and append it to the sorted list. If we always picked the left-most minimal value when there were ties, it seems like the algorithm should be stable, i.e. that the input order is preserved when elements have the same key. This reasoning is faulty, however, since it does not take into account exactly *how* we append a minimal value to the sorted list. The swap we use to move the element at index $j$ into index $i$ also moves the element at index $i$ over to index $j$. If there is another index, $k<j$, where the key of $x[k]$ is the same as the key of $x[i]$, then the swap of $x[i]$ and $x[j]$ has changed the order of $x[i]$ and $x[k]$ as well, which a stable algorithm shouldn’t do.
+
+**Exercise:** Give an example input where selection sort is not stable.
+
+It *is* possible to make the algorithm stable, but not by swapping as we do here.^[Using a so-called *linked list* data structure we can implement a selection sort in-place that is stable and still use $O(1)$ additional memory.]
+
+To derive the running time of the algorithm, we see that the outer loop execute $n-1$ operation and the inner look execute $n-i$ iterations in iteration $i$ of the outer loop, which gives us $n + (n-1) + (n-2) + \cdot +1 = \sum_{i=1}^n i = \frac{1}{2}n(n+1) = \frac{1}{2}n^2 + \frac{1}{2}n \in O(n^2)$. The running time does not depend on the actual input, only on the size, so this running time is also the best case running time.
+
+#### Insertion sort
+
+The *insertion sort* algorithm works similar to selection sort in that it does an in-place sorting where it keeps the first part of the input array sorted. 
+
+In Python, it can be implemented as follows:  
+
+```python
+for i in range(1,len(x)):
+	x = x[i]
+	j = i
+	while j > 0 and x[j-1] > x[j]:
+		x[j-1], x[j] = x[j], x[j-1]
+		j -= 1		
+```
+
+Just as for selection sort, in iteration $i$, we have the loop invariant:
+
+$$I: \forall j\in[0,i) : x[j-1] \leq x[j]$$
+
+As we also observed for selection sort, this invariant guarantees us that when we reach $i=n$, and the algorithm terminates, all the elements in $x$ are sorted. Unlike selection sort, however, we do not guarantee that the elements to the left of index $i$ are smaller than or equal to the elements to the right of index $i$, the $I_2$ invariant for selection sort. And we do not search for the smallest element in the unsorted part of $x$ in each iteration, but rather move $x[i]$ to the left until we find its proper location in the range $[0,i+1)$. 
+
+When we consider $x[i]$ in iteration $i$, the elements to the left of $i$ are sorted. This means that we can split them into three contiguous regions (all three can potentially be empty), where the $x$ list first contain elements with keys less than $x[i]$’s, then a region containing elements with keys equal to $x[i]$’s and then a region containing elements with keys larger than $x[i]$’s, see [@fig:insertion-sort-swap]. The inner loop in the insertion sort algorithm moves $x[i]$ to the left until it reaches the first index with a key that is equal to or less than $x[i]$. This movement is done through swapping, so a side effect of moving $x[i]$ to the left is that all the elements that end up to the right of the new index for $x[i]$ are moved to the right.
+
+![Moving element $x[i]$ to its correct location in $x^\prime$ by swapping it to the left in insertion sort.](figures/insertion-sort-swap){#fig:insertion-sort-swap}
+
+That the invariant $I_1$ is satisfied after this movement, if it was satisfied before the inner loop, simply by considering the three blocks in [@fig:insertion-sort-swap]. The invariant guarantees us that the two grey segments of $x$ are sorted, so when we extend the region where all keys are the same as $x[i]$’s by one, we still have a sorted list.
+
+To see that the algorithm terminates, we first observe that the outer loop is a `for`-loop through $n-1$ elements, so this is guaranteed to terminate if the inner loop does. For the inner loop, we condition that $j>0$ and we decrease $j$ by one each iteration, so we can use $j$ as a termination function. It  might not actually reach $j=0$ because we also condition on $x[j-1] > x[j]$, but using this termination function we are guaranteed that the inner loop terminates.
+
+For the running time, we can do an analysis similar to selection sort. We iteration $n-1$ times in the outer loop and the inner loop is bounded by $i$ in iteration $i$, so we have the worst-case upper bound $1+2+3+\cdots+(n-2)+(n-1) = \frac{1}{2}(n-1)n\in O(n^2)$. In the best case, however, we only ever test the inner loop condition once, so the best-case time usage is only $O(n)$, unlike selection sort where the best-case is also $O(n^2)$.
+
+**Exercise:** Describe what the input list should look like to achieve best-case and worst-case time performance, respectively.
+
+Now, since selection sort and insertion sort both have the same worst-case running time but insertion sort has a better best-case running time—and would be expected to perform better every time we have runs of consecutive, non-decreasing elements in the input—we could argue that insertion sort is always the better choice. If the elements are all single computer words, so so swapping elements cost no more than decreasing a counter, this would be true. The elements in the input list *could*, however, be more complex, and swapping could therefore be a more expensive operation. If that is the case, we would also have to take into account the cost of swapping. Selection sort swaps $O(n)$ elements on all input while insertion sort swaps $O(n^2)$ elements, worst-case, so for some applications, selection sort could still outperform insertion sort. If we need the sort to be stable, however, selection sort, as we have seen it, cannot be used.
+
+#### Bubble sort
+
+The *bubble sort* algorithm is a stable sort that runs in the same complexity as insertion sort, worst-case $O(n^2)$ and best-case $O(n)$ with worst-case $O(n^2)$ swaps. 
+
+```python
+while True:
+	swapped = False
+	for i in range(1,len(x)):
+		if x[i-1] > x[i]:
+			x[i-1], x[i] = x[i], x[i-1]
+			swapped = True
+
+	if not swapped:
+		break
+```
 
 
 ### Non-comparison sorts
