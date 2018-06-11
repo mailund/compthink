@@ -187,7 +187,6 @@ In Python, it can be implemented as follows:
 
 ```python
 for i in range(1,len(x)):
-	x = x[i]
 	j = i
 	while j > 0 and x[j-1] > x[j]:
 		x[j-1], x[j] = x[j], x[j-1]
@@ -212,11 +211,33 @@ For the running time, we can do an analysis similar to selection sort. We iterat
 
 **Exercise:** Describe what the input list should look like to achieve best-case and worst-case time performance, respectively.
 
-Now, since selection sort and insertion sort both have the same worst-case running time but insertion sort has a better best-case running time—and would be expected to perform better every time we have runs of consecutive, non-decreasing elements in the input—we could argue that insertion sort is always the better choice. If the elements are all single computer words, so so swapping elements cost no more than decreasing a counter, this would be true. The elements in the input list *could*, however, be more complex, and swapping could therefore be a more expensive operation. If that is the case, we would also have to take into account the cost of swapping. Selection sort swaps $O(n)$ elements on all input while insertion sort swaps $O(n^2)$ elements, worst-case, so for some applications, selection sort could still outperform insertion sort. If we need the sort to be stable, however, selection sort, as we have seen it, cannot be used.
+Now, since selection sort and insertion sort both have the same worst-case running time but insertion sort has a better best-case running time—and would be expected to perform better every time we have runs of consecutive, non-decreasing elements in the input—we could argue that insertion sort is always the better choice. If the elements are all single computer words, so swapping elements cost no more than decreasing a counter, this would be true. The elements in the input list *could*, however, be more complex, and swapping could therefore be a more expensive operation. If that is the case, we would also have to take into account the cost of swapping. Instead of simply counting operations, we could distinguish between comparison operations and swap operations.
+
+Selection sort, as we have implemented it, swaps $O(n)$ elements on all input. We could avoid this by not moving the smallest element in the unsorted elements to a temporary variable and only swap `x[i]` and `x[j]` when `x[j] < `x[j]`
+
+```python
+		if x[i] > min_val:
+			x[i], x[min_idx] = min_val, x[i]
+```
+
+In that case, selection sort will have a best-case swap-count of zero, which happens when the input list is already sorted. So selection sort has a swap-complexity of worst-case $O(n)$ and best-case $O(1)$.
+
+The worst-case swap count for insertion sort is obviously $O(n^2)$. If we consider when elements are swapped more carefully, we will see that each element is either swapped upwards only or downwards only and will end up at the right index it should be at when the sorting is done. So an element that starts at index $i$ and ends at index $k$, has been swapped $|i-k|$ times. If the input list is already sorted, we swap zero elements. So the insertion sort has a swap-complexity of worst-case $O(n^2)$ and best-case $O(1)$.
+
+The best-case scenario is better for insertion sort than selection sort, since both algorithms would perform zero swaps but the selection sort will do $O(n^2)$ comparisons while insertion sort will do only $O(n)$. The worst-case performance is better for selection sort. Selection sort will do $O(n^2)$ comparisons and $O(n)$ swaps, worst-case, while insertion sort will do $O(n^2)$ comparisons and $O(n^2)$ swaps.
+
+| Algorithm | Comparisons worst-case | Comparisons best-case | Swaps worst-case | Swaps best-case |
+|:--|:--|:--|:--|:--|
+| Selection | $O(n^2)$ | $O(n^2)$ | $O(n)$ | $O(1)$ |
+| Insertion | $O(n^2)$ | $O(n)$ | $O(n^2)$ | $O(1)$ |
+
+Of course, if we need the sort to be stable, the selection sort we have seen here cannot be used.
 
 #### Bubble sort
 
-The *bubble sort* algorithm is a stable sort that runs in the same complexity as insertion sort, worst-case $O(n^2)$ and best-case $O(n)$ with worst-case $O(n^2)$ swaps. 
+The *bubble sort* algorithm is a stable sort that runs in the same complexity as insertion sort, worst-case $O(n^2)$ and best-case $O(n)$, and will always do the same number of swaps for any given input as insertion sort. It usually requires more comparisons, though, so as a general rule you should never prefer bubble sort over insertion sort. I present the algorithm here because it is a classical algorithm and because it solves the sorting problem in a different way than the other two, not because it sometimes perform better. If the choice is between insertion sort and bubble sort, insertion sort is always better. This doesn’t mean that we cannot learn something from considering the algorithm, to hone our computational thinking skills. Figuring out *why* bubble sort is a poorer choice than insertion sort will also teach us something.
+
+Now, bubble sort is unlike the previous two algorithm in that it does not keep the first part of the input list sorted. Instead, it runs through the list repeatedly, swapping pairs that are in the wrong order, like this:
 
 ```python
 while True:
@@ -230,6 +251,45 @@ while True:
 		break
 ```
 
+When no pairs are swapped, it managed to get through the entire list without finding any keys out of order, so the list must be sorted. We keep track of when this happens using the variable `swapped`.
+
+To prove that this algorithm is correct and terminates, we are going to add an imaginary variable, $j$. It doesn’t appear in the algorithm, but we imagine that it starts at zero and gets incremented every time we finish the outer loop, so it counts how many times we have executed this loop. We need this variable for the termination function and the loop invariants—if you want to make it explicit you can actually replace the outer loop with a `for`-loop where $j$ goes from zero to $n$, but we need to prove that the outer loop is not executed more than $n$ times for us to be able to do this, so we stick with the `while`-loop for now.
+
+So we have indices $i$ and $j$—with $j$ imaginary—and we define the following invariants for the inner and outer loops, respectively, see [@fig:bubble-sort-invariants]:
+
+$$I: \forall k\in[0,i-1): x[k]\leq x[i-1]$$
+$$O_1: \forall k\in[n-j,n-1): x[k]\leq x[k+1]$$
+$$O_2: \forall k\in[0,n-j), x[k] \leq x[n-j]$$
+
+To be strictly correct, predicate $O_2$ is only well defined when $j>0$, but we are going to consider it true for all $j$—we could introduce another imaginary variable, $x[n]=\infty$ to get there. The invariants say the following in English: when we run the inner loop, then $x[i-1]$ is larger than all elements to the left of it in the list, and when we run the outer loop, then the last $n-j$ elements are sorted and they are the largest in the list.
+
+![Invariants for the inner and outer loops of bubble sort.](figures/bubble-sort-invariants){#fig:bubble-sort-invariants}
+
+
+
+```python
+while True:
+	swapped = False
+	for i in range(1, len(x)):
+		if x[i-1] > x[i]:
+			x[i-1], x[i] = x[i], x[i-1]
+			swapped = True
+				
+	if not swapped:
+		break
+
+	for i in range(len(x)-1, 1, -1):
+		if x[i-1] > x[i]:
+			x[i-1], x[i] = x[i], x[i-1]
+			swapped = True
+
+	if not swapped:
+		break
+```
+
+![Number of comparisons executed by the different quadratic-time sort algorithms. Despite appearance, the insertion, bubble, and cocktail sorting algorithms do not run in constant time on sorted data. The lines are linear, but compared to quadratic growth, the linear number of comparisons is very small. On sorted data, they all use exactly $n-1$ comparisons.](figures/quadratic-sort-comparison-comparisons){#fig:quadratic-sort-comparison-comparisons}
+
+![Number of swaps executed by the different quadratic-time sort algorithms.](figures/quadratic-sort-comparison-swaps){#fig:quadratic-sort-comparison-swaps}
 
 ### Non-comparison sorts
 
