@@ -265,7 +265,11 @@ To be strictly correct, predicate $O_2$ is only well defined when $j>0$, but we 
 
 ![Invariants for the inner and outer loops of bubble sort.](figures/bubble-sort-invariants){#fig:bubble-sort-invariants}
 
+Invariant $I$ is the easiest to prove. It is vacuously true when $i=0$, and whenever we increase $i$ we have first moved the smaller of $x[i-1]$ and $x[i]$ to $x[i-1]$ so the new $i-1$ satisfy the invariant. $O_1$ and $O_2$ are also vacuously true when $j=0$ (or defined to be by setting the imaginary value $x[n]$ to infinity). Now, assume that the outer-loop invariants are true when we begin iteration $j$. We need to show that it is true for $j+1$ after we have executed the loop body.
 
+
+
+**Execise:** Since $O_1$ and $O_2$ tells us that the last $j$ elements are already the largest numbers and already sorted, we do not need to have the inner loop iterate through the last $j$ elements. How would you exploit this to improve the running time of bubble sort? The worst-case behaviour will not improve, but you can change the running time to about half of the one we have above.
 
 ```python
 while True:
@@ -287,9 +291,13 @@ while True:
 		break
 ```
 
+**FIXME:** comparison of algorithms.
+
 ![Number of comparisons executed by the different quadratic-time sort algorithms. Despite appearance, the insertion, bubble, and cocktail sorting algorithms do not run in constant time on sorted data. The lines are linear, but compared to quadratic growth, the linear number of comparisons is very small. On sorted data, they all use exactly $n-1$ comparisons.](figures/quadratic-sort-comparison-comparisons){#fig:quadratic-sort-comparison-comparisons}
 
 ![Number of swaps executed by the different quadratic-time sort algorithms.](figures/quadratic-sort-comparison-swaps){#fig:quadratic-sort-comparison-swaps}
+
+**Exercise:** Insertion sort runs in $O(n^2)$ when the input is sorted in the reverse order, but can process sorted sequences in $O(n)$. If we can recognise that the input is ordered in reverse, we could first reverse the sequence and then run the insertion sort. Show can reverse a sequence, in place, in $O(n)$. Try to adapt insertion sort so you first recognise consecutive runs of non-increasing elements, then reverse these before you run insertion sort on the result. Show that the worst-case running time is still $O(n^2)$, but try to compare the modified algorithm with the plain insertion sort to see if it works better in practise.
 
 ### Non-comparison sorts
 
