@@ -277,7 +277,7 @@ while not swapped:
 
 and observe that `swapped` is `False` when no elements are swapped, which happens when the inner loop finds no elements out of order—which it does in when $j=n$.
 
-**Execise:** Since $O_1$ and $O_2$ tells us that the last $j$ elements are already the largest numbers and already sorted, we do not need to have the inner loop iterate through the last $j$ elements. How would you exploit this to improve the running time of bubble sort? The worst-case behaviour will not improve, but you can change the running time to about half of the one we have above.
+**Execise:** Since $O_1$ and $O_2$ tells us that the last $j$ elements are already the largest numbers and already sorted, we do not need to have the inner loop iterate through the last $j$ elements. How would you exploit this to improve the running time of bubble sort? The worst-case behaviour will not improve, but you can change the running time to about half of the one we have above. Show that this is the case.
 
 If we consider the swaps executed by bubble sort more carefully we will see, as for insertion sort, that the elements in the input sequence are either moved up or down to their correct position in the sorted list, but never move both up and down. So the number of swaps are those necessary to move elements to their right positions only. Bubble sort performs exactly the same number of swaps as insertion sort does. This gives us that the best-case number of swaps is zero and the worst case is $O(n^2)$. The best-case number of comparisons happen when the elements are already sorted, in which case we never set `swapped` to `True`. In that case, we perform $O(n)$ comparisons. In the worst case, when we have to execute the inner loop $n$ times, we perform $O(n^2)$ comparisons. There is a difference in the actual number of comparisons hidden under the big-Oh, however.
 
@@ -309,6 +309,10 @@ while True:
 
 The analysis of this variant of bubble sort is not different from the one we did for bubble sort. Although the algorithm can run a bit faster than bubble sort in practise, the worst case complexity is the same as bubble sort. It performs exactly as many swaps—because, again, elements are moved up or down using swaps until they find their final position—but it will usually do fewer comparisons when the list is close to sorted because it is faster in getting the elements to their right position.
 
+**Exercise:** With cocktail sort, after running the outer loop $j$ times, both the first $j$ and the last $j$ elements are in their final positions. Show that this is the case.
+
+**Exercise:** Knowing that both the first and last $j$ elements are already in their right position can be used to iterate over fewer elements in the inner loops. Modify the algorithm to exploit this. The worst case complexity will still be $O(n^2)$, but you will do fewer comparisons. How much do you reduce the number of comparisons by?
+
 In [@fig:quadratic-sort-comparison-comparisons] and [@fig:quadratic-sort-comparison-swaps] I have plotted the performance of selection sort, insertion sort, and the two variants of bubble sort, counting the number of comparisons or the number of swaps, respectively. I have generated data in three forms, data that is already sorted—where insertion sort and the two bubble sorts run in $O(n)$ but selection sort runs in $O(n^2)$. Data where the elements are sorted in reverse order. Here, insertion sort and the two bubble sorts meet their worst case setup, and we see that the bubble sorts use twice as many comparisons as insertion sort. Data where the elements are almost sorted. Here, I have generated a sorted list of the numbers 1 to $n$ and swapped 20% of the elements to random positions. Here we get performance where the insertion sort and the two bubble sorts run in $O(n^2)$ but with fewer comparisons since the sorted elements are already in place and the inner loop in insertion sort iterates over fewer elements and the inner loop in bubble sort and cocktail sort is run fewer times. The cocktail sort performs fewer comparisons than bubble sort for the reasons we have already discussed. Finally, I have generated data that is random permutations of the elements from 1 to $n$. Here, the performance is close to the worst case for all algorithms in numbers of comparisons, but we do need fewer swaps in insertion sort and the bubble sorts than when the elements are sorted in reverse order. This is also to be expected since the reverse sorted case needs to swap elements the maximum possible number of times.
 
 ![Number of comparisons executed by the different quadratic-time sorting algorithms. Despite appearance, the insertion, bubble, and cocktail sorting algorithms do not run in constant time on sorted data. The lines are linear, but compared to quadratic growth, the linear number of comparisons is very small. On sorted data, they all use exactly $n-1$ comparisons.](figures/quadratic-sort-comparison-comparisons){#fig:quadratic-sort-comparison-comparisons}
@@ -319,7 +323,50 @@ In [@fig:quadratic-sort-comparison-comparisons] and [@fig:quadratic-sort-compari
 
 ### Non-comparison sorts
 
+The sorting algorithms we have seen so far all runs in worst-case time $O(n^2)$. It can be shown that any sorting algorithm that only relies on comparison of keys must run in at least $\Omega(n\log n)$, worst case, but algorithms that achieve this running time are based on recursion so we have to wait a little bit before we explore these. Instead, we will consider algorithms that are not based on comparison but instead exploit the situation when the keys we sort are small positive integers.
+
+If our keys are small positive integers we can use them as indices into lists. We can then exploit that we can create a list of length $m$ in $O(m)$ and for a list `x` we can get index `k`, `x[k]`, in constant time. We will also exploit that we can append elements to a list `y`, `y.append(k)`, in constant time.[^lists_are_not_linked_lists] 
+
+[^lists_are_not_linked_lists]: Strictly speaking, we are not guaranteed that appending to a list is always constant time, but there is a guarantee that if we append to a list $n$ times, then all $n$ operations can be done in $O(n)$. So although some operations are not in $O(1)$, on average they are. Using a different data structure, a so-called *linked list*, we *can* achieve worst-case constant time for all append and prepend operations—at the cost of linear time to look up elements. If we use these, then we need a list `x` with constant time lookup, as we have for python `list` objects, and other lists, `y`, where prepend or append are constant time, but where we do not need to access random indices. We consider linked lists later in the book; for the sorting algorithms we consider now, we can still use Python’s `list` objects without affecting the worst-case running time.
+
 #### Bucket sort
+
+We first consider the case where our keys are positive integers bounded by some number $m$. The smaller the better, but the important part is that they are bounded by a known value $m$. We can create a list of length $m$ in time $O(m)$, and what we will do is, for each key $k$, we will put the element with that key at position $k$ in this list. We call the list the *buckets* and we simply put our elements in different buckets based on their key. The algorithm is called *bucket sort*.
+
+The simplest version of bucket is only sorting keys. We assume that our elements are equal to their keys, i.e. we are sorting positive integers bounded by $m$. The algorithm then looks like this:
+
+```python
+buckets = [0] * m
+for key in x:
+	buckets[key] += 1
+result = []
+for key in range(len(buckets)):
+	for i in range(buckets[key]):
+		result.append(key)
+```
+
+Our input is the list `x` of length $n$ and the bound on our keys `m`. We first create a list of buckets of length $m$ and set all buckets to zero—this takes time $O(m)$. Then we iterate over all our keys in `x` and increment the count in `bucket[key]`. After that, we simply collect the keys again in sorted order. We iterate through the buckets, and for each key, we output that key as many times as the bucket’s counter—this is how many times that key was found in the input. We create a new list for the result and append to this list. Although we have two nested loops for collecting the results, the inner loop is only executed $n$ times. The outer loop is executed $m$ times and the inner loop, in total, $n$ times. Since we can append to `results` in constant time, the running time for the entire algorithm is $O(n+m)$. The algorithm is not in-place and we use $O(n+m)$ extra memory, for the bucket list and the result list. If you want to avoid spending $O(n)$ memory on the results list, you can modify the input list instead:
+
+```python
+buckets = [0] * m
+for key in x:
+	buckets[key] += 1
+i = 0
+for key in range(len(buckets)):
+	for j in range(buckets[key]):
+		x[i] = key
+		i += 1
+```
+
+This doesn’t change the running time of the algorithm but reduces the extra memory usage to $O(m)$.
+
+If $m\in O(n)$, this means we have a linear time sorting algorithm. Since we cannot sort any list of $n$ elements without at least looking at each key, this is an optimal algorithm—you cannot possibly sort $n$ elements in time $\omega(n)$, and we actually sort them in $\Theta(n)$. This doesn’t contradict that sorting $n$ elements using comparisons takes time $\Omega(n\log n)$, because we do not do comparisons. The algorithm only works when our keys are positive integers bounded by $m\in O(n)$. Comparison sorting is more general than that and therefore a harder problem to solve.
+
+**Exercise:** Argue why the inner loop when we collect results only executes $n$ times.
+
+**Exercise:** Argue why the bucket sort actually sorts the input.
+
+This variant of bucket sort is also known as counting sort because we simply count how many times we see each key.
 
 #### Radix sort
 
