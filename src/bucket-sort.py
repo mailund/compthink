@@ -24,3 +24,22 @@ for key in range(len(buckets)):
 		i += 1
 
 print(x)
+
+n = m = 10
+keys = list(range(n))
+values = keys[::-1]
+
+buckets = [[] for bucket in range(m)]
+for i in range(n):
+	key = keys[i]
+	val = values[i]
+	buckets[key].append(val)
+
+result_keys, result_values = [], []
+for key in range(m):
+	for val in buckets[key]:
+		result_keys.append(key)
+		result_values.append(values)
+
+print(result_keys)
+print(result_values)
