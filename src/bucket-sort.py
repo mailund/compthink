@@ -39,7 +39,26 @@ result_keys, result_values = [], []
 for key in range(m):
 	for val in buckets[key]:
 		result_keys.append(key)
-		result_values.append(values)
+		result_values.append(val)
+
+print(result_keys)
+print(result_values)
+
+n = m = 10
+keys = [0] * n
+values = list(range(n))
+
+buckets = [[] for bucket in range(m)]
+for i in range(n):
+	key = keys[i]
+	val = values[i]
+	buckets[key].append(val)
+
+result_keys, result_values = [], []
+for key in range(m):
+	for val in buckets[key]:
+		result_keys.append(key)
+		result_values.append(val)
 
 print(result_keys)
 print(result_values)

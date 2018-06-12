@@ -327,7 +327,7 @@ The sorting algorithms we have seen so far all runs in worst-case time $O(n^2)$.
 
 If our keys are small positive integers we can use them as indices into lists. We can then exploit that we can create a list of length $m$ in $O(m)$ and for a list `x` we can get index `k`, `x[k]`, in constant time. We will also exploit that we can append elements to a list `y`, `y.append(k)`, in constant time.[^lists_are_not_linked_lists] 
 
-[^lists_are_not_linked_lists]: Strictly speaking, we are not guaranteed that appending to a list is always constant time, but there is a guarantee that if we append to a list $n$ times, then all $n$ operations can be done in $O(n)$. So although some operations are not in $O(1)$, on average they are. Using a different data structure, a so-called *linked list*, we *can* achieve worst-case constant time for all append and prepend operations—at the cost of linear time to look up elements. If we use these, then we need a list `x` with constant time lookup, as we have for python `list` objects, and other lists, `y`, where prepend or append are constant time, but where we do not need to access random indices. We consider linked lists later in the book; for the sorting algorithms we consider now, we can still use Python’s `list` objects without affecting the worst-case running time.
+[^lists_are_not_linked_lists]: Strictly speaking, we are not guaranteed that appending to a list is always constant time, but there is a guarantee that if we append to a list $n$ times, then all $n$ operations can be done in $O(n)$. So although some operations are not in $O(1)$, on average they are. Using a different data structure, a so-called *doubly linked list*, we *can* achieve worst-case constant time for all append and prepend operations—at the cost of linear time to look up elements. If we use these, then we need a list `x` with constant time lookup, as we have for python `list` objects, and other lists, `y`, where prepend or append are constant time, but where we do not need to access random indices. We consider linked lists later in the book; for the sorting algorithms we consider now, we can still use Python’s `list` objects without affecting the worst-case running time.
 
 #### Bucket sort
 
@@ -345,7 +345,9 @@ for key in range(m):
 		result.append(key)
 ```
 
-Our input is the list `x` of length $n$ and the bound on our keys `m`. We first create a list of buckets of length $m$ and set all buckets to zero—this takes time $O(m)$. Then we iterate over all our keys in `x` and increment the count in `bucket[key]`. After that, we simply collect the keys again in sorted order. We iterate through the buckets, and for each key, we output that key as many times as the bucket’s counter—this is how many times that key was found in the input. We create a new list for the result and append to this list. Although we have two nested loops for collecting the results, the inner loop is only executed $n$ times. The outer loop is executed $m$ times and the inner loop, in total, $n$ times. Since we can append to `results` in constant time, the running time for the entire algorithm is $O(n+m)$. The algorithm is not in-place and we use $O(n+m)$ extra memory, for the bucket list and the result list. If you want to avoid spending $O(n)$ memory on the results list, you can modify the input list instead:
+Our input is the list `x` of length $n$ and the bound on our keys `m`. With this implementation, the bound $m$ has to be strict. We create $m$ buckets but they are indexed with values from zero to $m-1$. If the largest number in your keys is $m$, you need to allocate $m+1$ buckets.
+
+We first create a list of buckets of length $m$ and set all buckets to zero—this takes time $O(m)$. Then we iterate over all our keys in `x` and increment the count in `bucket[key]`. After that, we simply collect the keys again in sorted order. We iterate through the buckets, and for each key, we output that key as many times as the bucket’s counter—this is how many times that key was found in the input. We create a new list for the result and append to this list. Although we have two nested loops for collecting the results, the inner loop is only executed $n$ times. The outer loop is executed $m$ times and the inner loop, in total, $n$ times. Since we can append to `results` in constant time, the running time for the entire algorithm is $O(n+m)$. The algorithm is not in-place and we use $O(n+m)$ extra memory, for the bucket list and the result list. If you want to avoid spending $O(n)$ memory on the results list, you can modify the input list instead:
 
 ```python
 buckets = [0] * m
@@ -366,7 +368,136 @@ If $m\in O(n)$, this means we have a linear time sorting algorithm. Since we can
 
 **Exercise:** Argue why the bucket sort actually sorts the input.
 
-This variant of bucket sort is also known as counting sort because we simply count how many times we see each key.
+This variant of bucket sort is also known as counting sort because we simply count how many times we see each key. This doesn’t quite cut it if we need to sort elements where the keys are not the only information associated with them. If, for example, we have a list of values and another of keys and we need to sort the values with respect to the keys. Then we need to remember which values are actually put in each bucket, not just how many elements are in each bucket. We can do this by putting a list in each bucket and append the values to their respective buckets:
+
+```python
+buckets = [[] for bucket in range(m)]
+for i in range(n):
+	key = keys[i]
+	val = values[i]
+	buckets[key].append(val)
+
+result_keys, result_values = [], []
+for key in range(m):
+	for val in buckets[key]:
+		result_keys.append(key)
+		result_values.append(val)
+```
+
+You cannot use
+
+```python
+buckets = [] * m
+```
+
+here, since this would create a list of `m` references to the *same* list, so appending to a bucket would modify all buckets. Instead, we use the list comprehension expression
+
+```python
+buckets = [[] for bucket in range(m)]
+```
+
+to create a new empty list for each bucket.
+
+Other than that, the general bucket sort is not much different from counting sort. We append the values to the buckets instead of counting keys, and we collect the values from the buckets after that.
+
+Because we need to store $n$ elements in the buckets, the memory usage is now $O(n+m)$ for the `buckets` list, rather than $O(m)$. We could still reuse the input lists when we collect the sorted elements, but it would not reduce the memory usage.
+
+Because we append values to the buckets, and read them out later in the order they were added, the bucket sort is a stable algorithm. It wouldn’t be if we prepended elements to the lists, but you shouldn’t do this anyway with Python `list` objects. We can append to `list` objects in $O(1)$ but prepending actually takes time $O(\ell)$ if the list has length $\ell$.
 
 #### Radix sort
 
+Bucket sort can sort $n$ elements with keys bounded by $m$ in time $O(n+m)$ which is great if $m$ is small. As long as $m\in O(n)$ it is an optimal sorting algorithm. If $m$ is much larger than $n$, however, handling $m$ buckets slows down the algorithm. If, for example, all we knew about the keys were that they were 32 bit positive integers, we would need $2^{32}$ buckets, which is more than four billion buckets. Sorting general 32 bit integer keys using bucket sort is clearly not a viable approach.
+
+If, however, our keys can be broken down into $d$ sub-keys, each bounded by a reasonable $m$, we have an algorithm that will sort these in $O(d\cdot(n+m))$, by sorting by each sub-key in turn, running $d$ applications of bucket sort. For 32 bit integers, for example, we can split the keys into four bytes. Each byte can hold $2^8$ different values, so $m=256$ is a bound for these. You can therefore split a 32 integer into a tuple of four sub-keys, each bounded by $256$. You need some bit operations to do this, but it can be done like this:
+
+```python
+subkeys = (k         & 0xff
+          ,(k >> 8)  & 0xff
+          ,(k >> 16) & 0xff
+          ,(k >> 24) & 0xff)
+```
+
+You do not need to know how this work to use the trick, but if you are interested, I explain at at the end of the chapter.
+
+This algorithm for sorting $d$ sub-keys bounded by $m$ is called *radix sort*, and that it runs $d$ iterations of bucket sort tells you exactly how it works:
+
+```python
+for j in range(d):
+	key_buckets = [[] for bucket in range(m)]
+	value_buckets = [[] for bucket in range(m)]
+	for i in range(n):
+		key = keys[i]
+		subkey = key[j]
+		val = values[i]
+		key_buckets[subkey].append(key)
+		value_buckets[subkey].append(val)
+
+	key_result, value_result = [], []
+	for subkey in range(m):
+		for key in key_buckets[subkey]:
+			key_result.append(key)
+		for val in value_buckets[subkey]:
+			value_result.append(val)
+
+	keys = key_result
+	values = value_result
+```
+
+Here, $j$ ranges over the $d$ sub-keys. In each bucket sort, we use $m$ buckets. We need to keep track of both keys and values here because the sub-keys do not contain the full information about the keys. We collect the results of the bucket sorts in two lists, `key_result` and `value_result`, and at the end of each outer lop we update the `keys` and `values` lists to their sorted versions, so these are ready for the next iteration.
+
+Radix sort only works because bucket sort is stable, and the order in which we consider the sub-keys is important. To see this, let us consider a simple case where we have two sub-keys and we want to sort
+
+```python
+keys = [(1,0), (2,1), (1,1), (0,1), (1,1)]
+```
+
+If we want to sort this into the usual tuple order, also called lexical order, we need the tuples to be sorted first by the first component and then by the second. So the list we want to end up with is this:
+
+```python
+[(0, 1), (1, 0), (1, 1), (1, 1), (2, 1)]
+```
+
+If you set $d$ to two and run the radix sort from above, you will get the list sorted first by the second component and then by the first. We will get
+
+```python
+[(1, 0), (0, 1), (1, 1), (1, 1), (2, 1)]
+```
+
+To see why, consider what happens in the two iterations of the radix sort. In the first iteration, we do sort by the first tuple component. So we sort the list into this:
+
+```python
+[(0, 1), (1, 0), (1, 1), (1, 1), (2, 1)]
+```
+
+If we only consider the first component, this list is sorted. Of course, we do not only consider the first component, so we execute a second bubble sort, this time on the second component, to get the result
+
+```python
+[(1, 0), (0, 1), (1, 1), (1, 1), (2, 1)]
+```
+
+Since bubble sort is stable, we keep the order from the first component from the first sort for those tuples with the same second sub-key, so we keep the order of the tuples 
+
+```python
+[(0, 1), (1, 1), (1, 1), (2, 1)
+```
+
+that all have the same value for the second sub-key. Because the sort is stable and preserves the ordering for the first key, when we sort on the second key we get a list that is sorted by both keys. In the opposite order than we apply the bubble sort, though. The second key we sort on becomes the major key, the first the minor key. In general, when you have sorted with respect to the first $j$ keys, the elements are sorted with respect to these in the opposite order than you sorted them in.
+
+To sort the tuples in lexicographical order, we want the major key to be the first value and the minor to be the second value, so we need to sort the sub-keys in the opposite order:
+
+```python
+for j in range(d-1,-1,-1):
+	# loop body same as before
+```
+
+The radix sort is a very powerful algorithm for sorting positive integers because these can generally be split into $d$ bytes—for 32 bit integers, as we saw, we can split them into 4 bytes, for 64 bit words we need 8 bytes and for 128 bit words we need 16 bytes, but in all cases we can sort the integers in linear time because $m$ is bounded by the constant 256.
+
+If we have general integers, so both positive and negative integers, we cannot use radix sort out of the box. If we index into a list with a negative number we just index from the back of the list, which is not what we want. If you actually break a negative number into 8bit bytes, and consider these as positive integers, you will get the wrong answer. This is a consequence of how negative numbers are represented as bits in computer words. The most significant bit will be zero for positive numbers and 1 for negative numbers,[^number_representation_is_hardware_dependent] so you will get the positive numbers before the negative numbers if you translate them into bytes simplistically.
+
+[^number_representation_is_hardware_dependent]: Strictly speaking, this is hardware dependent. The hardware can represent numbers in any way it wants. I know of no modern architecture that does not represent positive and negative numbers this way, however. The most significant bit might not be where you think it is, though, because the order of significance for bytes in a word does vary between architecture. See the last section of this chapter for a discussion of this.
+
+There is a simple trick to sorting integers with both positive and negative numbers, though. If $a$ is the smallest number in your input, and it is negative, then add $-a$ to all the numbers. Now they are positive but in the same order as before. You can sort these, and then subtract $-a$ again to get the original numbers back.
+
+If you sort variable length keys, for example strings, you do not necessarily have a constant bound on how many sub-keys you need. If $d\in O(n)$, you are back to having a $O(n^2)$ algorithms, and you can do better with a $O(n\log n)$ comparison sort.
+
+#### Bit operations for splitting a word into bytes
