@@ -206,3 +206,6 @@ for e in x:
 	smallest = my_min(smallest, e)
 
 print(smallest)
+
+
+

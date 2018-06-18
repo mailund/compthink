@@ -386,6 +386,14 @@ We can then reduce the problem to the second-to-last digit by dividing $i$ by $b
 
 ### Tail-recursion
 
+You can always translate an iterative algorithm into a recursive one, but since iterative algorithms are more efficient, you shouldn’t do this. Recursive algorithms are simpler, though, so you will often find yourself in the situation that you have an elegant recursive solution to a problem, and you want to translate it into a more efficient iterative solution. You cannot always translate a recursive function into an iterative one,[^iterative_is_always_possible] but this section is about the cases where you can.
+
+[^iterative_is_always_possible]: In the interest of complete honesty, I am lying here. You can always translate a recursive function into an iterative one. It just requires some tricks we are not ready for here. It usually isn’t a particularly good idea; it is not efficient and you can solve such problems more efficiently by implementing your own stack as a substitute for the recursion stack. It is possible, though. It is just a lot more involved than the cases we consider in this chapter.
+
+Functions that can always be translated into loops are so-called *tail recursive* functions. In many programming languages, tail recursive functions are automatically translated into loops—this is called the *tail recursive optimisation*—but Python is not one of them. Not to worry, though, the translation is so simple that you can always do it by hand with very little effort.
+
+
+
 ```python
 def app(lst, x):
 	lst.append(x)
