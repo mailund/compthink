@@ -12,9 +12,11 @@ CHAPTERS := 000_header.yml \
               Introduction_to_algorithms.txt \
               Algorithmic_complexity.txt \
               Searching_and_sorting.txt \
+              Recursion.txt
+
 
 CHAPTERS := 000_header.yml \
-              Searching_and_sorting.txt
+              Recursion.txt
                
 
 SOURCE_CHAPTERS := $(foreach chapter,$(CHAPTERS),chapters/$(chapter))

@@ -213,7 +213,7 @@ For the running time, we can do an analysis similar to selection sort. We iterat
 
 Now, since selection sort and insertion sort both have the same worst-case running time but insertion sort has a better best-case running time—and would be expected to perform better every time we have runs of consecutive, non-decreasing elements in the input—we could argue that insertion sort is always the better choice. If the elements are all single computer words, so swapping elements cost no more than decreasing a counter, this would be true. The elements in the input list *could*, however, be more complex, and swapping could therefore be a more expensive operation. If that is the case, we would also have to take into account the cost of swapping. Instead of simply counting operations, we could distinguish between comparison operations and swap operations.
 
-Selection sort, as we have implemented it, swaps $O(n)$ elements on all input. We could avoid this by not moving the smallest element in the unsorted elements to a temporary variable and only swap `x[i]` and `x[j]` when `x[j] < `x[j]`
+Selection sort, as we have implemented it, swaps $O(n)$ elements on all input. We could avoid this by not moving the smallest element in the unsorted elements to a temporary variable and only swap $x[i]$ and $x[j]$ when $x[j] < x[j]$
 
 ```python
 		if x[i] > min_val:
@@ -492,12 +492,83 @@ for j in range(d-1,-1,-1):
 
 The radix sort is a very powerful algorithm for sorting positive integers because these can generally be split into $d$ bytes—for 32 bit integers, as we saw, we can split them into 4 bytes, for 64 bit words we need 8 bytes and for 128 bit words we need 16 bytes, but in all cases we can sort the integers in linear time because $m$ is bounded by the constant 256.
 
-If we have general integers, so both positive and negative integers, we cannot use radix sort out of the box. If we index into a list with a negative number we just index from the back of the list, which is not what we want. If you actually break a negative number into 8bit bytes, and consider these as positive integers, you will get the wrong answer. This is a consequence of how negative numbers are represented as bits in computer words. The most significant bit will be zero for positive numbers and 1 for negative numbers,[^number_representation_is_hardware_dependent] so you will get the positive numbers before the negative numbers if you translate them into bytes simplistically.
+If we have general integers, so both positive and negative integers, we cannot use radix sort out of the box. If we index into a list with a negative number we just index from the back of the list, which is not what we want. If you actually break a negative number into 8bit bytes, and consider these as positive integers, you will get the wrong answer. This is a consequence of how negative numbers are represented as bits in computer words. You do not necessarily need to know how negative numbers are represented on your computer;[^number_representation_is_hardware_dependent] suffices to say that if you sort positive and negative numbers as bit-patterns, you will not get the numbers sorted as integers.
 
-[^number_representation_is_hardware_dependent]: Strictly speaking, this is hardware dependent. The hardware can represent numbers in any way it wants. I know of no modern architecture that does not represent positive and negative numbers this way, however. The most significant bit might not be where you think it is, though, because the order of significance for bytes in a word does vary between architecture. See the last section of this chapter for a discussion of this.
+[^number_representation_is_hardware_dependent]: Strictly speaking, how negative numbers are represented is hardware dependent. The hardware can represent numbers in any way it wants. I know of no modern architecture that does not represent positive and negative numbers as two-complement numbers, as I describe them at the last section of this chapter. The most significant bit might not be where you think it is, though, because the order of significance for bytes in a word does vary between architecture. See the next section.
 
 There is a simple trick to sorting integers with both positive and negative numbers, though. If $a$ is the smallest number in your input, and it is negative, then add $-a$ to all the numbers. Now they are positive but in the same order as before. You can sort these, and then subtract $-a$ again to get the original numbers back.
 
 If you sort variable length keys, for example strings, you do not necessarily have a constant bound on how many sub-keys you need. If $d\in O(n)$, you are back to having a $O(n^2)$ algorithms, and you can do better with a $O(n\log n)$ comparison sort.
 
 #### Bit operations for splitting a word into bytes
+
+Manipulation of computer words with bit-operations is very low-level programming, and not something you usually worry about in day to day programming. If you are not interested in knowing the low-level details of how we do this, you can skip this section. For radix sorting integers, though, you do need to be able split a computer word into bytes—or in general, $k$-bit sub-keys.
+
+We need two bit-operations to extract sub-keys from the bit-representation of a number. Right-shift and bit-AND. A right-shift simply moves the bits in a computer word to the right.[^logical_versus_aritmethic_shift] If we shift a word by 8 bits, we move the second-least significant byte to the first 8 bits. If we shift by 16, we move the third-least significant byte to the least-significant byte, and if we shift by 24 bits, we move the most-significant byte to the last 8 bits, see [@fig:extracting-bytes]. A bit-AND operation, the operator `&` in Python, takes as input two bit-patterns and produce a bit-pattern where positions where both input are 1 are set to 1 and all others to zero. For example, the bit patterns 0101 and 1100, AND’ed together, yields 0100, since only the third bit is set to one in both inputs. The hexadecimal numeric $0xff$ has the eight least-significant bits set to one and all others to zero. If we AND a number with this number, we get the number in the least-significant byte only. AND’ing with a number like this is known as *masking*. When we mask one bit-pattern with another, we extract parts of the bits and leave the others at zero.
+
+[^logical_versus_aritmethic_shift]: What happens to the bits at the left end of a shifted word depends can vary from hardware to hardware and according to which type of shift we use. There are really two different versions of right-shift. One will always fill the bits on the left of the result with zeros. Thesis called logical shift. Another, called arithmetic shift, will fill the bits with zeros or ones depending on whether the most-significant bit is zero or one. It will fill the left-most bits with the same value as the most significant bit in the input. The right-shift operator in Python, `>>` does arithmetic shift. For our purposes here, it doesn’t matter which kind of shift we do, since we only look at the 8 least-significant bits. 
+
+![Extracting four bytes from a 32-bit integer.](figures/extracting-bytes){#fig:extracting-bytes}
+
+When we do a computation such as
+
+```python
+subkeys = (k         & 0xff
+          ,(k >> 8)  & 0xff
+          ,(k >> 16) & 0xff
+          ,(k >> 24) & 0xff)
+```
+
+we create a tuple with four components that corresponds to the four bits in a 32-bit word, see [@fig:extracting-bytes].
+
+Integers in Python comes in two flavours, but Python automatically translate between them, so you rarely have to worry about it. The first flavour, *plain integers*, can fit into a computer word. These integers therefore are limited to how many bits are in a computer word. You are guaranteed that there are at least 32 bits, but there can be more. The second, *long integers*, needs more than one computer word, but they are not bounded by any constant, only by how much RAM your computer has. The code above assumes that you have plain integers and that any bits above index 32 is zero.^[Strictly speaking, if computer words are 32 bits, we need all bits above index 31 to be zero, since numbers with the most-significant bit need to be zero to represent a positive integer, see the next section.]
+
+Bytes, consisting of 8 bits, can represent numbers from zero to $2^8-1=255$. You can think of them as numbers in base 256. A 32-bit integer, considered as individual bytes $b_1$ to $b_4$, would be $b_1\times 256^0 + b_2\times 256^1 + b_3\times 256^2 + b_4\times 256^3$ where $b_1$ to $b_4$ are the four bytes in the word. Just as a decimal number such as 123 is $3\times 10^0 + 2\times 10^1 + 3\times 10^2$. This is what we exploit when we split a 32-bit integer into four bytes that we can radix sort.
+
+Unfortunately, there is one complication when we do this. Different hardware interprets the bytes in a computer word differently. Depending on your hardware, the number represent as a 32-bit integer can be both $b_1\times 256^0 + b_2\times 256^1 + b_3\times 256^2 + b_4\times 256^3$ and $b_4\times 256^0 + b_3\times 256^1 + b_2\times 256^2 + b_1\times 256^3$. Different hardware puts the most-significant byte at the left or at the right. The different choices are called *endianess*; *little-endian* computers put the least-significant byte as the left-most byte and *big-endian* computers put the least-significant byte as the right-most byte. There is no *right* way to represent integers with respect to byte-order, but people can get passionate about it, which is where the name *endianess* has its origin. The name refers to Jonathan Swift’s *Gulliver’s Travels* where a civil war is fought over which end of an egg should be cracked when eating a soft-boiled egg. Fighting over which byte should be considered the most significant is equally silly, but you need to consider it when you manipulate bit-patterns that represents integers.
+
+In the code above, we put the least-significant byte as the first sub-key, the second-least significant byte as the second, and so forth. If we sort the sub-keys in this order, it means that the final result is sorted first by the right-most byte, $b_4$, then by byte $b_3$, and then $b_2$ and $b_1$. You are most likely using an x86 architecture, since all PCs use this architecture these days. If you do, you are using a little-endian architecture, and this means that a 32-bit integer is represented as $b_4\times 256^0 + b_3\times 256^1 + b_2\times 256^2 + b_1\times 256^3$ and the code above gives you sub-keys where a lexicographical sorting matches a numerical sorting of the original number. If you are on a big-endian architecture, you need to reverse the order of the elements of the tuple to get the right order when you sort based on it. Or, you need to sort the four bites in the opposite order, as we saw in the example where we sorted pairs.
+
+#### Two-complement representation of negative numbers
+
+To sort numbers, you do not necessarily need to know how they are represented as bit patterns, but you do need to know that the binary order of numbers do not match the nominal order. If you have only positive numbers, then you can sort these bit-wise. The negative numbers will come after the positive and be in reverse order. If you are not interested in how numbers are represented as low-level bit patterns, you can safely skip this section. I only include it for completeness.
+
+Before we consider negative numbers, we examine positive integers. These are, of course, bit-patterns on a computer. Here, we distinguish between *signed* and *unsigned* numbers. Unsigned numbers are always positive, and with $n$ bits we can represent represent $2^n$ different numbers, so if we want to be able to represent zero, these will be the numbers $0,1,\ldots,2^n-1$. With signed numbers, we can still represent $2^n$ numbers, but some must be negative and some must be positive. A simple approach to represent negative numbers is to take one of the $n$ bits and use it as the sign. This representation is known as *sign-and-magnitude* representation. If we do this, we get $2^{n-1}$ positive and $2^{n-1}$ negative numbers—we have $n-1$ bits to represent the numbers when we use one bit for the sign—so we can represent the range $2^{n-1}-1,\ldots,2^{n-1}$. We end up having two zeros, though, positive and negative zero.
+
+Another representation of negative numbers is *one’s-complement* where a negative number is represented as the bit-wise negation of the positive number. So, a four-bit representation of 2 would be 0010 and the four-bit representation for -2 would be 1101. We still get two different zeros and we can represent that same range as when we use a sign bit. Ones-complement is slightly easier to implement in hardware than sign-and-magnitude and many older computers used this representation.
+
+The representation that modern computers use is *two’s complement* and is even simpler to work with in hardware, which is why it has won out as the dominant representation. I am not aware of any modern computers that do not use this representation. Two’s complement is easier to work with in hardware, but perhaps a bit harder to understand. In two’s complement $n$-bit words we can represent the integer range $-2^{n-1}$ to $2^{n-1}-1$. We have one more negative number than we have positive, and we have only one zero.
+
+To change the sign of a number, $a$, in two’s complement you negate all its bit, i.e. you change all zeros to ones and vice versa, and then you add 1. For four-bit numbers, 1 is 0001, negated this is 1110. If we add one, we get 1111. This is -1 in two’s complement. To go from -1 to 1, we do the same. We negate the numbers for -1, 1111 to 0000, and add 1, 0001, and get 0001, which is 1. We do the same for 2, 0010. We negate it and get 1101, then add one, 0001, and we get 1110. This is -2 in two’s complement. Going back we do 1110 to 0001 and one, 0001, and get 0020, or 2 in decimal. For 3, 0011 in binary, we get 1100 + 0001 = 1101 for -3. With four bits, the largest positive number we can represent is 0111, or 7 in decimal. We can represent -8, however, since this is 1000 (unsigned); the negation is 0111, and adding one to that is 1000, which is -8 in two’s complement (we end up at the same bit pattern as the unsigned value for the positive number, but we interpret the bit pattern differently).
+
+**Exercise:** Show that with this representation, if you take the numbers $-n,-n+1,\ldots,-1,0$ and sort them as binary numbers, you get a reversed sort of the negative numbers. This is why, if we do radix sort of signed integers by extracting $k$-bit sub-keys and sort this as unsigned integers, the negative numbers get sorted in reverse order. Because negative numbers will have the most significant bit set to one, while positive numbers will have it set to zero, the negative numbers will end up at the end of such a sorted list.
+
+What makes two’s complement particularly clever is that we can replace subtraction by addition. To compute $a-b$ we can add the two’s complement representation of $a$ and $-b$ in binary modulus $2^n$, where $n$ is the number of bits we have. Modulus $2^n$ in binary simple means using the $n$ least significant bits, so any over-flow of bits are simply ignored.
+
+$$2_{10} - 1_{10} = 0010_2 - 0001_2 = 0010_2 + 1111_2 = 10001_2= 0001_2 = 1_{10}$$
+$$3_{10} - 4_{10} = 0011_2 - 0100_2 = 0011_2 + 1100_2 = 1111_2 = -1_{10}$$
+$$5_{10} - 3_{10} = 0101_2 - 0011_2 = 0101_2 + 1101_2 = 10010_2 = 0010_2 = 2_{10}$$
+
+This means that we do not need separate hardware for addition and subtraction, only addition, which greatly simplify the computer.
+
+To see why, you need a little bit of algebra, but the reason for this has to do with addition in modulus $2^n$. In the ring of modulus $2^n$, $-a$ is the same as $2^n-a$, so instead of subtracting $a$ from a number you can add $2^n-a$ to it. In two’s complement, $-a$ is the same as $2^n-a$ when $n$-bit words are considered unsigned. For example, in four-bit words (where we do addition modulus $2^4=16$), -2 is $1110_2$ (the negation of 2, 0010, is 1101, and you add one to that to get 1110). Unsigned, $1110_2$ is $14_{10}$, which is 16-2 modulus 16. So if we want to compute $10-2=8$, we can do this as $10 + 16-2 = 10+14=24$ which is $8$ modulus 16.
+
+The way we shift bits is affected by the two’s complement representation of integers as well. If we shift a number $k$ bits to the left, $n\ll k$, we always fill the right-most bits with zeros, and this always amounts to multiplying $m$ by $2^k$ (modulus $2^n$).
+
+$$3_{10} \ll 2 = 0011_2 \ll 2 = 1100_2 = 12_{10} = 3_{10}\times 2^2$$
+$$-2_{10} \ll 2 = 1110_2 \ll 2 = 1000_2 = 8_{10} \mod 16$$
+and
+$$-2_{10}\times 2^2 \mod 16 = -8_{10}\mod 16 = 8_{10}\mod 16$$
+
+Whether shifting to the right by $k$ bits amounts to dividing by $2^k$ depends on whether we do logical- or arithmetic shift. With logical-shift, we fill the left-most bits with zeros, and this amounts to dividing by $2^k$ for positive numbers but not negative numbers.
+
+$$6_{10} \gg 1 = 0110_2 \gg 1 = 0011_2 = 3_{10} = 6_{10}/2^1$$
+but
+$$-2_{10} \gg 1 = 1110_2 \gg 1 = 0011_2 = 3_{10} \mod 16$$
+where, of course, $-2/2^1=-1=15\mod 16$.
+
+With arithmetic shift, we fill the left-most bits with the value the left-most bit has before we shift. For positive numbers, where the left-most bit is zero, this doesn’t change anything, but for negative numbers, where the left-most bit is one, it ensure that shifting $k$ bits to the right amounts to dividing by $2^k$:
+
+$$-2_{10} \gg 1 = 1110_2 \gg 1 = 1111_2 = 15_{10} \mod 16 = -1\mod 16$$
+
+In Python, shifting to the right is arithmetic shift.

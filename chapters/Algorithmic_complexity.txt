@@ -481,7 +481,7 @@ Consider the classes
 7. $f(n) = 5^n - n^3$
 8. $f(n) = n!$
 9. $f(n) = 2^n/n$
-10. $f(n) = $\log\left(\log n\right)$
+10. $f(n) = \log\left(\log n\right)$
 
 #### Bubble sort
 

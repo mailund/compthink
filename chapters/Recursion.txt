@@ -1,0 +1,127 @@
+# Recursion and “divide and conquer”
+
+In this chapter we explore two powerful techniques for designing algorithms: *recursion* and *divide and conquer*. These are really two sides of the same coin, and can be described as “solve a problem by breaking it down to smaller subproblems that we can solve recursively”. The first part is how we would describe all algorithms. The “recursively” part is where these techniques differ—and I am aware that I am defining *recursion* using *recursively*, which is ironic considering what recursion is. We get to that in the next section. Purist might consider the two terms as different, considering recursion a programming construction where a function will call itself and consider divide and conquer the algorithmic trick of solving a problem by splitting into subproblems of the same kind—perhaps using recursive functions and perhaps not. I will not make this distinction, but I will present the idea of recursion first and then classical divide and conquer algorithms after that.
+
+## Recursion
+
+Recursion means defining something in terms of itself, and you have no-doubt seen recursive definitions before, even if they were not explained as such. A classical example is the factorial of a number $n!$. The factorial is usually defined as this:
+
+$$n! = \begin{cases}
+ 1 & n=1 \\
+ n\times(n-1)! & \text{otherwise}
+\end{cases}$$
+
+The *Fibonacci* numbers can be defined as this:
+
+$$F(n) = \begin{cases}
+0 & n = 0 \\
+1 & n = 1 \\
+F(n-1) + F(n-2) & \text{otherwise}
+\end{cases}$$
+
+The pattern we see for these definitions is that we define the value for a number, $n$, as either a fixed constant or some expression that involves the function we are defining itself, applied to some smaller number. The cases where we can get a result immediately from the definition are called *base cases*. For factorial, the base case is $n=1$ where we can immediately get the value 1. For Fibonacci numbers, the base cases are $n=0$ and $n=1$, where we immediately can get the values 0 and 1, respectively. The other cases are called the *recursive cases*.
+
+One way of defining natural numbers is also recursive. It goes like this: 0 is a natural number and whenever $n$ is a natural number then so is $n+1$. This definition looks like it works in the opposite direction as the others, since it goes from $n$ to $n+1$, but looks can be deceiving. We can rewrite the recursion
+
+$$\begin{cases}
+n\in\mathbb{N} & n=0 \\
+n\in\mathbb{N} & n-1\in\mathbb{N}
+\end{cases}$$
+
+For a recursive definition to be well-defined, the recursive cases must express a value in terms of recursions on values that are closer to the base cases, in some order. We cannot define the natural numbers like this:
+
+$$\begin{cases}
+n\in\mathbb{N} & n=0 \\
+n\in\mathbb{N} & n+1\in\mathbb{N}
+\end{cases}$$
+
+If we want to check if 4 is a natural number, we would first need to check if 5 is, to answer that we need to consider 6, and so forth to infinity. By defining natural numbers in the original way, we would check 4, then 3, then 2, then 1, and then reach a base case, 0, after which we would have our answer. Recursive definitions are self-referential but must be so in a way where recursive cases move you closer to base cases.
+
+Because recursion is self-referential in this way, a comic definition of recursion is this:
+
+>	Recursion, *see Recursion.*
+
+The more useful definition of recursion is definitions where we have one or more base cases and one or more formulae that covers all other cases with references to the definition itself.
+
+Strictly speaking, this would be a definition of *recursive definitions*, but it works equally well when we consider computational problems. We have a recursive algorithm when we have some base cases where we can get the solution immediately, and some rules for solving all other cases by solving the same problem on smaller parts of the input.
+
+### Recursive functions
+
+You have already used recursion, defined in this way, several times in the previous chapters. We just didn’t call it recursion then.^[Again, purists would not consider these algorithms recursive. They would reserve that word for when we use recursive functions. I would argue that they *are* recursive algorithms. I would actually argue that *most* algorithms are recursive; it is not always helpful to think of them as such, but recursion is often the way to think about solving a problem in the first place.] Consider linear search. When we search through a list `x`, if we have reached the end of the list without finding the element we are searching for, we are done and can report that the element is not in the list. Otherwise, we look at the first element in the list, and if that is the element we are looking for we are done and can report that we found it. These two cases are the base cases. Otherwise, we do a linear search in the remainder of the list. That is the recursive case.
+
+We can make the recursive nature of linear search more explicit by defining a *recursive function:*
+
+```python
+def linear_search(x, e, i = 0):
+	if i == len(x):
+		return False
+	if e == x[i]:
+		return True
+	else:
+		return linear_search(x, e, i + 1)
+```
+
+This does exactly what we described above. There are two base cases and one recursive case. For the function, the recursive case is handled by calling the function itself.
+
+This version of linear search is, obviously, much more complex than the one we had before, and I do not recommend that you use this version instead of simply iterating through `x`. You should, however, be able to convince yourself that it does the same thing.
+
+The only difference between a recursive definition and a recursive function in Python is that the former defines something while the latter actually computes something. There is no other difference. For example, we can write a function for computing—as opposed to defining—the factorial of a number like this:
+
+```python
+def factorial(n):
+	if n == 1:
+		return 1
+	else:
+		return n * factorial(n - 1)
+```
+
+**Exercise:** Implement a recursive function that computes the n’th Fibonacci number.
+
+Binary search is another example of a recursive algorithm. In this algorithm, we either have an empty interval to search in, in which case we can report `False`. Or, we have the element we are searching for in the middle of the interval, in which case we can report `True`. Or, the recursive case, we search in the lower or the higher half of the interval.
+
+Again, we can be more explicit in defining this as a recursive computation by implementing it as a recursive function:
+
+```python
+def bsearch(x, e, low = 0, high = len(x)):
+	if low >= high:
+		return False
+	mid = (low + high) // 2
+	if x[mid] == e:
+		return True
+	elif x[mid] < e:
+		return bsearch(x, e, mid + 1, high)
+	else:
+		return bsearch(x, e, low, mid)
+```
+
+You should convince yourself that this, indeed, does the same as the binary search we have seen earlier.
+
+If you recall, we required of recursive definitions that the recursive cases must move us closer to base cases. If we consider recursive computations, this requirement relates to termination. If each recursive call moves us closer to a base case—whatever that means—then the computation will eventually terminate. If not, then there is no such guarantee. Termination functions is one way to guarantee that a recursive computation will eventually provide an answer. We have seen them used to prove that loops will terminate; the idea is exactly the same for recursive functions.
+
+For binary search, the termination function was `high - low`. This works equally well for the iterative version we have seen earlier as for the recursive function defined above. We didn’t use a termination function for our earlier implementation of linear search; we didn’t need one because we know that a `for`-loop over a finite sequence will terminate. For the recursive case, we cannot make as simple an argument, but of course the situation is the same. In each recursive call, the index `i` gets closer to the end of `x`. So, we can use as termination function `len(x)-i`.
+
+Some people find recursion a difficult concept, especially when we use recursion for computation. Most people do not have any problem with accepting recursive definitions, but when we solve a problem by solving the exact same problem it feels like a circular definition. “For recursion, see recursion”. It isn’t, however, and the reason is that we never solve a problem by trying to solve exactly the same problem. We solve a problem that is closer to a base case; our termination function decreases with every recursive function call.
+
+If you still find recursive functions hard to wrap your mind around, you might take comfort in knowing that early computer scientist did as well. Early programming languages could not define recursive functions. It simply didn’t occur to people that this might be useful. This doesn’t mean that they didn’t solve problems recursively; they just didn’t use recursive functions. Just like we did linear and binary search without recursive functions before we reformulated the algorithms as recursive. Recursion is such a powerful technique, however, that all modern languages support it. Some even go so far that they have replaced loops with recursion entirely; they will not let you implement loops at all, only recursive functions.
+
+### Recursion stacks
+
+**FIXME:** how are recursive functions implemented
+
+### Recursion and iteration
+
+There is a close correspondence between recursion and iteration (or loops). You can always directly translate a loop into recursive function. You cannot always do the opposite—translate a recursive function into a loop. The recursion stack is more powerful than simple iterations, so you can do more with a stack than you can with a loop.^[Obviously, you can implement the stack functionality yourself and then avoid recursive function calls, but this is just an implementation detail. You will still be using recursion and not a simple loop.] Some recursions, however, can be directly translated into loops. These are called *tail-recursive*. We will get to these in a moment.
+
+Just because you can implement all loops as recursive function calls doesn’t mean that you should. There is a substantial overhead in calling functions, so a recursive solution to a problem will always be slower than one that relies on loops.^[Programming languages that do not allow loops but only recursive function calls actually translate recursion into loops under the hood whenever possible. Python does not do such optimisations of recursive functions, so you should always prefer loops over recursions when you can.] If you can solve a problem directly using loops, you should do that. Sometimes, however, it is easier to first derive a recursive solution to a problem and then translate it into a loop if possible. Divide and conquer algorithms are easiest to think about as recursive, but some can be translated into loop-versions, also know as iterative algorithms. If lists are the most complex data structure we use in an algorithm, then we can usually solve problems directly using loops, when this is possible, and it doesn’t help us much to first derive recursive solutions. With more complex data structures, however, recursive solutions are often simpler to derive than iterative ones.
+
+The purpose of this section is not to convince you that recursion is a better tool than iteration. If we can implement an algorithm using iteration, then that is the better choice. When we cannot, then recursion is the only choice. We see examples of this when we discuss divide and conquer. The purpose of this section is to get you familiarised with recursion, on simple problems, so you are well equipped to handle recursion when we consider more complex problems.
+
+**FIXME:** exercises for recursion.
+
+
+#### Tail-recursion
+
+
+
+## Divide and conquer
+
