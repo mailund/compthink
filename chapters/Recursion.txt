@@ -198,14 +198,250 @@ Just because you can implement all loops as recursive function calls doesn’t m
 
 The purpose of this section is not to convince you that recursion is a better tool than iteration. If we can implement an algorithm using iteration, then that is the better choice. When we cannot, then recursion is the only choice. We see examples of this when we discuss divide and conquer. The purpose of this section is to get you familiarised with recursion, on simple problems, so you are well equipped to handle recursion when we consider more complex problems.
 
+We will take some problems we have previously handled using loops and translate them into recursive function solutions. I will handle the first, and leave the rest for you to do as exercises.
 
+The case I will implement is merging. Given two sorted lists, `x` and `y`, we want to compute the merge of the two, i.e., a list that contains the same elements as in `x` and `y`, combined, in sorted order.
 
-**FIXME:** exercises for recursion.
+We can implement this using a loop in this way:
 
+```python
+def merge(x, y):
+	result = []
+	i, j = 0, 0
+	while True:
+		if i == len(x):
+			# no more elements in x
+			while j < len(y):
+				result.append(y[j])
+				j += 1
+			return result
+		if j == len(y):
+			# no more elements in y
+			while i < len(x):
+				result.append(x[i])
+				i += 1
+			return result
+		if x[i] < y[j]:
+			result.append(x[i])
+			i += 1
+		else:
+			result.append(y[j])
+			j += 1
+```
 
-#### Tail-recursion
+The function doesn’t do anything complicated, but it is rather long, and therefore it can be hard to see at a glance what it is doing. What it does is simple enough. We move through `x` and `y`, using the indices `I` and `j`, and pick the smallest of `x[I]` and `y[j]` and and append that to our result. If we have made it to the end of either `x` or `y`, the first two `if`-statements in the loop, we copy the remainder of the other list.
 
+A much simpler implementation of the same idea is this:
 
+```python
+def merge(x, y):
+	if len(x) == 0:	return y
+	if len(y) == 0:	return x
+	if x[0] < y[0]:
+		return [x[0]] + merge(x[1:], y)
+	else:
+		return [y[0]] + merge(x, y[1:])
+```
+
+Here we can directly see the two base cases and the recursive case—the recursive case is one of two recursive calls, depending on which list has the smallest element, but it is only one recursive call.
+
+This version is shorter and simpler, and because of that, we would prefer it over the former version, all else being equal. Unfortunately, all else is not equal. For reasons I have not explained yet, getting everything except the first element of a list, as we do when we call `x[1:]` and `y[1:]`, is an expensive operation. It takes time proportional to the length of the lists we slice the first element off (minus one). There is another implementation fo lists than the one that Python use where this would be a constant time operation, but for Python `list` objects it is not. Therefore, the recursive call takes time $O(n)$, where the lengths of `x` and `y` are in $O(n)$, plus how long it might take to compute the recursive function, and the result is is an $O(n^2)$ running time all in all. I won’t go into details about why we get this running time, since we cover that in the section on divide and conquer later. The first `merge` implementation runs in time $O(n)$—if you cannot see why immediately, try to work through the analysis.
+
+We can get rid of the expensive slicing of the first elements by reintroducing the index variables and get this implementation:
+
+```python
+def merge(x, y, i = 0, j = 0):
+	if i == len(x): return y[j:]
+	if j == len(y):	return x[i:]
+	if x[i] < y[j]:
+		return [x[i]] + merge(x, y, i + 1, j)
+	else:
+		return [y[j]] + merge(x, y, i, j + 1)
+```
+
+Unfortunately, this isn’t much better. We avoid the slicing, but concatenating two lists, as we do in the recursive case, is also an $O(n)$ operation, so we end up with the same $O(n^2)$ running time.
+
+To avoid both concatenation and slicing, we can do this:
+
+```python
+def merge(x, y, i = 0, j = 0, result = []):
+	if i == len(x):
+		# no more elements in x
+		while j < len(y):
+			result.append(y[j])
+			j += 1
+		return result
+	if j == len(y):
+		# no more elements in y
+		while i < len(x):
+			result.append(x[i])
+			i += 1
+		return result
+	if x[i] < y[j]:
+		result.append(x[i])
+		return merge(x, y, i + 1, j, result)
+	else:
+		result.append(y[j])
+		return merge(x, y, i, j + 1, result)
+```
+
+This leaves us pretty much back where we started. We now have a recursive solution to the problem, but it is not simpler than the iterative we started with.
+
+All is not lost, however. We can reconsider why we couldn’t use the simpler recursive solution. The main problem here was concatenation—we could avoid the slicing simply by using indices. Maybe we can avoid the concatenation in some other way. Indeed we can:
+
+```python
+def merge_rec(x, y, i = 0, j = 0):
+	if i == len(x):	return y[j:]
+	if j == len(y):	return x[i:]
+	if x[i] < y[j]:
+		res = merge_rec(x, y, i + 1, j)
+		res.append(x[i])
+		return res
+	else:
+		res = merge_rec(x, y, i, j + 1)
+		res.append(y[j])
+		return res
+
+def merge(x, y):
+	return list(reversed(merge_rec(x, y)))
+```
+
+Since prepending one element to a list involves a concatenation operation, which is expensive, we replace it with an append operation, which is cheap. We construct the merged list in the wrong order, so we need to sort it once we are done. I have split this into two functions, one that recursively construct the reversed result and one that reverses. In the basis cases we still slice a list, but since this takes time proportional to the length of the list, it is not slower than the `while`-loops we used earlier to do the same thing. In fact, it is likely to be faster since slicing is a built-in operation in Python and implemented very efficiently.
+
+This solution is not quite as simple as the first recursive function, but we can make it almost so by making the append operation a function call:
+
+```python
+def app(lst, x):
+	lst.append(x)
+	return lst
+
+def merge_rec(x, y, i = 0, j = 0):
+	if i == len(x):	return y[j:]
+	if j == len(y):	return x[i:]
+	if x[i] < y[j]:
+		return app(merge_rec(x, y, i + 1, j), x[i])
+	else:
+		return app(merge_rec(x, y, i, j + 1), y[j])
+```
+
+This solution is simpler than the first we had, almost as simple as the initial recursive one, and it runs in $O(n)$ since we have replaced the expensive operations in the recursive case with constant time operations. It is not as efficient as the first function we wrote. Function calls are expensive, and we use those extensively here, where the first solution didn’t use any function calls beyond the `merge` call needed to merge the two lists. We also need to reverse the result, which adds additional computations. 
+
+In the next section, we will start from a recursive solution and use that to guide us to an iterative solution. We will end up with the same solution as we had before, so we will not get a better or simpler solution. The recursive solution is simple and by starting from that and getting to the iterative one is often an easier approach. It can be hard to design the iterative solution directly, but by starting from a simple recursive solution we can get it almost automatically.
+
+Before we get to that, however, you should do some exercises to test that you have understood recursion.
+
+**Exercise:** To compute the sum of the elements in a list, we can obviously do this iteratively:
+
+```python
+result = 0
+for e in x:
+  result += e
+```
+
+Implement a recursive function that computes the sum of the elements of a list.
+
+**Exercise:** We can find the smallest element in a non-empty list, `x`, like this:
+
+```python
+smallest = x[0]
+for e in x:
+	smallest = min(smallest, e)
+```
+
+Write a recursive function for finding the smallest element in a list. To avoid copying the list using slices, you will want to have the function take an index parameter as an argument.
+
+**Exercise:** Modify your function so it returns `None` if the list is not empty. The easiest way to do this is probably to include the “smallest element seen so far” as a parameter to the function, with a default value of `None`. To compute the smallest value and still handle `None` you can use this function:
+
+```python
+def my_min(x, y):
+	return y if x is None else min(x, y)
+```
+
+**Exercise:** Write a recursive function that reverses a list.
+
+**Exercise:** Recall the exercise where you had to translate a base-10 number into some other base $b$ (where we restricted the base to be less than 16). We can get the last digit of a number $i$, in base $b$ using this function:
+
+```python
+def get_last_digit(i, b):
+    return digits[i % b]
+```
+
+where we defined the `digits` list as
+
+```python
+digits = {}
+
+for i in range(0,10):
+    digits[i] = str(i)
+
+digits[10] = 'A'
+digits[11] = 'B'
+digits[12] = 'C'
+digits[13] = 'D'
+digits[14] = 'E'
+digits[15] = 'F'
+```
+
+We can then reduce the problem to the second-to-last digit by dividing $i$ by $b$. Implement this idea using a recursive function.
+
+### Tail-recursion
+
+```python
+def app(lst, x):
+	lst.append(x)
+	return lst
+
+def merge_rec(x, y, i = 0, j = 0):
+	if i == len(x):	return y[j:]
+	if j == len(y):	return x[i:]
+	if x[i] < y[j]:
+		return app(merge_rec(x, y, i + 1, j), x[i])
+	else:
+		return app(merge_rec(x, y, i, j + 1), y[j])
+
+def merge(x, y):
+	return list(reversed(merge_rec(x, y)))
+```
+
+```python
+def merge(x, y, i = 0, j = 0, acc = []):
+	if i == len(x):	return acc + y[j:]
+	if j == len(y):	return acc + x[i:]
+	if x[i] < y[j]:
+		return merge(x, y, i + 1, j, app(acc, x[i]))
+	else:
+		return merge(x, y, i, j + 1, app(acc, y[j]))
+```
+
+```python
+def merge(x, y, i = 0, j = 0, acc = []):
+	while True:
+		if i == len(x):	return acc + y[j:]
+		if j == len(y):	return acc + x[i:]
+		if x[i] < y[j]:
+			acc.append(x[i])
+			i += 1
+		else:
+			acc.append(y[j])
+			j += 1
+```
+
+```python
+def merge(x, y, i = 0, j = 0, acc = []):
+	while True:
+		if i == len(x):
+			acc.extend(y[j:])
+			return acc
+		if j == len(y):
+			acc.extend(x[i:])
+			return acc
+		if x[i] < y[j]:
+			acc.append(x[i])
+			i += 1
+		else:
+			acc.append(y[j])
+			j += 1
+```
 
 ## Divide and conquer
 

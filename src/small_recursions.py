@@ -42,3 +42,167 @@ def Fib(n):
 	return Fib(n - 1) + Fib(n - 2)
 
 print(Fib(5))
+
+
+def merge(x, y):
+	result = []
+	i, j = 0, 0
+	while True:
+		if i == len(x):
+			# no more elements in x
+			while j < len(y):
+				result.append(y[j])
+				j += 1
+			return result
+		if j == len(y):
+			# no more elements in y
+			while i < len(x):
+				result.append(x[i])
+				i += 1
+			return result
+		if x[i] < y[j]:
+			result.append(x[i])
+			i += 1
+		else:
+			result.append(y[j])
+			j += 1
+
+x = [1,2,3,6,7,8,9]
+y = [2,3,3,3,4,5]
+print(merge(x,y))
+
+def merge(x, y):
+	if len(x) == 0:	return y
+	if len(y) == 0:	return x
+	if x[0] < y[0]:
+		return [x[0]] + merge(x[1:], y)
+	else:
+		return [y[0]] + merge(x, y[1:])
+
+print(merge(x,y))
+
+def merge(x, y, i = 0, j = 0):
+	if i == len(x): return y[j:]
+	if j == len(y):	return x[i:]
+	if x[i] < y[j]:
+		return [x[i]] + merge(x, y, i + 1, j)
+	else:
+		return [y[j]] + merge(x, y, i, j + 1)
+
+print(merge(x,y))
+
+def merge(x, y, i = 0, j = 0, result = []):
+	if i == len(x):
+		# no more elements in x
+		while j < len(y):
+			result.append(y[j])
+			j += 1
+		return result
+	if j == len(y):
+		# no more elements in y
+		while i < len(x):
+			result.append(x[i])
+			i += 1
+		return result
+	if x[i] < y[j]:
+		result.append(x[i])
+		return merge(x, y, i + 1, j, result)
+	else:
+		result.append(y[j])
+		return merge(x, y, i, j + 1, result)
+
+print("bar")
+print(merge(x,y))
+
+
+def merge_rec(x, y, i = 0, j = 0):
+	if i == len(x):	return y[j:]
+	if j == len(y):	return x[i:]
+	if x[i] < y[j]:
+		res = merge_rec(x, y, i + 1, j)
+		res.append(x[i])
+		return res
+	else:
+		res = merge_rec(x, y, i, j + 1)
+		res.append(y[j])
+		return res
+
+def merge(x, y):
+	return list(reversed(merge_rec(x, y)))
+print("foo")
+print(merge(x,y))
+
+def app(lst, x):
+	lst.append(x)
+	return lst
+
+def merge_rec(x, y, i = 0, j = 0):
+	if i == len(x):	return y[j:]
+	if j == len(y):	return x[i:]
+	if x[i] < y[j]:
+		return app(merge_rec(x, y, i + 1, j), x[i])
+	else:
+		return app(merge_rec(x, y, i, j + 1), y[j])
+
+def merge(x, y):
+	return list(reversed(merge_rec(x, y)))
+
+print(merge(x,y))
+
+
+def merge(x, y, i = 0, j = 0, acc = []):
+	if i == len(x):	
+		return acc + y[j:]
+	if j == len(y):	
+		return acc + x[i:]
+	if x[i] < y[j]:
+		return merge(x, y, i + 1, j, app(acc, x[i]))
+	else:
+		return merge(x, y, i, j + 1, app(acc, y[j]))
+
+print("qax")
+print(merge(x,y))
+
+
+def merge(x, y, i = 0, j = 0, acc = []):
+	while True:
+		if i == len(x):	return acc + y[j:]
+		if j == len(y):	return acc + x[i:]
+		if x[i] < y[j]:
+			acc.append(x[i])
+			i += 1
+		else:
+			acc.append(y[j])
+			j += 1
+
+print("qux")
+print(merge(x,y))
+
+def merge(x, y, i = 0, j = 0, acc = []):
+	while True:
+		if i == len(x):
+			acc.extend(y[j:])
+			return acc
+		if j == len(y):
+			acc.extend(x[i:])
+			return acc
+		if x[i] < y[j]:
+			acc.append(x[i])
+			i += 1
+		else:
+			acc.append(y[j])
+			j += 1
+
+print(merge(x,y))
+
+
+x = [2, 5, 3, 5]
+
+def my_min(x, y):
+	return y if x is None else min(x, y)
+
+smallest = None
+for e in x:
+	smallest = my_min(smallest, e)
+
+print(smallest)
