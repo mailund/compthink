@@ -106,7 +106,89 @@ If you still find recursive functions hard to wrap your mind around, you might t
 
 ### Recursion stacks
 
-**FIXME:** how are recursive functions implemented
+To understand how recursive functions work, we first need to understand a little deeper how function calls work. Recall that we have two different kinds of variables in Python, global and local variables.^[There are a bit more to variables than this, but we do not need to worry about that for now. Global and local variables are all we have seen so far.] Global variables are those we assign to at the outermost level in a Python program while local variables are either function parameters or variables we assign to inside a function. For example, in this program
+
+```python
+x = 2
+def add_one(x):
+	return x + 1
+add_one(2 * x)
+```
+
+We have two global variables, `x` and `add_one`. The `x` variable is one we have defined by assigning to `x`. The `add_one` is a function we have defined, but it is also a variable, and we can access the function through its name, `add_one`. Inside the `add_one` function we have the parameter `x`, and this is distinct from the global variable `x`. The two variables have the same name, but they are two different variables. Inside `add_one`, `x` refers to the local variable, outside of `add_one`, `x` refers to the global variable. When we call `add_one(2 * x)` we look up the name `add_one` and find the function and before we call it, we must evaluate the expression we provide as its argument, that is, we must evaluate `2 * x`. Since we call `add_one` in at the outermost level, the global scope, the `x` variable is the global variable. That holds the value 2, so `2 * x` is 4. We then call `add_one` and set the parameter `x`, the local variable, to 4. This does not change the global variable, that variable is still 2. When we return `x + 1`, we use the value of the local variable, which is 4, so we return 5.
+
+You should be comfortable with the difference between global and local variables by now, but what happens when a function calls itself, as we did with the factorial function.
+
+```python
+def factorial(n):
+	if n == 1:
+		return 1
+	else:
+		return n * factorial(n - 1)
+```
+
+When we call 
+
+```python
+factorial(4)
+```
+
+the local variable, `n`, gets set to 4. No problem there. But then we call `factorial` with `n - 1` to evaluate `n * factorial(n - 1)`. This sets the local variable to 3, but we still need it to be for when we multiply the result of `factorial(n - 1)` by `n` after the recursive call. We need the local variable to be both four and three in the recursive case. How is that achieved?
+
+This is something early programming languages couldn’t handle. In such early languages, local variables were tied to functions—each function had memory locations reserved for their local variables, and those were modified in function calls. If you called the same function twice, you would overwrite the memory locations assigned to the local variables. This isn’t a problem if you do not use recursion, but it clearly is if you do. You cannot use the same memory location to hold both $n=4$ and $n=3$.
+
+The solution to this problem is very elegant in its simplicity: instead of reserving memory for local variables for each function, you reserve memory for local variables for each function *call*. The memory locations you need for local variables are not hardwired in the program but will be allocated when you call a function. This memory is allocated on a so-called *call stack*, and it works as follows. You have a piece of your computer’s memory set aside for this stack. You keep track of the top of the stack, and the function call you are currently executing has access to the top of the stack but not the rest of the stack. When you call a function, Python will reserve memory for the variables used in the function at the top of the stack. The memory set aside in this way is known as a function’s *call frame*, but what we call it is not important. What is important is that we have it.
+
+Consider the call
+
+```python
+factorial(4)
+```
+
+at the outermost level. When we are at the outermost level, the call stack is empty. When we make the function call, Python puts two things on the call stack and increases the call stack pointer. What the call stack remembers is the function argument and where it should return to when in the program when we return from the function. The way Python actually handles local variables is a little different—it doesn’t reserve memory for each variable in this way—but it is very similar. The same goes for how return values are handled. The description here is conceptually true for how call stacks work, but the actual implementation is slightly different.
+
+The stack needs to contain both the local variables and the return location. The local variables so we can have different instances of the same function and the return location so we know where the program should continue from when we return. It is because we remember this return location that we can call the same function from different places in a program and return to where we called the function once we are done with it. In old programming languages the location for this return point was also hardwired, but this doesn’t work for recursive functions for the same reasons that we cannot have a single location for local variables.
+
+When we call recursively, Python will put the information it needs for each function call—local variables and the return location—on the stack and grow it as needed, see [@fig:growing-call-stack].
+
+![Growing the call stack in recursive calls to `factorial`.](figures/growing-call-stack){#fig:growing-call-stack}
+
+When we reach $n=1$, we have a base case and can return a result, 1. Now, Python needs to do two things. It needs to go to the place in the program pointed to by the return location, obviously, but it also needs to store the result of the function call somewhere. We haven’t thought about where Python stores results of expressions before, we just assumed that it could remember them somehow, but of course, on a computer you need to store intermediate results of expressions somewhere. Since results of (local) expressions are local to a function call, the only appropriate place is on the stack.^[Conceptually, all local results end up on the stack. In an actual program, you want to avoid putting results in main memory since it is much faster to access registers on the CPU. So your programming language will try to allocate registers instead of stack locations when possible. This all happens under the hood, and you do not need to worry about it. Conceptually, all local results go on the stack.] When we return from the recursive call, we first remove the call frame for that call and then put the result there on the stack instead. When we put the result of the call on the stack, the stack pointer needs to be moved up. If we didn’t do this, then another function call would overwrite it. We do not call other functions before we have used the result of the recursive call for `factorial`, but this would not be the case when computing Fibonacci numbers. Here we need two recursive calls the results of which we need to add together. We need to store the result of the first call while executing the second.
+
+We keep doing the same thing while we return from the recursive calls. We replace the call frame with the result of the call, see [@fig:shrinking-call-stack]. These intermediate results are part of the call frame—they are local to the individual function calls—and they will also be removed from the stack when the function returns.
+
+![Shrinking the call stack when returning from recursive calls to `factorial`.](figures/shrinking-call-stack){#fig:shrinking-call-stack}
+
+Once we have returned from the last function call, the final result is still on the stack. It will be removed from there when Python uses this result (or simply be removed if we never use the result).
+
+The call stack is not only used for recursion. It works the same way with all function calls. Consider this program:
+
+```python
+def add_one(x):
+	return x + 1
+
+def add_two(x):
+	return add_one(add_one(x))
+
+add_two(1)
+```
+
+[@Fig:call-stack-add-two] shows the call stack when evaluating this program. The call to `add_two` will put a return location and the local variable `x` on the stack. This function calls `add_one` that will put a return location and another `x` on the call stack. The first call to `add_one` is the one that becomes the argument to the second call to `add_one`. This call returns before we do the second call, though, so we do not have call frames for two `add_one` calls at the same time. The result of the first is put on the stack while we call the second. This is different from recursive calls, but the principle is the same.
+
+![Call stack when evaluating `add_two(1)`.](figures/call-stack-add-two){#fig:call-stack-add-two}
+
+
+**Exercise:** Draw the call stack for computing the fourth Fibonacci number using the implementation you did in the previous exercise.
+
+All this call stack business can look complicated, but the good news is that you never need to worry about it unless you need to implement recursion yourself. The call stack is the reason why recursive function calls are possible, but you only need to know that they are. Well, you *almost* never have to worry about the call stack. You might run into problems with a call stack if you fill it up. If you do something like this:
+
+```python
+def f(x):
+	return f(x + 1)
+f(1)
+```
+
+you will get an error that says “RecursionError: maximum recursion depth exceeded”. This happens because the memory set aside for the call stack is limited and if the recursion gets too deep, there is no more stack available for more stack frames. This doesn’t happen if you use loops instead of recursion, and is another reason, besides efficiency, to prefer loops over recursion. Of course, in this particular example, there is no way to compute a value in finite time. The function never terminates, so it is not a proper recursive function in the first place, but there are cases where you have a perfectly well-defined recursive function that just needs more stack space than you have available. If that is the case, you need to replace the recursion with a loop.
 
 ### Recursion and iteration
 
@@ -115,6 +197,8 @@ There is a close correspondence between recursion and iteration (or loops). You 
 Just because you can implement all loops as recursive function calls doesn’t mean that you should. There is a substantial overhead in calling functions, so a recursive solution to a problem will always be slower than one that relies on loops.^[Programming languages that do not allow loops but only recursive function calls actually translate recursion into loops under the hood whenever possible. Python does not do such optimisations of recursive functions, so you should always prefer loops over recursions when you can.] If you can solve a problem directly using loops, you should do that. Sometimes, however, it is easier to first derive a recursive solution to a problem and then translate it into a loop if possible. Divide and conquer algorithms are easiest to think about as recursive, but some can be translated into loop-versions, also know as iterative algorithms. If lists are the most complex data structure we use in an algorithm, then we can usually solve problems directly using loops, when this is possible, and it doesn’t help us much to first derive recursive solutions. With more complex data structures, however, recursive solutions are often simpler to derive than iterative ones.
 
 The purpose of this section is not to convince you that recursion is a better tool than iteration. If we can implement an algorithm using iteration, then that is the better choice. When we cannot, then recursion is the only choice. We see examples of this when we discuss divide and conquer. The purpose of this section is to get you familiarised with recursion, on simple problems, so you are well equipped to handle recursion when we consider more complex problems.
+
+
 
 **FIXME:** exercises for recursion.
 
