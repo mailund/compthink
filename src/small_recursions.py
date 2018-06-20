@@ -19,6 +19,45 @@ def factorial(n):
 
 print(factorial(3))
 
+def factorial(n, acc = 1):
+	if n == 1:
+		return acc
+	else:
+		return factorial(n - 1, n * acc)
+
+def factorial(n):
+	acc = 1
+	while True:
+		if n == 1:
+			return acc
+		n, acc = n - 1, n * acc
+
+print("tail recursive")
+print(factorial(3))
+
+def factorial(n):
+	acc = 1
+	while True:
+		if n == 1:
+			return acc
+		acc = n * acc
+		n = n - 1
+		
+
+print("tail recursive right")
+print(factorial(3))
+
+def factorial(n):
+	acc = 1
+	while True:
+		if n == 1:
+			return acc
+		n = n - 1
+		acc = n * acc
+
+print("tail recursive wrong")
+print(factorial(3))
+
 def bsearch(x, e, low = 0, high = len(x)):
 	if low >= high:
 		return False

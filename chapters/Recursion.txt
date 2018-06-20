@@ -392,7 +392,95 @@ You can always translate an iterative algorithm into a recursive one, but since 
 
 Functions that can always be translated into loops are so-called *tail recursive* functions. In many programming languages, tail recursive functions are automatically translated into loops—this is called the *tail recursive optimisation*—but Python is not one of them. Not to worry, though, the translation is so simple that you can always do it by hand with very little effort.
 
+A function is *tail recursive* when the recursive case is only a recursive call. Consider the factorial function:
 
+```python
+def factorial(n):
+	if n == 1:
+		return 1
+	else:
+		return n * factorial(n - 1)
+```
+
+The recursive case involves a recursive call and we then multiply the result of this call to `n`. Because we have to multiply the result of the recursive call with `n`, the function is not tail recursive. We can translate it into a tail recursive function by adding an accumulator to the function:
+
+```python
+def factorial(n, acc = 1):
+	if n == 1:
+		return acc
+	else:
+		return factorial(n - 1, n * acc)
+```
+
+The accumulator handles the multiplication with `n`. We multiply the accumulator by `n` as we go down the recursion rather than multiply the result of recursive calls by `n`. Functions that only involve a single recursive call in the recursive case can always be translated into tail recursive versions by adding an accumulator.
+
+**Exercise:** Rewrite your recursive function for computing the sum of a list of numbers so it becomes tail recursive.
+
+**Exercise:** Rewrite your recursive function for finding the smallest element in a list to a version that is tail recursive.
+
+With tail recursive functions, we do not need to do anything with the result of the recursive call. Not doing anything with the result of a recursive call is just another way of saying that a function is tail recursive. The reason that this is important is that, when we do not need to do anything after the recursive call, then we can reuse the call frame for the recursive call. We can simply update the local variables to those we would use in the recursive call frame and go from there; we can replace a recursive call with a simple update of the function argument local variables. When we call a function we assign values to the function arguments. If we have a tail recursive function, we can simply update the arguments we already have and then start executing the function body from the beginning again. If we wrap the function body in one big `while True` loop, we can replace the recursive function call an update to the function arguments and then `continue` the loop. If the recursive case is put at the end of the loop, we do not even need to `continue`; we are at the end of the loop so we return to the beginning right after we update the variables.
+
+For the factorial function, this transformation gives us:
+
+```python
+def factorial(n):
+	acc = 1
+	while True:
+		if n == 1:
+			return acc
+		n, acc = n - 1, n * acc
+```
+
+If you split the variable updates over multiple statements, you have to be careful about the order. When you update a variable, you affect expressions that depend on it. So you have to update the variables in the right order.
+
+This will work
+
+```python
+def factorial(n):
+	acc = 1
+	while True:
+		if n == 1:
+			return acc
+		acc = n * acc
+		n = n - 1
+```
+
+This will not:
+
+```python
+def factorial(n):
+	acc = 1
+	while True:
+		if n == 1:
+			return acc
+		n = n - 1
+		acc = n * acc
+```
+
+A parallel assignment, as we did for the first iterative implementation of the factorial function, will usually work. If we never do any operations with side-effects, i.e., whenever we need to update a data structure such as a list, we create a new one instead, then parallel assignment will work. If we actually modify a data structure, we cannot use parallel assignment so we must be careful that we perform the update operations in the same order as they would have been performed in a function call.
+
+**Exercise:** Do this transformation for your tail recursive summation function.
+
+**Exercise:** Do this transformation for your tail recursive “find minimum” function.
+
+**Exercise:** Consider our recursive implementation of binary search:
+
+```python
+def bsearch(x, e, low = 0, high = len(x)):
+	if low >= high:
+		return False
+	mid = (low + high) // 2
+	if x[mid] == e:
+		return True
+	elif x[mid] < e:
+		return bsearch(x, e, mid + 1, high)
+	else:
+		return bsearch(x, e, low, mid)
+```
+
+This function is tail recursive, so use the transformation to replace it with a loop. Compare it to the iterative solution we considered before this chapter.
+
+To see a more complex case of using an accumulator in a tail-recursive function, and then translate it into an iterative function, we can return to the problem of merging two lists. We left this problem with the recursive implementation below:
 
 ```python
 def app(lst, x):
@@ -411,6 +499,8 @@ def merge(x, y):
 	return list(reversed(merge_rec(x, y)))
 ```
 
+The reason we had to construct the merged list in reverse order, and then reverse it when we are done, was actually because we didn't use an accumulator. Because of this, we had to build the list by combining a recursive call with the front of one of the lists in the recursive case. If we add an accumulator, we can build the merged list in the right order:
+
 ```python
 def merge(x, y, i = 0, j = 0, acc = []):
 	if i == len(x):	return acc + y[j:]
@@ -420,6 +510,8 @@ def merge(x, y, i = 0, j = 0, acc = []):
 	else:
 		return merge(x, y, i, j + 1, app(acc, y[j]))
 ```
+
+This function is tail recursive so we can translate it into a looping version. The `app` function simply append its second argument to its first, and it does this before the recursive call (because function arguments are evaluated before a function is called). Because of this, we can get rid of it and simply append instead. We have to be careful to append before we update the indices, though. The rewritten function looks like this:
 
 ```python
 def merge(x, y, i = 0, j = 0, acc = []):
@@ -433,6 +525,8 @@ def merge(x, y, i = 0, j = 0, acc = []):
 			acc.append(y[j])
 			j += 1
 ```
+
+If you want to avoid copying the accumulator in the basis cases, you can use the `extend` method on the accumulator list.  Using `extend` and a slice on one of the input lists is unlikely to be slower than a `while`-loop where we move individual elements, since `extend` and slice are builtin operations and therefore highly optimised.
 
 ```python
 def merge(x, y, i = 0, j = 0, acc = []):
