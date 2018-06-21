@@ -575,8 +575,7 @@ As another example of divide and conquer, we can consider a sorting algorithm kn
 
 This algorithm involves two recursive subproblems, so it is not easy to implement it as an iterative solution. We will implement it recursively. The basis cases for the recursion are when we have empty lists or lists of length one—these will be lists that are already sorted. The recursive case handles everything else.
 
-
-
+A straightforward implementation of this could look as follows:
 
 ```python
 def merge_sort(x):
@@ -584,6 +583,8 @@ def merge_sort(x):
 	mid = len(x) // 2
 	return merge(merge_sort(x[:mid]), merge_sort(x[mid:]))
 ```
+
+It does exactly what we identified as the steps that merge sort should do, but you might be uncomfortable with the slicing we do to split the input `x`. For `merge`, doing this slicing increased the running time from $O(n)$ to $O(n^2)$. It is not quite as bad here since the linear time slice operation is slower than the time it takes to sort the sub-lists—we discuss the running time shortly, but it will be $O(n\log n)$. Still, we could avoid it using indices into `x` instead:
 
 ```python
 def merge_sort_rec(x, low, high):
@@ -596,6 +597,10 @@ def merge_sort(x):
 	return merge_sort_rec(x, 0, len(x))
 ```
 
+I have implemented this using two separate functions, one that handle the actual sorting but takes indices as arguments, and one that only takes `x` as its argument and calls the former. We cannot set `low` and `high` as default arguments, since `high` should be set to the length of `x`, and we do not know what `x` is until we call the function, and default arguments must be known when we define a function. We could use the trick of setting them to `None` and then check if they are, as we did `merge`, but then we would need to check the arguments in each recursive call. This wasn’t a problem when we translated `merge` into an iterative algorithm, but we cannot do this with `merge_sort` since it is not tail recursive. Therefore, I prefer to split the algorithm into two functions.
+
+We still slice `x` when the interval is one or zero, and we still need to concatenate two lists when we merge. We can also avoid this by doing the sorting in-place. For this we need an in-place merge. Doing this was an exercise earlier in the book, but a recursive solution could look like this:
+
 ```python
 def inplace_merge(x, i, j, k, l):
 	# invariant: i <= j <= k <= l
@@ -606,6 +611,8 @@ def inplace_merge(x, i, j, k, l):
 		x[i], x[k] = x[k], x[i]
 		inplace_merge(x, i + 1, j, k, l)
 ```
+
+Since this is a tail recursive function, we can transform it into an iterative algorithm in the straightforward way:
 
 ```python
 def inplace_merge(x, i, j, k, l):
@@ -619,6 +626,8 @@ def inplace_merge(x, i, j, k, l):
 			i += 1
 ```
 
+With the in-place merge we can implement an in-place merge sort like this:
+
 ```python
 def merge_sort_rec(x, low, high):
 	if high - low <= 1: return
@@ -630,4 +639,6 @@ def merge_sort_rec(x, low, high):
 def merge_sort(x):
 	merge_sort_rec(x, 0, len(x))
 ```
+
+### Divide and conquer running times
 
