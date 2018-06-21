@@ -502,7 +502,9 @@ def merge(x, y):
 The reason we had to construct the merged list in reverse order, and then reverse it when we are done, was actually because we didn't use an accumulator. Because of this, we had to build the list by combining a recursive call with the front of one of the lists in the recursive case. If we add an accumulator, we can build the merged list in the right order:
 
 ```python
-def merge(x, y, i = 0, j = 0, acc = []):
+def merge(x, y, i = 0, j = 0, acc = None):
+	if acc is None:
+		acc = []
 	if i == len(x):	return acc + y[j:]
 	if j == len(y):	return acc + x[i:]
 	if x[i] < y[j]:
@@ -511,10 +513,14 @@ def merge(x, y, i = 0, j = 0, acc = []):
 		return merge(x, y, i, j + 1, app(acc, y[j]))
 ```
 
+The way we handle the default value of the accumulator might look a bit weird, but it is important. If we set the default value of `acc` to an empty list, each call to `merge` that rely on the default parameter will get the *same* list. This means that if you call `merge` twice, the result of the first call will still be in the accumulator, and the new merge will be appended to it. This is not what we want, and it is because of this that we handle the default parameter the way we do.
+
 This function is tail recursive so we can translate it into a looping version. The `app` function simply append its second argument to its first, and it does this before the recursive call (because function arguments are evaluated before a function is called). Because of this, we can get rid of it and simply append instead. We have to be careful to append before we update the indices, though. The rewritten function looks like this:
 
 ```python
-def merge(x, y, i = 0, j = 0, acc = []):
+def merge(x, y, i = 0, j = 0, acc = None):
+	if acc is None:
+		acc = []
 	while True:
 		if i == len(x):	return acc + y[j:]
 		if j == len(y):	return acc + x[i:]
@@ -529,7 +535,9 @@ def merge(x, y, i = 0, j = 0, acc = []):
 If you want to avoid copying the accumulator in the basis cases, you can use the `extend` method on the accumulator list.  Using `extend` and a slice on one of the input lists is unlikely to be slower than a `while`-loop where we move individual elements, since `extend` and slice are builtin operations and therefore highly optimised.
 
 ```python
-def merge(x, y, i = 0, j = 0, acc = []):
+def merge(x, y, i = 0, j = 0, acc = None):
+	if acc is None:
+		acc = []
 	while True:
 		if i == len(x):
 			acc.extend(y[j:])
@@ -546,4 +554,80 @@ def merge(x, y, i = 0, j = 0, acc = []):
 ```
 
 ## Divide and conquer
+
+Divide and conquer is the algorithmic version of recursion. The term comes from the political doctrine *divide et impera*, but for algorithms, a more correct description would be *divide and combine*. The key idea is to
+
+1. Split a problem into subproblems of the same type.
+2. Recursively solve these problems.
+3. Combine the results of the recursive calls to a solution of the original problem.
+
+Components 1 and 3 can be very simple or very complex, while 2 is usually one or two recursive calls.
+
+The binary search algorithm, we have seen several times by now, is an example of a divide and conquer algorithm. Step 1 in this algorithm is identifying whether we should search to the left or to the right of the midpoint, the recursive step is searching in one of these intervals. Step 3 is almost non-existing, since we simply return the result of the recursive solution in step 2.
+
+The recursive step(s) in divide and conquer are often implemented as recursive function calls, but need not be. Conceptually, we recurse, but as we saw in binary search, we can replace recursive calls with loops. It is not necessary to use recursion in your implementation of a divide and conquer algorithm; the key component of this class of algorithms is that we solve a subproblem of the same type as the original problem. Since we are using recursion, even if it is only conceptually, we need to have basis cases and recursive cases. The basis case in binary search is when we have an empty interval or when the midpoint is the element we are looking for. The recursive case handles everything else.
+
+As another example of divide and conquer, we can consider a sorting algorithm known as *merge sort*. This algorithm works as follows:
+
+1. Split the initial input into two pieces of half the size of the original problem: the first and the second half of the input list.
+2. Sort these two smaller lists recursively.
+3. Combine the two sorted lists using merge.
+
+This algorithm involves two recursive subproblems, so it is not easy to implement it as an iterative solution. We will implement it recursively. The basis cases for the recursion are when we have empty lists or lists of length one—these will be lists that are already sorted. The recursive case handles everything else.
+
+
+
+
+```python
+def merge_sort(x):
+	if len(x) <= 1: return x
+	mid = len(x) // 2
+	return merge(merge_sort(x[:mid]), merge_sort(x[mid:]))
+```
+
+```python
+def merge_sort_rec(x, low, high):
+	if high - low <= 1: return x[low:high]
+	mid = (low + high) // 2
+	return merge(merge_sort_rec(x, low, mid), 
+		         merge_sort_rec(x, mid, high))
+
+def merge_sort(x):
+	return merge_sort_rec(x, 0, len(x))
+```
+
+```python
+def inplace_merge(x, i, j, k, l):
+	# invariant: i <= j <= k <= l
+	if i == j or k == l: return # nothing left to be done
+	if x[i] < x[k]:
+		inplace_merge(x, i + 1, j, k, l)
+	else:
+		x[i], x[k] = x[k], x[i]
+		inplace_merge(x, i + 1, j, k, l)
+```
+
+```python
+def inplace_merge(x, i, j, k, l):
+	while True:
+		# invariant: i <= j <= k <= l
+		if i == j or k == l: return # nothing left to be done
+		if x[i] < x[k]:
+			i += 1
+		else:
+			x[i], x[k] = x[k], x[i]
+			i += 1
+```
+
+```python
+def merge_sort_rec(x, low, high):
+	if high - low <= 1: return
+	mid = (low + high) // 2
+	merge_sort_rec(x, low, mid)
+	merge_sort_rec(x, mid, high)
+	inplace_merge(x, low, mid, mid, high)
+	
+def merge_sort(x):
+	merge_sort_rec(x, 0, len(x))
+```
 

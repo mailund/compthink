@@ -108,7 +108,11 @@ def merge(x, y):
 
 x = [1,2,3,6,7,8,9]
 y = [2,3,3,3,4,5]
+print("dresden")
 print(merge(x,y))
+print(merge([1],[3]))
+print("bar")
+print(merge([3],[1]))
 
 def merge(x, y):
 	if len(x) == 0:	return y
@@ -118,7 +122,11 @@ def merge(x, y):
 	else:
 		return [y[0]] + merge(x, y[1:])
 
+print("leipzig")
 print(merge(x,y))
+print(merge([1],[3]))
+print("bar")
+print(merge([3],[1]))
 
 def merge(x, y, i = 0, j = 0):
 	if i == len(x): return y[j:]
@@ -128,9 +136,16 @@ def merge(x, y, i = 0, j = 0):
 	else:
 		return [y[j]] + merge(x, y, i, j + 1)
 
+print("horse")
 print(merge(x,y))
+print(merge([1],[3]))
+print("bar")
+print(merge([3],[1]))
 
-def merge(x, y, i = 0, j = 0, result = []):
+def merge(x, y, i = 0, j = 0, result = None):
+	if result is None:
+		result = []
+
 	if i == len(x):
 		# no more elements in x
 		while j < len(y):
@@ -152,6 +167,10 @@ def merge(x, y, i = 0, j = 0, result = []):
 
 print("bar")
 print(merge(x,y))
+print("---")
+print(merge([1],[3]))
+print("bar")
+print(merge([3],[1]))
 
 
 def merge_rec(x, y, i = 0, j = 0):
@@ -170,6 +189,9 @@ def merge(x, y):
 	return list(reversed(merge_rec(x, y)))
 print("foo")
 print(merge(x,y))
+print(merge([1],[3]))
+print("bar")
+print(merge([3],[1]))
 
 def app(lst, x):
 	lst.append(x)
@@ -186,10 +208,16 @@ def merge_rec(x, y, i = 0, j = 0):
 def merge(x, y):
 	return list(reversed(merge_rec(x, y)))
 
+print("pony")
 print(merge(x,y))
+print(merge([1],[3]))
+print("bar")
+print(merge([3],[1]))
 
 
-def merge(x, y, i = 0, j = 0, acc = []):
+def merge(x, y, i = 0, j = 0, acc = None):
+	if acc is None:
+		acc = []
 	if i == len(x):	
 		return acc + y[j:]
 	if j == len(y):	
@@ -201,9 +229,14 @@ def merge(x, y, i = 0, j = 0, acc = []):
 
 print("qax")
 print(merge(x,y))
+print(merge([1],[3]))
+print("bar")
+print(merge([3],[1]))
 
 
-def merge(x, y, i = 0, j = 0, acc = []):
+def merge(x, y, i = 0, j = 0, acc = None):
+	if acc is None:
+		acc = []
 	while True:
 		if i == len(x):	return acc + y[j:]
 		if j == len(y):	return acc + x[i:]
@@ -216,8 +249,13 @@ def merge(x, y, i = 0, j = 0, acc = []):
 
 print("qux")
 print(merge(x,y))
+print(merge([1],[3]))
+print("bar")
+print(merge([3],[1]))
 
-def merge(x, y, i = 0, j = 0, acc = []):
+def merge(x, y, i = 0, j = 0, acc = None):
+	if acc is None:
+		acc = []
 	while True:
 		if i == len(x):
 			acc.extend(y[j:])
@@ -233,6 +271,10 @@ def merge(x, y, i = 0, j = 0, acc = []):
 			j += 1
 
 print(merge(x,y))
+print("foo")
+print(merge([1],[3]))
+print("bar")
+print(merge([3],[1]))
 
 
 x = [2, 5, 3, 5]
