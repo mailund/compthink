@@ -642,3 +642,125 @@ def merge_sort(x):
 
 ### Divide and conquer running times
 
+Figuring out the running time for recursive functions, or algorithms that are recursive even if they are not implemented as recursive functions, involves solving recurrence equations. If $T(n)$ denotes the running time on input of size $n4, then a recurrence equation could look like this:
+
+$$T(n) = 2\cdot T(n/2) + O(n)$$
+
+This is the recurrence equation for merge sort. To sort a list of length $n$ we solve two problems of half the size, $2T(n/2)$, and do $O(n)$ additional work. In the first version of merge sort, where we sliced the input, we used linear time both for the slicing and then for the merge; in the final version we only spend linear time with the merge. In either case, we spend linear time in addition to the recursive calls.
+
+What characterise recurrence equations is similar to what characterises recursive solutions to problems. The equations refer to themselves. Strictly speaking, we need basis cases for the recurrence equations to be well defined, so we would have
+
+$$T(n) = \begin{cases}
+ O(1) & n \leq 1 \\
+ 2\cdot T(n/2) + O(n) & \text{otherwise}
+\end{cases}$$
+
+but when we consider the running time of an algorithm, the basis cases almost always involve constant time, so we often leave that out.
+
+You can solve such recurrence equations by expanding them
+
+\begin{align*}
+	T(n) &= O(n) + 2\cdot T(n/2) \\
+       &= O(n) + 2\left[
+	        O(n/2) + 2\cdot T(n/4)
+       \right] \\
+       &= O(n) + 2\left[
+	        O(n/2) + 2\cdot \left[
+		        O(n/4) + T(n/8)
+	        \right]
+       \right] \\
+       &= \ldots
+\end{align*}
+
+but you have to be a little careful with the expansion and big-Oh notation. Here, we see that we get a $O(n/2)$ in the first expansion, and normally we would consider this equal to $O(n)$. It is, but as we keep expanding, we see the series $O(n)+O(n/2)+O(n/4)+\cdot+O(n/n)$. If we pretend that all the $O(n/2^k)$ components are $O(n)$ this would give us $n\times O(n)=O(n^2)$. This *is* an upper bound on the expression, but it is not actually tight. If you multiply into the parentheses in the equation you will also get
+
+$$2\left[O(n/2) + 2\cdot T(n/4)\right] = 2 O(n/2) + 4 T(n/4)
+ = O(n) + 4 T(n/4)$$
+
+which is actually fine, but if you translated $O(n/2)$ into $O(n)$, you would get
+
+$$T(n) = 2O(n) + 4O(n) + 8O(n) + 16\cdot T(n/8)$$
+
+where each of the $O(n)$ components are multiplied by a number $2^k$. You can consider that a constant in each step, but $k$ actually depend on $n$, so it isn't really a constant. Neither is the number we divide $n$ by inside the big-Oh.
+
+The problem here is that if we blindly translate the expanded numbers $2 O(n/2)$ into $O(n)$ are do not take into account that, as we continue the expansion, the number we multiply with and the number we divide by, changes for each expansion. They depend on $n$ in how many times we do this and what the numbers are in each step. They are not constants. The arithmetic rules we have learned for the big-Oh notation is fine, the problem is not in that. The problem is if we misunderstand the numbers in the expansion as constants when they are not. This is usually not a trap you will fall into when reasoning about iterative algorithms as we have done earlier, but it is easy to fall into here.
+
+When expanding a recurrence equation, it is easier to translate $O(n)$ into $cn$ for some constant $c$. We know such a constant exists so $cn$ is an upper bound for whatever the $O(n)$ is capturing. Then we get an expansion like this:
+
+\begin{align*}
+	T(n) &= cn + 2\cdot T(n/2) \\
+       &= cn + 2\left[
+	       cn/2 + 2\cdot T(n/4)
+       \right] \\
+       &= cn + 2\left[
+	       cn/2 + 2\left[cn/4) + 2\cdot T(n/8)
+	       \right]
+       \right]\\
+       &= \ldots
+\end{align*}
+
+If we take this expansion all the way down, we get
+
+$$T(n)=\sum_{k=0}^{\log n} c\cdot 2^k n / 2^k
+		  =\sum_{k=0}^{\log n} c\cdot n = c\cdot n\log n$$
+		  
+where $\log n$ is the base-two logarithm, and we get that limit because $2^{\log n}=n$ is when we reach $n/n=1$. This means that this recurrence is in $O(n\log n)$, so this is the big-Oh running time for merge sort.
+
+Usually, you can solve recurrence equations just by expanding them and recognising the form of the sum you get back from it. This often take the form of a series you know is convergent or such. By far, the divide and conquer algorithms you will run into are in one of the forms listed below, so I find it easier to just remember these.
+
+$$T(n) = 2\cdot T(n/2) + O(n) \in O(n\log n)$$
+
+We just saw an example of this. Whenever you can break a problem into two subproblems of half the length as the original and you do not spend more than linear time splitting or combining, you get an $O(n\log n)$ algorithm. The merge sort is one such algorithm. This is also the first comparison-based sorting algorithm we have seen that runs in this time, and it can be shown to be optimal (in the sense of big-Oh) because all comparison-based sorting algorithms need to do $\Omega(n\log n)$ comparisons.
+
+$$T(n) = T(n-1) + O(1) \in O(n)$$
+
+If we, in constant time, remove one from the problem size we have an algorithm that runs in linear time. If we consider linear search a recursive problem—the basis case is when the first element is the one we are searching for and the recursive case is doing a linear search on the rest of the input—then that would be an example of such an algorithm.
+
+$$T(n) = T(n-1) + O(n) \in O(n^2)$$
+
+If we need linear time to reduce the problem size by one, then we get a quadratic time algorithm. Selection sort, where we find the smallest element in the input, in linear time, swap it to the first element, and then recursively sort the rest of the list is an example of this.
+
+$$T(n) = T(n/2) + O(1) \in O(\log n)$$
+
+If you can reduce the problem to half its size in constant time, then you have a linear time algorithm. Binary search is an example of this.
+
+$$T(n) = T(n/2) + O(n) \in O(n)$$
+
+If you can reduce the problem to half its size in linear time, and get the solution for the full problem after the recursive computation in linear time as well, then you have a linear time algorithm. Notice that this equation is different from the one we had for merge sort; in that recursion we needed *two* recursive calls, in this we only need one.
+
+**FIXME: example**
+
+$$T(n) = 2\cdot T(n/2) + O(1) \in O(n)$$
+
+If we can split and combine in constant time but require two recursive calls on half the size, we also get a linear time algorithm. Again, notice that this is different from the recurrence equation for merge sort where we needed linear time to merge the results of the two recursive calls.
+
+An example of an algorithm that has this recurrence, consider the problem of finding the largest difference between two numbers in a list. You could, of course, run through all pairs and find the largest, but that would take time $O(n^2)$. Instead, you can solve a slightly harder problem and get the solution from there—where by "harder" I mean that it solves more than just finding the maximum difference, I do not mean that this is a harder complexity class. We can actually solve it in linear time by using a divide and conquer algorithm with the recurrence above.
+
+The problem we will solve is to find the smallest and the largest number in a list as well as the largest difference. We do this recursively. We split the input into two halves, find the smallest and largest elements in both halves, as well as the largest difference in the two halves. We can then combine these. The smallest element for the full list is the smallest of the smallest in either half. The largest element is the maximum of the two we got from the recursive calls. The largest difference in the full list is either found in one of the two halves, or we can get it as the difference between the largest element in one half and the smallest in the other. We can implement the entire algorithm like this:
+
+```python
+def min_max_maxdiff(x, i, j):
+	# Invariant: j > i
+	if i + 1 == j:
+		return x[i], x[i], 0
+	else:
+		mid = (i + j) // 2
+		min_l, max_l, maxdiff_l = min_max_maxdiff(x, i, mid)
+		min_r, max_r, maxdiff_r = min_max_maxdiff(x, mid, j)
+		min_res = min(min_l, min_r)
+		max_res = max(max_l, max_r)
+		maxdiff_res = max(maxdiff_l, maxdiff_r,
+			              max_r - min_l, max_l - min_r)
+		return min_res, max_res, maxdiff_res
+```
+
+If we only want the maximum difference, we can wrap the function:
+
+```python
+def maxdiff(x):
+	if len(x) == 0: return None
+	_, _, md = min_max_maxdiff(x, 0, len(x))
+	return md
+```
+
+Splitting the data and combining the results from the recursive calls can be done in constant time and we make two recursive calls of half the size, so by the recurrence equation above, the running time is $O(n)$.
