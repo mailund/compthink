@@ -728,7 +728,7 @@ $$T(n) = T(n/2) + O(n) \in O(n)$$
 
 If you can reduce the problem to half its size in linear time, and get the solution for the full problem after the recursive computation in linear time as well, then you have a linear time algorithm. Notice that this equation is different from the one we had for merge sort; in that recursion we needed *two* recursive calls, in this we only need one.
 
-**FIXME: example**
+**FIXME:** example
 
 $$T(n) = 2\cdot T(n/2) + O(1) \in O(n)$$
 
