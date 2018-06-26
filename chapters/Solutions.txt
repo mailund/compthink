@@ -1,5 +1,11 @@
 # Solutions to exercises
 
+Here, at the end of the book, I present my own solutions to the exercises in the previous chapters. For many of the exercises there are more than one way to solve them, and mine are no better than yours. If you have solved an exercise in a different way, you might still learn from seeing my solution. If you get stuck on a problem, you can use my solutions to get hints of how to progress with your own. If you have already solved a problem, you can compare it with my solution to check if it can be solved more elegantly. If you think you have a better solution, I would love to see it, so please email me about it.
+
+Since I present the solutions to all exercises here, I must caution you against skipping the exercises and just looking at the solutions. I know it can be very tempting to just flip to the solutions whenever there is an exercise. You must fight that temptation. The point of doing exercises is that it forces you to think more deeply about the topics you are learning. I have solved many problems in the main text, so you have already seen how I solve problems multiple times. It can be deceptively easy to follow a solution to a problem, and it does not compare to working through a problem yourself. The latter forces you to think more deeply about an issue and tests that you have fully understood a topic. I urge you to always try solving a problem yourself before looking at my answers.
+
+Now, without further ado, I present my solutions.
+
 ## Introduction to algorithms
 
 ### Above or below
@@ -21,10 +27,7 @@ for guess in range(20,0,-1):
 lower_bound = 1
 upper_bound = 20
 while True:
-    guess = int((upper_bound + lower_bound) / 2)
-    print("{} is my guess in [{},{}]".format(
-        guess, lower_bound, upper_bound)
-    )
+    guess = (upper_bound + lower_bound) // 2
     result = input_selection(
         "How is my guess {}?".format(guess),
         ["low", "hit", "high"]

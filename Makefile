@@ -1,19 +1,16 @@
 
-CHAPTERS := 000_header.yml \
-   	          Introduction_to_computation.txt \
-			        Introducing_Python.txt \
-              Introduction_to_algorithms.txt \
-              Algorithmic_complexity.txt \
-              Trees_and_graphs.txt \
-              Solutions.txt
+
 
 CHAPTERS := 000_header.yml \
 		          Introduction_to_computation.txt \
               Introduction_to_algorithms.txt \
               Algorithmic_complexity.txt \
               Searching_and_sorting.txt \
-              Recursion.txt
+              Recursion.txt \
+              Solutions.txt
 
+CHAPTERS := 000_header.yml \
+              Solutions.txt
 
                
 

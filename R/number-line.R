@@ -49,8 +49,8 @@ ggplot(d) +
   coord_cartesian(ylim = c(-2, 2)) +
   labs(x = NULL, y = NULL) +
   theme_classic() +
-  theme(axis.line.y = element_blank(),
+  theme(axis.line.y = element_blank(), axis.line.x = element_blank(),
         axis.ticks = element_blank(),
         axis.text = element_blank())
 
-ggsave("../figures/number-line.pdf", width = 15, height = 5)
+ggsave("../figures/number-line.pdf", width = 10, height = 6)
