@@ -10,6 +10,40 @@ Now, without further ado, I present my solutions.
 
 ### Above or below
 
+Here are three different strategies you could use to guess the number:
+1. Start with 1. If it isn't the right number, it has to be too low--there are no smaller numbers the right one could be. So if it isn't 1, you guess it is 2. If it isn't, you have once again guessed too low, so now you try 3. You continue by incrementing your guess by one until you get the right answer.
+
+2. Alternatively, you start at 20. If the right number is 20, great, you got it in one guess, but if it is not, your guess must be too high--it cannot possibly be too small. So you try 19 instead, and this time you work your way down until you get the right answer.
+3. Tired of trying all numbers from one end to the other, you can pick this strategy: you start by guessing 10. If this is correct, you are done, if it is too high, you know the real number must be in the interval $[1,9]$, and if the guess is too low, you know the right answer must be in the interval $[11,20]$--so for your next guess, you pick the middle of the interval it must be. With each new guess, you update the interval where the real number can be hidden and pick the middle of the new interval.
+
+**Exercise:** Prove that all three strategies terminate and with the correct answer, i.e. they are algorithms for solving this problem.
+
+> **Answer:** For 1: If you let `i` denote the current number you are considering, then 20 - `i` is your termination function. You never skip a number, so when you will eventually see all numbers between 1 and 20 and you will be told when you saw the right one.
+
+> **Answer:** For 2: Here you can use `i` - 1 as your termination function (minus one to make the termination function hit zero at the last number we consider). The argument for correctness is the same as before.
+
+> **Answer:** For 3: For termination we can use high - low. This interval is shrinking in each iteration and will eventually be empty. Before it is empty, though, we must have hit an interval of length 1 that contains the number we are looking for. Why? Because whenever `high - low > 2`, both `mid - low` and `high - low` >= 2 and when `high - low == 2` we have `mid = low` and either we have found the element at `mid` or the element is at `mid + 1` (since it must be in the interval) and the next recursion has an interval of length one where the element we are searching for is at the front.
+
+**Exercise:** Would you judge all three approaches to be equally efficient in finding the right number? If not, how would you order the three strategies such that the method most likely to get the right number first is ranked highest and the algorithm most likely to get the right number last is ranked lowest. Justify your answer.
+
+> **Answer:** In the first two strategy we eliminate one element at a time until we find the one we are searching for. In the third strategy we eliminate half the remaining interval in each iteration. We would therefore expect the third strategy to be faster than the first two.
+
+If you do not lie to the computer when it asks you about its guess compared to the number you are thinking of, this program implements the first strategy:
+
+```python
+for guess in range(1,21):
+    result = input_selection("How is my guess {}?".format(guess), ["low", "hit", "high"])
+    if result == "hit":
+        print("Wuhuu!")
+        break
+    else:
+        print("I must have been too low, right? the answer was", result)
+```
+
+**Exercise:** Implement the other two strategies and test them.
+
+> **Answer:** Counting down from 20 to 1 can be implemented like this:
+
 ```python
 for guess in range(20,0,-1):
     result = input_selection(
@@ -22,6 +56,8 @@ for guess in range(20,0,-1):
     else:
         print("I must have been too hight, right? ", result)
 ```
+
+> **Answer:** Cutting the interval in half in each iteration can be implemented like this:
 
 ```python
 lower_bound = 1
@@ -46,6 +82,18 @@ while True:
 
 **FIXME: solution:**
 
+**Exercise:** From the description alone you can argue that *if* the method terminates, it will report a correct answer. Prove that the algorithm is correct.
+
+> **Answer:** We only terminate when $|S/x_i-x_i|< \epsilon$. We know that if $x_i < S/x_i$ then $x_i \leq x < S/x_i$, so $x_i$ is within $\epsilon$ of the true value $x$. If $x_i > S/x_i$ we know that $S/x_i < x \leq x_i$, and again we know that $x_i$ is within $\epsilon$ of the true value $x$.
+
+In each iteration, we update the interval in which we know $\sqrt{S}$ resides by cutting the previous interval in half.
+
+**Exercise:** Use this to prove that the algorithm terminates.
+
+> **Answer:** We can use $|S/x_i - x_i| - \epsilon$ as our termination function. Each iteration decreases the $|S/x_i - x_i|$ by one half, so the size of the interval moves asymptotically towards zero. This means that eventually it will be smaller than any $\epsilon$, so the algorithm must terminate.
+
+**Exercise:** Implement and test this algorithm.
+
 ```python
 def babylonian_sqrt(S, epsilon):
     lower_bound = 0
@@ -67,6 +115,8 @@ babylonian_sqrt(2, 1e-5)
 
 ### Changing numerical base
 
+**Exercise:** Flesh out an algorithm, based on the observations above, that can print any integer in any base $b\le 16$. Show that your method terminates and outputs the correct string of digits.
+
 ```python
 def print_base(n, b):
     base_b = []
@@ -77,6 +127,33 @@ def print_base(n, b):
 ```
 
 ### The sieve of Eratosthenes
+
+```python
+candidates = list(range(2, n + 1))
+primes = []
+```
+
+I will require the following loop invariants:
+
+1. All numbers in `primes` are prime.
+2. No number in `candidates` can be divided by a number in `primes`.
+3. The smallest number in `candidates` is a prime.
+
+**Exercise:** Prove that the invariants are true with the initial lists defined as above.
+
+> **Answer:** Any properties we care to require about the elements in an empty list are true. There are no elements for which they can be false. We call this *vacuously* true.
+
+We will now look as long as there are candidates left. In the loop, we take the smallest number in the `candidates` list, which by the invariant must be a prime. Call it $p$. We then remove all candidates that are divisible by $p$ and then add $p$ to `primes`.
+
+**Exercise:** Prove that the invariants are satisfied after these steps whenever they are satisfied before the steps.
+
+> **Answer:** If the front element in `candidates` was divisible by any smaller number—and we only care about smaller numbers when we consider the divisible property—then it would have been removed. It isn’t divisible by a smaller number, it must therefore be prime. When we move it to `primes` we satisfy the invariant for that list. Let `p` be the first number in `candidates` before we move it to `primes`. In `candidates`, before we remove those divisible by `p`, we have no numbers that are divisible by any of the smaller primes. We explicitly remove those divisible by `p`. We are then left with numbers that are not divisible by any of the numbers in `primes`.
+
+**Exercise:** Prove that this algorithm terminates and is correct, i.e., that `primes` once the algorithm terminates contain all primes less than or equal to $n$. Correctness does not follow directly from the invariants, so you might have to extend them.
+
+> **Answer:** For a termination function we can use the length of the `candidates` list. It is decreased by at least one every iteration, because we move its first element to `primes`, and we terminate when it is empty. Where the invariants come up short is that they tell us that `primes` are all primes, as is `candidates[0]` when `candidates` is not empty, but they do not tell us that `primes` eventually will contain *all* the primes less than $n$. To get to there, we can modify the invariants to say that `primes` contain all primes less than `candidates[0]` when `candidates` is not empty or $n$ when it is. You can prove that this invariant is also true very similarly to how we proved the other invariants. When you have a prime in `p = candidates[0]`, `primes` contain all smaller primes (by the invariant). When we move `p` to `primes` the invariant is also true—`primes` still contain all primes less than `p`, this doesn’t change when we add `p`. From `candidates` we now remove numbers that are *not* prime, but never numbers that are. We end up with either a new `p = candidates[0]` that must be a larger prime, so we can repeat the argument for the next iteration, or we end up with an empty list. When we have an empty list we have evaluated all numbers up to and including $n$, and `primes` contain all the primes in that sequence.
+
+**Exercise:** Implement and test this algorithm.
 
 ```python
 def eratosthenes(n):
@@ -90,3 +167,49 @@ def eratosthenes(n):
 ```
 
 
+
+## Longest increasing substring
+
+Assume you have a list of numbers, for example
+
+```python
+x = [12, 45, 32, 65, 78, 23, 35, 45, 57]
+```
+
+**Exercise:** Design an algorithm that finds the longest sub-sequence `x[i:j]` such that consecutive numbers are increasing, i.e. `x[k] < x[k+1]` for all `k` in `range(i,j)`  (or one of the longest, if there are more than one with the same length).
+
+*Hint:* One way to approach this is to consider the longest sequence seen so far and the longest sequence up to a given index into `x`. From this you can formalise invariants that should get you through.
+
+> **Answer:** FIXME
+
+## Compute the powerset of a set
+
+The *powerset* $P(S)$ of a set $S$ is the set that contains all possible subsets of $S$. For example, if $S=\{a,b,c\}$, then 
+
+$$P(S) = \{\emptyset,\{a\}, \{b\}, \{c\}, \{a,b\}, \{a,c\}, \{b,c\}, \{a,b,c\}\}$$
+
+**Exercise:** Assume that $S$ is represented as a list. Design an algorithm that prints out all possible subsets of $S$. Prove that it terminates and is correct.
+
+*Hint:* You can solve this problem by combining the numerical base algorithm with an observation about the binary representation of a number and a subset of $S$. We can represent any subset of $S$ by the indices into the list representation of $S$. Given the indices, just pick out the elements at those indices. One way to represent a list of indices is as a binary sequence. The indices of the bits that are 1 should be included, the indices where the bits are 0 should not. If you can generate all the binary vectors of length `k=len(S)`, then you have implicitly generated all subsets of $S$. You can get all these bit vectors by getting all the numbers from zero to $2^k$ and extracting the binary representation.
+
+> **Answer:** FIXME
+
+## Longest increasing subsequence
+
+Notice that this problem has a different name from the previous and is not exactly the same problem.
+
+Assume, again, that you have a list of numbers. We want to find the longest sub-sequence of increasing numbers, but this time we are not looking for consecutive indices `i:j`, but a sequence of indices $i_0,i_1,\ldots,i_m$ such that $i_k<i_{k+1}$ and $x[i_k] < x[i_{k+1}]$.
+
+**Exercise** Design an algorithm for computing the longest (or a longest) such sequence of indices $i_0,i_1,\ldots,i_m$.
+
+*Hint:* This problem is harder than the previous one, but you can brute force it by generating *all* subsequences and checking if the invariant is satisfied. This is a *very* inefficient approach, but we need to learn a little more about algorithms before we will see a more efficient solution.
+
+> **Answer:** FIXME
+
+## Merging
+
+Assume you have two sorted lists, `x` and `y`, and you want to combine them into a new sequence, `z`, that contains all the elements from `x` and all the elements from `y`, in sorted order. You can create `z` by *merging* `x` and `y` as follows: have an index, `i`, into `x` and another index, `j`, into `y`—both initially zero—and compare `x[i]` to `y[j]`. If `x[i] < y[j]`, then append `x[i]` to `z` and increment `i` by one. Otherwise, append `y[j]` to `z` and increment `j`. If either `i` reaches the length of `x` or `j` reaches the end of `y`, simply copy the remainder of the other list to `z`.
+
+**Exercise:** Argue why this approach creates the correct `z` list and why it terminates.
+
+> **Answer:** FIXME
