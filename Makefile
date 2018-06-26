@@ -15,8 +15,6 @@ CHAPTERS := 000_header.yml \
               Recursion.txt
 
 
-CHAPTERS := 000_header.yml \
-              Recursion.txt
                
 
 SOURCE_CHAPTERS := $(foreach chapter,$(CHAPTERS),chapters/$(chapter))
