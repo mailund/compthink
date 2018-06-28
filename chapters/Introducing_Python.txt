@@ -1,7 +1,7 @@
 
 # Introducing Python programming
 
-Many textbooks on algorithms will present the algorithms in so-called *pseudo code*, something that looks like it is written in a real programming language while it is in fact written in an approximation to such a language but with the abstractions and programming constructs chosen to make the algorithm look as simple as necessary. Since the goal of this is to present the essentials of an algorithm and not distract the reader with unnecessary language artifacts, this is a sensible approach. It does, however, occasionally hide too many details from the reader, and since the pseudo code cannot actually be run by a computer, it is not possible to experiment with it to test different approaches to how an algorithm could be implemented in practice. In this book, we will not use pseudo code but present all algorithms in the Python programming language. Python is a very high-level language, and in many ways Python implementations of common algorithms look very similar to pseudo code versions of them, but with Python you get a working implementation.
+Many textbooks on algorithms will present the algorithms in so-called *pseudo code*, something that looks like it is written in a real programming language while it is in fact written in an approximation to such a language but with the abstractions and programming constructs chosen to make the algorithm look as simple as necessary. Since the goal of this is to present the essentials of an algorithm and not distract the reader with unnecessary language artefacts, this is a sensible approach. It does, however, occasionally hide too many details from the reader, and since the pseudo code cannot actually be run by a computer, it is not possible to experiment with it to test different approaches to how an algorithm could be implemented in practice. In this book, we will not use pseudo code but present all algorithms in the Python programming language. Python is a very high-level language, and in many ways Python implementations of common algorithms look very similar to pseudo code versions of them, but with Python you get a working implementation.
 
 Python is a complete general purpose programming language with many advanced features and it scales well to constructing very large software systems. At the same time, it has a very gentle learning curve and lets you implement small programs with very little programming overhead. It is perfect for our purpose in this book. By knowing just a small subset of the language you will be able to implement the algorithms we cover in the book and you will be able to experiment with them, and should you decide to make more of a career out of programming, then you can easily pick up the more advanced features of Python and use this language for larger projects as well.
 
@@ -11,11 +11,11 @@ Even simpler programming tasks such as reading data from input files and formatt
 
 ## Obtaining Python and Jupyter
 
-When you write programs in Python, you will usually do this in one or more plain text files using a simple text editor. We will take a slightly different approach and use so-called *Jupyter notebooks*. Jupyter, [http://jupyter.org](http://jupyter.org), is a web interface to a text and code editor. Jupyter is not the ideal choice for large software projects---there you are better off with plain text Python files and perhaps an integrated development environment---but the Jupyter interface is frequently used when people do data analysis using Python. In the Jupyter interface, you can combine text, math, images, and tables with code that analyze your data and display the results of the analysis.
+When you write programs in Python, you will usually do this in one or more plain text files using a simple text editor. We will take a slightly different approach and use so-called *Jupyter notebooks* (but check the last section in the chapter if you want to go another way). Jupyter, [http://jupyter.org](http://jupyter.org), is a web interface to a text and code editor. Jupyter is not the ideal choice for large software projects—there you are better off with plain text Python files and perhaps an integrated development environment—but the Jupyter interface is frequently used when people do data analysis using Python. In the Jupyter interface, you can combine text, math, images, and tables with code that analyse your data and display the results of the analysis.
 
 Jupyter isn't part of a standard Python installation---at least not yet---but the easiest way to install this interface is through a Python distribution that installs it and all the software it depends on. One such distribution is *Anaconda*. To download and install Anaconda, go to [https://www.anaconda.com/download](https://www.anaconda.com/download). There, you can download installation packages for Windows, OSX, and Linux. Download the distribution for your platform. The dialect of Python we will use in this book is Python 3.x (version numbers that start with 3). The differences between Python 2.x and 3.x for the purpose of the algorithms we will explore here are very minor, but you should download the installer for a Python 3.x version to get the version of Python we use here. Once you have downloaded the installer, double-click on it and follow the instructions guiding you through the installation for your platform.
 
-The Anaconda installer will install Python, Jupyter, and various Python modules and frameworks for scientific computing, data analysis and visualization. We only use a tiny fraction of the software that is installed via Anaconda, but everything we do use will be available to you once you have installed Anaconda. If you continue programming in Python after you have read this book, chances are that you will find good use for many of the other modules installed by Anaconda.
+The Anaconda installer will install Python, Jupyter, and various Python modules and frameworks for scientific computing, data analysis and visualisation. We only use a tiny fraction of the software that is installed via Anaconda, but everything we do use will be available to you once you have installed Anaconda. If you continue programming in Python after you have read this book, chances are that you will find good use for many of the other modules installed by Anaconda.
 
 ## Starting Jupyter and creating a notebook
 
@@ -43,7 +43,7 @@ The new notebook you create this way will open up. At the top of the page, you w
 
 ![Renaming the new notebook.](figures/renaming-jupyter-notebook){#fig:renaming-jupyter-notebook}
 
-Below the menu and tool bar in the notebook you have the notebook proper. A notebook consists of one or more "cells". In the new notebook we just created there is a single cell. That is the box with "In [ ]: " in front of a field where you can type. Cells come in different types; you can go to the "Cell" menu and then select "Cell Type" to see the options. In the exercises associated with this book we will only use two types: Markdown and Code. Markdown cells are text cells; we use these to write prose. Markdown is a language for marking up text (the name is a pun on "mark up"), so we can make text italic or bold and we can format text into lists and such. The code cells contain Python code. Markdown cells are just text until you double click on them; when you do, you can edit the text. Code cells have "In [ ]: " in front of them and you can edit code in the gray area inside them. The "In [ ]: " is a prompt and a leftover from the IPython program that Jupyter is a descendant of.
+Below the menu and tool bar in the notebook you have the notebook proper. A notebook consists of one or more "cells". In the new notebook we just created there is a single cell. That is the box with "In [ ]: " in front of a field where you can type. Cells come in different types; you can go to the "Cell" menu and then select "Cell Type" to see the options. In the exercises associated with this book we will only use two types: Markdown and Code. Markdown cells are text cells; we use these to write prose. Markdown is a language for marking up text (the name is a pun on "mark up"), so we can make text italic or bold and we can format text into lists and such. The code cells contain Python code. Markdown cells are just text until you double click on them; when you do, you can edit the text. Code cells have "In [ ]: " in front of them and you can edit code in the grey area inside them. The "In [ ]: " is a prompt and a leftover from the IPython program that Jupyter is a descendant of.
 
 Tradition has it, that the first program you write in any new Programming language is one that prints "hello, world!". Type the following into the code cell in your notebook:
 
@@ -69,31 +69,112 @@ The result appear similar to the print cell, but you have "Out[2]: " to the left
 
 We will not make much of a distinction between printing values or displaying them by default when they are the result of the last expression in a cell we evaluate, but when you are working with code in a notebook, you might find it helpful to simply evaluate expressions in cells and see what Python thinks the look like.
 
-## Simple calculations in Python
+## Using a Jupyter Notebook
 
 The simplest way you can use Python is as a calculator. You can write arithmetic expressions in a code cell and evaluate it to get the result.
 
+Create a new notebook. This will open a new page with a single cell. Put
 
 ```python
 2 + 2
 ```
 
-
-
+into that cell and then press Shift-Enter You should get
 
     4
 
-
-
+below the cell, and a new cell after that. In that cell, try typing
 
 ```python
 3 * 5
 ```
 
-
-
+and press Shift-Enter again. This time you should get
 
     15
+
+below the cell.
+
+If you go back to the first cell and change the expression to
+
+```python
+2 + 4
+```
+
+instead, and press Shift-Enter. Now you should see the output change to 6 and the focus will be on the second cell. If you go back to the first cell again and press Alt-Enter instead, you also get 6 as the answer to the expression, but you will also insert a new cell below the answer. The difference between using Shift-Enter and Alt-Enter is that the former only evaluate a cell while the latter inserts a new cell below the answer.
+
+There are different kinds of cells in a Notebook. The ones you have right now are *code cells*. These are the cells you use to write Python commands in. The other two types are *Markdown* and *Raw NBConvert*. You can change the type of a cell by going to the **Cell** menu, pick the **Cell Type** sub-menu, and then the type you want.
+
+The *Raw NBConvert* type has a weird name, but it is a cell type that just lets you write raw text. You can try to make a new cell and change the type to *Raw NBConvert* and write something in it. If you evaluate the cell, Jupyter will just leave it as it is.
+
+The *Markdown* cell type also lets you write text, as opposed to code, but in this cell type you can get the text formatted. Markdown is a markup language—the name Markdown is a pun based on markup—which means that it is text where a few special characters lets you modify how the text is displayed. For example, if you put `*` before and after a word, that word will be displayed as italic, while if you put `**` before and after a word, that word will be shown in boldface. 
+
+Try creating a Markdown cell and write
+
+	This is *a* **very** important text.
+
+into it and evaluate the cell. The result is just the text you wrote, but with `a` in italic and `very` in boldface.
+
+Markdown has nothing to do with Python, and we will not use it much in this book. It is used in Notebooks because it allows you to document what you are doing interleaved with the code you actually execute when you are solving a problem.
+
+This chapter is focused on the Python programming language, so you don’t need to worry about Markdown for most of it. You can live a happy life as a Python programmer without ever using Markdown, or Jupyter Notebooks, for that matter. Most Python programmers do not use either. If you write programs that people can call on a command line, or if you write software packages that can be reused in multiple projects, you will not use Notebooks. The purpose of Notebooks is to have self-contained documents that describe an analysis and contain the code used in that analysis. Notebooks are very useful for data analysis; if you want to develop reusable software instead, you will not use Notebooks. Notebooks are for data scientists doing data analysis, not so much for programmers developing new software.
+
+I have chosen to use Jupyter in this book under the assumption that most readers will be interested in using programming to solve problems that they run into while working on a scientific problem—where “scientific” should be considered in a very broad sense. Programming is useful for anyone who has to analyse data of any substantial size, in natural sciences, statistics, economics, social sciences—whenever you have problems of a quantitative nature. Most people that program these days use programming to solve problems in their own field. It is no longer the domain of computer scientists alone. If you are a data scientist, that is, you need to manipulate data and compute on it to solve problems in your own domain of work, then using Notebooks is most likely the best approach. So it is a good place to start, if you are new to programming, and I have made all the programming exercises available as Jupyter Notebooks that you can download and use to do the exercises in.
+
+Towards the end of the book, I will briefly cover a few topics for when you want to reuse code in multiple projects, of when you want to distribute your code for others to use. You might never find the need for this, but if you do, it is covered at the end of the book.
+
+Before you start worrying about packaging up software and writing larger programs, though, you need to get familiar with programming, and in the following sections I will give you a quick introduction to how to program in Python. I will only cover the very basics, and leave some programming topics for later chapters.
+
+## Expressions in Python
+
+We have already seen how we can evaluate simple arithmetic expressions in Python. The arithmetic binary operators `+`, `-`, `*` and `/`, works as you would expect them to, as does the unary `-`. That is,
+
+```python
+-4
+```
+
+is minus four, 
+
+```python
+2 * 2 + 3
+```
+
+is seven. Notice that we interpret `2 * 2 + 3` as you are familiar with in mathematical notation. First we multiply two by two and then you add three. This is not because we evaluate the expression left-to-right, in which case
+
+```python
+3 + 2 * 2
+```
+
+would mean $(3 + 2) * 2$ and would be 10. It is because multiplication “binds tighter” or “has larger precedence” than addition. This is also what you are familiar with. In mathematical notation, you would expect $3 + 2\cdot 2$ to be seven and not ten. Multiplication and division binds tighter than addition and subtraction.
+
+When precedence is taken into account, the evaluation does proceed from left to right. For example, 
+
+```python 
+1 / 2 / 2
+```
+
+is interpret as $(1/2)/2=1/4$ and not $1/(2/2)=1$. To get the latter interpretation you will need to add parentheses:
+
+```python
+1 / (2 / 2)
+```
+
+You can always use parentheses to change the default evaluation order. Or just to make explicit what you intend, even if it is already the default. Writing `(2 * 2) + 3`, while it is the default for `2 * 2 + 3`, doesn’t make the expression any harder to read, after all.
+
+There are more operations that addition, subtraction, multiplication, and divisions. For example, raising a number to a power. If you want to compute two to the power of four, $2^4=16$, you can use the `**` operator: `2**4`. This operator has higher precedence than multiplication and division, so `2 * 2**4` is $2\cdot 2^4=32$ and not $(2\cdot 2)^4=256$. This operator is not evaluated left-to-right but right-to-left, also in accordance with typical mathematical notation. This means that `2**3**4` is interpreted as $2^{3^4}\approx 2.4\times 10^{24}$ and not $(2^3)^4=4086$. If you want to compute the latter, you must write `(2**3)**4`. The notation is the same as it would be in mathematics, but if you find it hard to remember, you can always use parentheses even when not strictly necessary to avoid any surprises.
+
+Python actually has two different division operators. When you use `/` you get the division you are used to in mathematics. However, it is often useful to guarantee that if you divide two numbers you get the integer result of the division. Remember that for division, $n/m$, you get an integer if $m$ divides $n$. You can write $n=a\cdot m + b$ where $a$ is the integer number of times that $m$ divides $n$ and $b<m$ is the remainder. To get the integer part of the division, $a$ in this example, you will use the `//` operator. So while `5 / 2` will give you 2.5, `5 // 2` will give you 2. To get the remainder, you use the modulus operator, `%`. Since $5=2\cdot 2 + 1$, we would expect `5 % 2` to be one, and indeed it is. If you evaluate
+
+```python
+(5 // 2) * 2 + (5 % 2)
+```
+
+the $a\cdot m + b$ form of this division, you get five, as expected.
+
+**Exercises:** Evaluate the following expressions in Python. Check that they give you the expected result. If not, check if you can change that by inserting parentheses.
+
+1. $2\cdot 4 + 2$
+2. 
 
 ## Working with strings
 
@@ -109,3 +190,7 @@ The simplest way you can use Python is as a calculator. You can write arithmetic
 ## Conditional statements
 
 ## Loops
+
+## A quick guide to Markdown and Literate Programming
+
+## I don’t want to use a fancy Notebook, what can I do?

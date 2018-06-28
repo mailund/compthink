@@ -7,10 +7,14 @@ CHAPTERS := 000_header.yml \
               Algorithmic_complexity.txt \
               Searching_and_sorting.txt \
               Recursion.txt \
+              Conclusions.txt \
               Solutions.txt
 
 #CHAPTERS := 000_header.yml \
 #              Solutions.txt
+
+CHAPTERS := 000_header.yml \
+              Introducing_Python.txt \
 
                
 
