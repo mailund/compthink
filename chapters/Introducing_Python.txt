@@ -169,14 +169,205 @@ Python actually has two different division operators. When you use `/` you get t
 (5 // 2) * 2 + (5 % 2)
 ```
 
-the $a\cdot m + b$ form of this division, you get five, as expected.
+the $a\cdot m + b$ form of this division, you get five, as expected. Another way to put this is that `5 // 2` is five divided by two, rounded down, or $\lceil 5/2 \rceil$.
 
 **Exercises:** Evaluate the following expressions in Python. Check that they give you the expected result. If not, check if you can change that by inserting parentheses.
 
 1. $2\cdot 4 + 2$
-2. 
+2. $2^4 - 4^2$
+3. $2\cdot(1+2+3)$
+4. $5/2$
+5. $\lceil 5/2\rceil$
+6. $\frac{2}{1+2+3}$
+7. $\frac{1+2+3}/2$
+
+### Logical (or boolean) expressions
+
+There are other kinds of expressions, some of which you might be less familiar with. One such kind is logical, also known as boolean, expressions. Those are expressions that has a true or false result rather than a numerical result. In Python, true and false are written `True` and `False`. Notice that these are capitalised. It is not `true` and `false` but `True` and `False`.
+
+You are familiar with the most common logical expressions: $a=b$, $a\neq b$, $a<b$, $a\leq b$, $a>b$, $a\geq b$, which in Python are written as, in the same order: `a == b`, `a != b`, `a < b`, `a <= b`, `a > b`, `a >= b`. Notice that equality is written with two equality signs. If you write `a = b` instead of `a == b` you are not comparing `a` and `b`, but rather assigning `b` to `a`, as we shall see below. If both `a` and `b` are numbers, you will get an error if you use a single equality sign. When we start using variables, you will not get any error, but you will not be comparing two values.
+
+You can string these comparisons together, so if you want to say that `b` is between `a` and `c`, you can write `a < b < c`. You don’t need to write such comparisons low-to-high, as above, or high-to-low as in `c > b > a`, but use any sequence of comparisons, e.g. `a > b < c` to say that `b` should be less than both `a` and `c`, without making any claims about the order of `a` and `c`.
+
+I mentioned above that something like `2 = 1 + 1` would be an error—to compare two versus one plus one you need to write `2 == 1 + 1`. Try evaluating the first of these expressions in a Notebook cell and see the result. You should get an error message that says
+
+```pythong
+SyntaxError: can't assign to literal
+```
+
+There are many ways that you can get an error in Python, when you are doing something Python doesn’t understand, and a `SyntaxError` is what you get when you write an expression that Python cannot interpret as a valid expression. When you get an error, Python will tell you what it is that it doesn’t understand, but unfortunately it isn’t always easy to see what the error is from the message you get. Since we haven’t covered assignments yet—we will shortly—this might be one of those cases. With experience, it gets easier to understand the error messages.
+
+Other logical operators you will be familiar with if you are familiar with basic logic, but might not be otherwise. The logical operators that Python supports are logical-not ($\neg$), logical-and ($\land$), and logical-or ($\lor$). Python does not support operator logical-xor.
+
+Logical-and of two expressions, written as `and` in Python, is `True` if and only if both expressions are true. For example,
+
+```python
+2 == 1 + 1 and 3 == 2 + 1
+```
+
+evaluates to `True`, while
+
+```python
+2 == 1 + 1 and 3 == 2
+```
+
+and 
+
+```python
+2 == 1 and 3 == 2 + 1
+```
+
+will be `False`.
+
+In these expressions you can see that we mix arithmetic and logical operators. When you do this, the arithmetic operators bind tighter than the logical ones, and the comparisons bind tighter than `and` (as well as logical-or and logical-xor), so
+
+```python
+2 == 1 + 1 and 3 == 2 + 1
+```
+
+means 
+
+```python
+(2 == (1 + 1)) and (3 == (2 + 1))
+```
+
+and not, for example,
+
+```python
+((2 == 1) + 1) and ((3 == 2) + 1)
+```
+
+As with arithmetic operators, you can use parentheses to change the default order the operators are evaluated in. The expressions above are all valid Python expressions, they just mean different things. If you wonder how you can possibly add 1 to the comparison `2 == 1` above, you are right to wonder. Usually, it doesn’t make sense to add a logical value to a number. In many programming languages, however, you are allowed to, and then `False` is interpreted as zero and `True` as one. So, while
+
+```python
+2 == 1 + 1
+```
+
+is `True`, 
+
+```python
+(2 == 1 + 1) + 1
+```
+
+is one because `(2 == 1 + 1)` evaluates to `True` that, when we add one to it, is interpreted as one. Likewise, 
+
+```python
+(2 == 1) + 1
+```
+
+will be one, since `(2 == 1)` is `False`, which is interpreted as zero.
+
+Logical-or, written `a or b`, is true if either or both `a` and `b` are `True`. So all of the expressions below evaluate to `True`
+
+```python
+2 == 1 + 1 or 3 == 1 + 2
+2 == 1 or 3 == 1 + 2
+2 == 1 + 1 or 3 == 1
+```
+
+but 
+
+```python
+2 == 1 or 3 == 1
+```
+
+will be `False` since both `2 == 1` and `3 == 1` are `False`.
+
+Logical-exclusive-or, or logical-xor, is true if either, but not both, expressions are `True`. Python does have an xor operator, `^`, but it doesn’t work as logical-xor. If you give it operands that are numbers, you will get numbers back. For example, if you write 
+
+```python
+3 ^ 1
+```
+
+your result will the result 2—I will explain why in the next section. For the xor-operator to behave like the logical operator, you need to make sure that both its operands are boolean values. You can do this by wrapping expressions in parentheses. If you do this, then expression two and three below will be `True` while one and four will be `False`.
+
+```python
+(2 == 1 + 1) ^ (3 == 1 + 2)
+(2 == 1) ^ (3 == 1 + 2)
+(2 == 1 + 1) ^ (3 == 1)
+(2 == 1) ^ (3 == 1)
+```
+
+The first expression is false because both inputs to the operator are true—and xor is only true if one of them is. The fourth expression is false because both operands are false.
+
+### Bit-wise expressions
+
+All data on a computer are ultimately represented as binary, zeros and ones. We call a single such value a *bit*, and any number or logical value, obviously, has to be stored as a sequence of bits. A logical value can be represented by a single bit while numbers must be represented by more bits. Python doesn’t *actually* use a single bit for `True` and `False`—it is less efficient to do so on a modern computer, but you need to worry about that. You very rarely need to worry about the binary representation of data in general. If you have two numbers, though, they will have binary representations, and you can interpret them as sequences of bits and manipulate those bits. We will see a few uses of this later in the book, but it is not essential to understand bit manipulations for the majority of the book, so you can safely skip this section and later sections where we manipulate numbers at the bit level.
+
+If you are interested in bit-wise operators, however, all you need to know is that we have the same operators as the logical ones, they just operate on individual bits in your numbers.
+
+The binary representation of numbers are the base-two representation. For example, the decimal numbers below have the corresponding binary representations:
+
+* $0_{10} = 00_2$
+* $1_{10} = 01_2$
+* $2_{10} = 10_2$
+* $3_{10} = 11_2$
+
+For the binary numbers I have used a leading zero when the numbers are smaller than two. This is because, when we manipulate bits, we want to include all the bits in a number. A number is never represented by just two bits. The minimal number of bits used in an integer depends on your computer, but Python can use an arbitrary number of bits to represent integers of arbitrary size. I use two bits above just for the example. You can get the binary representation of any integer,[^binary_floating_point] `a`, by writing `bin(a)`, but it will not give you leading zeros. You can try to translate the four integers above into binary using
+
+[^binary_floating_point]: A computer cannot represent real numbers in general, since these often require an infinite number of decimals or bits. Instead, it approximates these using what is known as *floating point* numbers. It essentially maps real numbers into a finite set of numbers. If you write `1.5` in Python, you have a floating point number. You cannot use `bin(1.5)` to get the binary representation of the floating point number. We usually do not manipulate the bits in a floating point number, so this is not a limitation you should worry about.
+
+```python
+bin(0)
+bin(1)
+bin(2)
+bin(3)
+```
+
+The results of these are strings—see next section if you wonder what those are—and they all start with `0b`. You will notice that the results are put in single-quotes, `'0b0'`, `'0b1'`, `'0b10'` and `'0b11'`. This means they are strings.
+
+You cannot prefix a decimal number by zero. Python considers it an error if you try to represent eighth as `08`. You can, of course, write zero with a leading zero, and you can write any number of zeros then, but otherwise it is an error. This is because a convention in some programming languages is that a leading zero means that the number you are writing is octal, i.e., base eight. Python also did that in older versions. In octal, the number $10_8$ is $8_{10}$, not ten. You don’t want to write a number in octal by mistake, so Python doesn’t allow you to do that. In earlier versions of Python, writing `010` would be a valid input that means eight. It would be different from `10`, but you would not get any warning that you might have input the wrong number. Python doesn’t implicitly make numbers octal like this any more, so you get an error instead. If you want to input a number in octal, you should prefix it with `0o`, so you can write `0o10` to mean eight. Python also lets you input numbers in hexadecimal, i.e., base 16. For that, you should use the prefix `0x`, so `0x10` is 16.
+
+The prefix `0b` states that the following number is in binary. You can also translate a binary number into a decimal number in Python by prefixing the number with `0b`. If you do this, though, you should not put the number in quotes. If you evaluate
+
+```python
+0b00
+0b01
+0b10
+0b11
+```
+
+you get the numbers zero to three.
+
+Now, the bit-wise operators work like the logical operators, they just do so bit-wise. The bit-wise and of `0b10` and `0b11` will be `0b10`—the first bit is 1 in both numbers, so that becomes 1 in the result; the second bit is only 1 in the second number, so the second bit in the output will be zero. You do not use `and` and `or` for bit-wise operators.
+
+The bit-wise *and* operator is written `&`. Try evaluating
+
+```python
+bin(0b10 & 0b11)
+```
+
+You will see that the result is the string `'0b10'`. It is only a string because of `bin`, if you only evaluate `0b10 & 0b11` you get 2, which is the same as `0b10`.
+
+The bit-wise *or* operator is written `|`. If you write
+
+```python
+bin(0b10 | 0b11)
+```
+
+you get `'0b11'`. Both bits are one because `1 | 1 == 1` and `0 | 1 == 1`.
+
+I mentioned the exclusive-or, written `^`, above. We already saw how it works on logical expressions, but it is actually a bit-wise operator. If you write
+
+```python
+3 ^ 1
+```
+
+you are actually evaluating the bit-wise xor 
+
+```python
+0b11 ^ 0b01
+```
+
+which is `0b10 == 3`.
+
+If you use the logical operators on numbers you get numbers back, but they behave differently. An `and` operator will return zero if the first operand is zero and otherwise return the second operand. An `or` operator will return the first operand if non-zero and otherwise the second.
+
+**Exercise:** Why do you think the logical operators work this way on numbers?
 
 ## Working with strings
+
+**FIXME: here**
 
 ## Printing and formatting output
 
