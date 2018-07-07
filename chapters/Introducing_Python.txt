@@ -169,7 +169,7 @@ Python actually has two different division operators. When you use `/` you get t
 (5 // 2) * 2 + (5 % 2)
 ```
 
-the $a\cdot m + b$ form of this division, you get five, as expected. Another way to put this is that `5 // 2` is five divided by two, rounded down, or $\lceil 5/2 \rceil$.
+the $a\cdot m + b$ form of this division, you get five, as expected. Another way to put this is that `5 // 2` is five divided by two, rounded down, or $\lfloor 5/2 \rfloor$.
 
 **Exercises:** Evaluate the following expressions in Python. Check that they give you the expected result. If not, check if you can change that by inserting parentheses.
 
@@ -177,9 +177,10 @@ the $a\cdot m + b$ form of this division, you get five, as expected. Another way
 2. $2^4 - 4^2$
 3. $2\cdot(1+2+3)$
 4. $5/2$
-5. $\lceil 5/2\rceil$
+5. $\lfloor 5/2\rfloor$
 6. $\frac{2}{1+2+3}$
-7. $\frac{1+2+3}/2$
+7. $(1 + 2 + 3)^{1 + 2 + 3}$
+7. $\frac{1+2+3}{2}$
 
 ### Logical (or boolean) expressions
 
@@ -365,18 +366,124 @@ If you use the logical operators on numbers you get numbers back, but they behav
 
 **Exercise:** Why do you think the logical operators work this way on numbers?
 
-## Working with strings
+## Statements and variables
+
+With the operators we have seen so far, we can use Python as a calculator. We can write expressions, have Python evaluate them, and get the result. From what we have seen so far, though, Python is not quite as good as a modern calculator; a modern calculator can save results that you can use in future calculations. Of course, Python can do the same.
+
+You can store the value of a computation in a variable like this:
+
+```python
+a = 1 + 2
+```
+
+Notice that here we use a single `=`. With a single `=` you do an assignment. After evaluating this statement, `a` will hold the value 3, so you can then do
+
+```python
+a + 3
+```
+
+to get six. I called this a *statement* rather than an expression. In general, I will call a computation that evaluates to a value an *expression*. Any command you give Python to make it do some computation I call *statements*. Expressions are statements since they involve some computation—even if the expression is a constant, like `12`, I consider this a piece of computation. An assignment, like the one ` = 1 + 2` above, does not evaluate to a value but puts the value of the expression `1 + 2` into the variable `a`.
+
+You can assign to `a` as many time as you want. You are not defining a constant; `a` will contain the last value you assigned to it. So if you write
+
+```python
+a = 1
+2 + a
+```
+
+and then
+
+```python 
+a = 2
+2 + a
+```
+
+you will first get 3 and then 4. If you write all the lines in the same Notebook cell, though, you will only get 4 below it. What gives? Well, the result you get in your Notebook below a cell you evaluate is the result of the *last* expression you evaluate. That would be `2 + a` (where we have assigned `a = 2`). You don’t get the value of `2 + a` when `a` was one. We see in the next section how we can get more output than the last expression. But first, we learn more about variables.
+
+If you split the four lines above into four separate cells, you can evaluate each of them. You will see that you do not get any output for the assignments, but you get `3` after the first `2 + a` and `4` after the second `2 + a`. This, of course, is because `a` is one and two, respectively, when we evaluate `2 + a`.
+
+The reason you do not get any output from the assignment cells is that assignment is not an expression. The assignment `a = 1` sets the value of `a` to be one, but it doesn’t return a value. You cannot use an assignment as part of an expression.[^assign_to_multiple_variables] Before you assign a value to a variable, it doesn’t exist. The variable `a` exists now because we have assigned to it. We haven’t assigned to the variable `b`, so if you try to use `b` in an expression, you will get an error.
+
+```python
+NameError: name 'b' is not defined
+```
+
+[^assign_to_multiple_variables]: There is a kind of exception to this. You can assign to two variables at once by writing, for example, `a = b = 2`. This will assign two to both `a` and `b`, and it looks like `a` is assigned the result of `b = 2`. This isn’t what happens. The assignment `b = 2` does not evaluate to a value—it is not an expression. You can see this if you try to do something like `a = (b = 2) + 1`. If `b = 2` would assign two to `b` and return `2`, then we would be assigning three to `a`. In some languages, this is what happens. In Python, you will get an error. You can assign the same value to multiple variables with this syntax, but the result of an assignment is not a value.
+
+You create variables by assigning to them, and after that, they will hold the last value you assigned to them. One thing that often cause problems for new users of Jupyter Notebooks is that the last value assigned to a variable depends on the last cell you evaluated. Cells are not evaluated from top to bottom, unless you explicitly ask for that. You can do that by going to the **Cell** menu and choose **Run All**. If you evaluate individual cells, the variables hold the last value you assigned to them. If you haven’t evaluated any cells since the `a = 2` cell you evaluated before, you can go back to the first `2 + a` and evaluate it. This will change its output from three to four. Because `a` now holds the value two—the last you assigned to it—and not the value one that it had the first time you assigned to it.
+
+This issue is not a problem outside of Notebooks. If you make a Python file—we get to those at the end of the book—the problem  of evaluation order is somewhat alleviated. It is not as clear as just from top to bottom, as it will be for now if you evaluate all cells in turn. But it is consistent between each time you evaluate a program. With Notebooks, you have to be careful about evaluating cells that update variables. If you see something unexpected, I suggest you try evaluating all cells to see if that is the issue.
+
+You can assign to as many variables as you want, and variables can have any name that consist of letters, numbers and underscore, except that they cannot start with a number. Everywhere you can put an expression, you can also put a variable. The effect will be the same as if you inserted the expression you assigned to the variable instead of the variable.
+
+```python
+a = 1 + 2
+3 * a
+```
+
+gives you the same as
+
+```python
+3 * (1 + 2)
+```
+
+Using a variable instead of an expression does affect the evaluation order; it behaves as if you had put parentheses around the expression the variable holds.
+
+The last thing I will say about assigning to variables is something called *parallel assignment*. If you have variables
+
+```python
+a = 2
+b = 3
+```
+
+and what to flip them so they hold each other’s values, so `a` is three and `b` is two, and you want to do this in a general way that doesn’t require that those values are two and three, you might do this:
+
+```python
+c = b
+b = a
+a = c
+```
+
+You need the extra variable to hold the value of `b` after we assign the value of `a` to `b`. Otherwise we have lost it when we want to assign it to `a`. Parallel assignment allows you to assign multiple values to multiple variables such that all the expressions on the right-hand side are evaluated before any of the variables are changed. You would flip `a` and `b` like this:
+
+```python
+a, b = b, a
+```
+
+You write a parallel assignment by putting commas between the variables you want to assign to and between the expressions you want to assign to them. You need as many expressions as you have variables.
+
+You don’t need to flip the values of variables to do a parallel assignment. You can use it whenever you want to assign to more than one variable. In most case, though, you can assign to one variable at a time, so you can write
+
+```python
+a = 1
+b = 2
+a + b
+```
+
+or
+
+```python
+a, b = 1, 2
+a + b
+```
+
+and you get the same result. Which you prefer is a matter of taste. If you need to evaluate expressions that depend on several variables and then assign to some of those as well, you likely need to use a parallel assignment.
+
 
 **FIXME: here**
 
+
 ## Printing and formatting output
 
+
+## Working with strings
 
 ```python
 
 ```
 
-## Statements and variables
+## Sequences and lists
+
 
 ## Conditional statements
 

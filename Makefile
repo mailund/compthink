@@ -16,7 +16,7 @@ CHAPTERS := 000_header.yml \
 CHAPTERS := 000_header.yml \
               Introducing_Python.txt \
 
-               
+
 
 SOURCE_CHAPTERS := $(foreach chapter,$(CHAPTERS),chapters/$(chapter))
 
@@ -44,6 +44,9 @@ book.pdf: $(SOURCE_CHAPTERS) Makefile templates/latex-template.tex
 
 wc: $(SOURCE_CHAPTERS)
 	wc -w $(SOURCE_CHAPTERS)
+
+refs: $(SOURCE_CHAPTERS)
+	grep -ho '{#.*:.*}' chapters/*.txt
 
 clean:
 	rm book.pdf book.epub
