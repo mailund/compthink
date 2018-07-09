@@ -190,6 +190,74 @@ f(1)
 
 you will get an error that says “RecursionError: maximum recursion depth exceeded”. This happens because the memory set aside for the call stack is limited and if the recursion gets too deep, there is no more stack available for more stack frames. This doesn’t happen if you use loops instead of recursion, and is another reason, besides efficiency, to prefer loops over recursion. Of course, in this particular example, there is no way to compute a value in finite time. The function never terminates, so it is not a proper recursive function in the first place, but there are cases where you have a perfectly well-defined recursive function that just needs more stack space than you have available. If that is the case, you need to replace the recursion with a loop.
 
+### A few more examples of recursion
+
+Later in this chapter we will see how we can use recursion to solve algorithmic problems, but first I want to show you another classic application of recursion: parsing and evaluating expressions. Parsing is what we do when we take a string (or a file) as input and translate that into something we can manipulate in a program. Such a string can be simple or complex. When you write a Python program, that program is a text (when in a Jupyter Notebook) or a file (otherwise). Before Python can execute your program, it parses it into a structure it can interpret.
+
+We will use a much simpler example. We will take a string that represent an arithmetic expression, we will parse that expression, and we will compute the result of the expression.
+
+You are familiar with arithmetic expressions such as $(2\cdot 3)+1$. This notation is known as *infix notation* because the operators you apply are written between expressions. So you write that you want to multiply $2$ to $3$ as $2\cdot 3$. We have rules that says that $2\cdot 3\cdot 4$ should interpreted as $(2\cdot 3)\cdot 4$ but we can simplify expressions slightly by requiring parentheses whenever we have more than two operators. We will see how we can parse and evaluate expressions in this format shortly, but first we will deal with a slightly simpler for of expressions. 
+
+Infix notation is only one way to write expressions. It is the one you are most likely used to, and you might not have seen the others, but some calculators support one of the variants, postfix notation, so you might have. The alternatives are *prefix notation* and *postfix notation*.
+
+In prefix notation, also know as *Polish notation*, you always write the operator before the operands. The expression $(2\cdot3)+1$ would be written $+ \cdot 2 3 1$. If you think of the operators as functions, this would be `add(multiply(2, 3), 1)` so the notation is not entirely unfamiliar to you. This notation has the benefit that you never need to use parentheses. When you have an operator you first evaluate its left operand and then its right and then finally you apply the operator to the results of this. If the left or right expressions involve other expressions there is implicitly parentheses. So while $(2\cdot 3)+1$ is written `+ * 2 3 1`, the expressions $2\cdot(3 + 1)$ is written `* 2 + 3 1`. No parentheses are needed.
+
+**FIXME**
+
+```python
+
+prefix_expr = '+ * 2 3 1'
+
+def evaluate(expr):
+	expr_list = expr.split()
+	val, idx = evaluate_rec(expr_list, 0)
+	return val
+
+def evaluate_rec(expr, i):
+	if expr[i] == '+':
+		a, i = evaluate_rec(expr, i + 1)
+		b, i = evaluate_rec(expr, i)
+		return a + b, i
+	elif expr[i] == '-':
+		a, i = evaluate_rec(expr, i + 1)
+		b, i = evaluate_rec(expr, i)
+		return a - b, i
+	elif expr[i] == '*':
+		a, i = evaluate_rec(expr, i + 1)
+		b, i = evaluate_rec(expr, i)
+		return a * b, i
+	elif expr[i] == '/':
+		a, i = evaluate_rec(expr, i + 1)
+		b, i = evaluate_rec(expr, i)
+		return a / b, i
+	else:
+		return int(expr[i]), i + 1
+
+import operator
+operator_table = {
+	'+': operator.add,
+	'-': operator.sub,
+	'*': operator.mul,
+	'/': operator.truediv, # The '/'' operator. 
+	                       # The '//'' operator is floordiv
+}
+
+def evaluate_rec(expr, i):
+	if expr[i] in ('+', '-', '*', '/'):
+		op = operator_table[expr[i]]
+		a, i = evaluate_rec(expr, i + 1)
+		b, i = evaluate_rec(expr, i)
+		return op(a, b), i
+	else:
+		return int(expr[i]), i + 1
+```
+
+The other notation, *postfix notation* or *reverse Polish notation* is very similar to prefix notation. You simply put the operator behind the operands instead of before them. Older calculators used this notation and some programming languages have used it. The expression $(2\cdot 3)+1$ would be written `2 3 * 1 +` and $2\cdot(3+1)$ would be written `2 3 1 + *`. We cannot as easily implement a recursive function that evaluate expressions in this notation. We will see later that it is very easy with an explicit stack, but if you want to evaluate an expression recursively you have the problem that you do not know how many recursive calls you need to make before you see the operator, and you do not see the operator until the recursive calls should already have been evaluated.
+
+Instead of writing a function to evaluate postfix notation expressions, we will now implement one that evaluates infix notation expressions. To make it easier to do so, we require that parentheses are always explicitly written, so we do not allow expressions such as `1 + 2 + 3`. You have to write this as `(1 + 2) + 3`. Likewise, we do not allow `2 * 3 + 1` and you have to write it as `(2 * 3) + 1`. We are not ready to handle precedence in infix notation quite yet. Dealing with precedence and default evaluate order is much harder than dealing with expressions that use explicit parentheses wherever needed. 
+
+**FIXME**
+
 ### Recursion and iteration
 
 There is a close correspondence between recursion and iteration (or loops). You can always directly translate a loop into recursive function. You cannot always do the opposite—translate a recursive function into a loop. The recursion stack is more powerful than simple iterations, so you can do more with a stack than you can with a loop.^[Obviously, you can implement the stack functionality yourself and then avoid recursive function calls, but this is just an implementation detail. You will still be using recursion and not a simple loop.] Some recursions, however, can be directly translated into loops. These are called *tail-recursive*. We will get to these in a moment.

@@ -15,6 +15,7 @@ CHAPTERS := 000_header.yml \
 
 CHAPTERS := 000_header.yml \
               Introducing_Python.txt \
+              Recursion.txt \
 
 
 
