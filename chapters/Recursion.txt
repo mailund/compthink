@@ -202,17 +202,33 @@ Infix notation is only one way to write expressions. It is the one you are most 
 
 In prefix notation, also know as *Polish notation*, you always write the operator before the operands. The expression $(2\cdot3)+1$ would be written $+ \cdot 2 3 1$. If you think of the operators as functions, this would be `add(multiply(2, 3), 1)` so the notation is not entirely unfamiliar to you. This notation has the benefit that you never need to use parentheses. When you have an operator you first evaluate its left operand and then its right and then finally you apply the operator to the results of this. If the left or right expressions involve other expressions there is implicitly parentheses. So while $(2\cdot 3)+1$ is written `+ * 2 3 1`, the expressions $2\cdot(3 + 1)$ is written `* 2 + 3 1`. No parentheses are needed.
 
-**FIXME**
+We will write a function for evaluating prefix notation expressions. We will assume, in the following, that our input is a string with the expression and all expressions are valid, i.e. an expression is either a number or an operator followed by two expressions. We can write this as
+
+```
+EXPRESSION := number | OP EXPRESSION EXPRESSION
+OP := `+` | `-` | `*` | `/`
+```
+
+This is another example of recursion, a *recursive notation*, because `EXPRESSION` is defined in terms of itself. The grammar of programming languages is usually described in some variation of this notation. You should read the lowercase `number` as meaning a concrete number, the quoted operators as those exact strings, and all uppercase names something we define in the grammar. We call the uppercase names *non-terminals* and the others *terminals* or *tokens*. In this notation, `|` means "or", so `number | OP EXPRESSION EXPRESSION` means either a number or `OP EXPRESSION EXPRESSION`. When you see several names after each other that do not have `|` between them, this means that we should see those components one after another in an expression. So `OP EXPRESSION EXPRESSION` means an operator followed by two expressions. As you can see, I have not included integer division in the set of operators. I leave that as an exercise to you.
+
+As I said, we assume that all expressions are valid, that is, they follow this grammar. In general, this is not something you can assume when your input is a string. The code that evaluates an expression is also responsible for checking that it is valid. I also leave that as an exercise.
+
+To evaluate a string, the easiest is to first split the string into tokens, i.e. the terminals in the grammar. For this expression, that simply means splitting the string at all the whitespaces, something we can do with the `split` method. This gives us a list of the tokens, and now it is just a question of running through that. We can do that with a recursive function. Our main function is therefore
 
 ```python
-
-prefix_expr = '+ * 2 3 1'
-
 def evaluate(expr):
 	expr_list = expr.split()
 	val, idx = evaluate_rec(expr_list, 0)
 	return val
+```
 
+where `evaluate_rec` is the recursive function. This function will handle the next terminal or non-terminal in the list. When calling recursively, we need to know where a new expression starts. We can do that by slicing the list or by having an index into the list. I have chosen the latter. We start at index zero, so that is what I pass to `evaluate_rec` inside `evaluate`. The length of the operands to an operator can be arbitrarily long, if the operands are expressions. This means that we need recursive calls to tell us where the next expression is when we need to evaluate two operands. Again, this can be done with slicing or indices. We use indices, so we will require that the `evaluate_rec` function returns both a value and an index. In `evaluate` we just throw away the index—if you write code that checks that an expression is valid, you will want to make sure that the final index is the end of the list.
+
+Ok, for the recursive call we need to check if the first token is an operator or a number. We will just check if it one of the operators; if not, we know it is a number because we assume that the input is always a valid expression. If it is an operator, we need to make two recursive calls to get the operands. The index we have in a recursive call points to the expression we need to evaluate. If we have an operator, the first operand starts at one index past that. We don't know how much of the list goes into that operand, but the recursive call will give us the index for the next token after the operand. We can use that in another recursive call, that gives us the index after the second operand. We need to evaluate the operation specified by the operator and return that and the index of the next token, which is one past this expression, and that was what we got back from the recursive call evaluating the second operand.
+
+If what we have is a number rather than an operator, the case is simpler. We must translate that string-representation of the number into an actual number and return that. The index we return should be the index of the next token, so we need to return one index past the number.
+
+```python
 def evaluate_rec(expr, i):
 	if expr[i] == '+':
 		a, i = evaluate_rec(expr, i + 1)
@@ -232,7 +248,20 @@ def evaluate_rec(expr, i):
 		return a / b, i
 	else:
 		return int(expr[i]), i + 1
+```
 
+This code will evaluate valid expressions, but we repeat the same code for recursive calls in all the operators. Repeating code is something we want to avoid, because it makes it harder to modify if we need that in the future. If we need to modify it one place we probably need to modify it everywhere, and if we have many copies, we might miss one. It is much better to have the code only once. We know that we can avoid duplication of code using functions, and we can of course do that here as well. We can make the actual evaluation of an expression a function we call and then parameterise the code using this function. This means changing the `if` blocks to
+
+```python
+		op = operator_table[expr[i]]
+		a, i = evaluate_rec(expr, i + 1)
+		b, i = evaluate_rec(expr, i)
+		return op(a, b), i
+```
+
+where `operator_table` is a table (a `dict`) that gives us the right function for any of the operators. Now, we can write a function for each of the operators, but as it turns out, those are already defined in the module `operator`. Our simplified evaluation code will look like this:
+
+```python
 import operator
 operator_table = {
 	'+': operator.add,
@@ -252,11 +281,40 @@ def evaluate_rec(expr, i):
 		return int(expr[i]), i + 1
 ```
 
-The other notation, *postfix notation* or *reverse Polish notation* is very similar to prefix notation. You simply put the operator behind the operands instead of before them. Older calculators used this notation and some programming languages have used it. The expression $(2\cdot 3)+1$ would be written `2 3 * 1 +` and $2\cdot(3+1)$ would be written `2 3 1 + *`. We cannot as easily implement a recursive function that evaluate expressions in this notation. We will see later that it is very easy with an explicit stack, but if you want to evaluate an expression recursively you have the problem that you do not know how many recursive calls you need to make before you see the operator, and you do not see the operator until the recursive calls should already have been evaluated.
+The code is much simpler and avoids duplication, but at the cost of the perhaps conceptually harder concept of having a table of functions. Having tables of functions can be a very powerful trick, however, so it is well worth your time to get familiar with it.
 
-Instead of writing a function to evaluate postfix notation expressions, we will now implement one that evaluates infix notation expressions. To make it easier to do so, we require that parentheses are always explicitly written, so we do not allow expressions such as `1 + 2 + 3`. You have to write this as `(1 + 2) + 3`. Likewise, we do not allow `2 * 3 + 1` and you have to write it as `(2 * 3) + 1`. We are not ready to handle precedence in infix notation quite yet. Dealing with precedence and default evaluate order is much harder than dealing with expressions that use explicit parentheses wherever needed. 
+**Exercise:** Add integer division, the operator `//`, to the evaluation code.
 
-**FIXME**
+**Exercise:** The evaluation code above assumes that all numbers are integers. Change that such that all numbers are floating point.
+
+**Exercise:** Add error-handling code to the evaluator. Such code needs to check that the next token^[Remember this is the same as a terminal in the grammar.] is either a number or an operator. You can check that something is a number by trying to translate it into one (using functions `int` or `float`). If it isn't a number, you get an exception. If something isn't a number, it should be an operator. If it isn't one of the operators you know, you should raise an exception.
+
+The other alternative notation for arithmetic is *postfix notation* or *reverse Polish notation* is very similar to prefix notation. You simply put the operator behind the operands instead of before them. Older calculators used this notation and some programming languages have used it. The expression $(2\cdot 3)+1$ would be written `2 3 * 1 +` and $2\cdot(3+1)$ would be written `2 3 1 + *`. We cannot as easily implement a recursive function that evaluate expressions in this notation. We will see later that it is very easy with an explicit stack, but if you want to evaluate an expression recursively you have the problem that you do not know how many recursive calls you need to make before you see the operator, and you do not see the operator until the recursive calls should already have been evaluated.
+
+Instead of writing a function to evaluate postfix notation expressions, we will now implement one that evaluates infix notation expressions. To make it easier to do so, we require that parentheses are always explicitly written, so we do not allow expressions such as `1 + 2 + 3`. You have to write this as `(1 + 2) + 3`. Likewise, we do not allow `2 * 3 + 1` and you have to write it as `(2 * 3) + 1`. We are not ready to handle precedence in infix notation quite yet. Dealing with precedence and default evaluate order is much harder than dealing with expressions that use explicit parentheses wherever needed. We will also require that all expressions with an operator, i.e. expressions that are not simply a number, will have parentheses around them, and no expression that is just a number will have parentheses. This means that we will not accept a string such as `"2 + 2"` but require `"(2 + 2)"` because we need parentheses around the addition. We will not accept `"((2) + 2)"` because we do not allow parentheses around a single number. The grammar for our restricted infix notation will be
+
+```
+LEVEL_EXPRESSION := number | '(' EXPRESSION OP EXPRESSION ')'
+OP := `+` | `-` | `*` | `/`
+```
+
+The reason for all the restrictions to the notation is that we can always see which case we need to parse before we parse it.  If the first token is `(` we need two recursive calls and then move past the second `)`; if the next token is not `(`, we should have a number. We didn't need these restrictions in the prefix notation, because with that notation we can always determine which non-terminal we need to parse by looking at the next token. All the restrictions are there to make the same true for infix notation.
+
+There is one more complication with the infix notation. With the prefix notation we expected spaces between all operators and operands. That is how we distinguished them. With infix notation, we would expect something like `"(2+2)"` to mean two plus two. If we simply split the string on whitespaces, using `split`, we would get a single string back. We do not have whitespaces around the tokens in this string. More advanced parser have ways to deal with this. They do not require whitespace around all tokens, but have a function for splitting strings into tokens. We will cheat a little and explicitly put spaces around all operators and parentheses. We write a `tokenise` function for that:
+
+```python
+	for op in ("(", ")", "+", "-", "*", "/"):
+		expr = expr.replace(op, " " + op + " ")
+	return expr.split()
+```
+
+The `replace` function modifies a string by replacing substrings that matches the first argument with the string that is the second argument.
+
+**FIXME: better tokeniser**
+
+**FIXME: parser**
+
+**FIXME: parser without the parenthesis requirement**
 
 ### Recursion and iteration
 
@@ -297,7 +355,7 @@ def merge(x, y):
 			j += 1
 ```
 
-The function doesn’t do anything complicated, but it is rather long, and therefore it can be hard to see at a glance what it is doing. What it does is simple enough. We move through `x` and `y`, using the indices `I` and `j`, and pick the smallest of `x[I]` and `y[j]` and and append that to our result. If we have made it to the end of either `x` or `y`, the first two `if`-statements in the loop, we copy the remainder of the other list.
+The function doesn’t do anything complicated, but it is rather long, and therefore it can be hard to see at a glance what it is doing. What it does is simple enough. We move through `x` and `y`, using the indices `i` and `j`, and pick the smallest of `x[I]` and `y[j]` and and append that to our result. If we have made it to the end of either `x` or `y`, the first two `if`-statements in the loop, we copy the remainder of the other list.
 
 A much simpler implementation of the same idea is this:
 
@@ -313,7 +371,7 @@ def merge(x, y):
 
 Here we can directly see the two base cases and the recursive case—the recursive case is one of two recursive calls, depending on which list has the smallest element, but it is only one recursive call.
 
-This version is shorter and simpler, and because of that, we would prefer it over the former version, all else being equal. Unfortunately, all else is not equal. For reasons I have not explained yet, getting everything except the first element of a list, as we do when we call `x[1:]` and `y[1:]`, is an expensive operation. It takes time proportional to the length of the lists we slice the first element off (minus one). There is another implementation fo lists than the one that Python use where this would be a constant time operation, but for Python `list` objects it is not. Therefore, the recursive call takes time $O(n)$, where the lengths of `x` and `y` are in $O(n)$, plus how long it might take to compute the recursive function, and the result is is an $O(n^2)$ running time all in all. I won’t go into details about why we get this running time, since we cover that in the section on divide and conquer later. The first `merge` implementation runs in time $O(n)$—if you cannot see why immediately, try to work through the analysis.
+This version is shorter and simpler, and because of that, we would prefer it over the former version, all else being equal. Unfortunately, all else is not equal. For reasons I have not explained yet, getting everything except the first element of a list, as we do when we call `x[1:]` and `y[1:]`, is an expensive operation. It takes time proportional to the length of the lists we slice the first element off (minus one). There is another implementation fo lists than the one that Python use where this would be a constant time operation, but for Python `list` objects it is not. Therefore, the recursive call takes time $O(n)$, where the lengths of `x` and `y` are in $O(n)$, plus how long it might take to compute the recursive function, and the result is an $O(n^2)$ running time all in all. I won’t go into details about why we get this running time, since we cover that in the section on divide and conquer later. The first `merge` implementation runs in time $O(n)$—if you cannot see why immediately, try to work through the analysis.
 
 We can get rid of the expensive slicing of the first elements by reintroducing the index variables and get this implementation:
 
