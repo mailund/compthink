@@ -7,6 +7,7 @@ CHAPTERS := 000_header.yml \
               Algorithmic_complexity.txt \
               Searching_and_sorting.txt \
               Recursion.txt \
+              Divide_and_conquer.txt \
               Conclusions.txt \
               Solutions.txt
 
@@ -16,6 +17,7 @@ CHAPTERS := 000_header.yml \
 CHAPTERS := 000_header.yml \
               Introducing_Python.txt \
               Recursion.txt \
+              Divide_and_conquer.txt \
 
 
 

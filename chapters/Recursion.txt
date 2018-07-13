@@ -1,8 +1,8 @@
-# Recursion and “divide and conquer”
+# Recursion
 
 In this chapter we explore two powerful techniques for designing algorithms: *recursion* and *divide and conquer*. These are really two sides of the same coin, and can be described as “solve a problem by breaking it down to smaller subproblems that we can solve recursively”. The first part is how we would describe all algorithms. The “recursively” part is where these techniques differ—and I am aware that I am defining *recursion* using *recursively*, which is ironic considering what recursion is. We get to that in the next section. Purist might consider the two terms as different, considering recursion a programming construction where a function will call itself and consider divide and conquer the algorithmic trick of solving a problem by splitting into subproblems of the same kind—perhaps using recursive functions and perhaps not. I will not make this distinction, but I will present the idea of recursion first and then classical divide and conquer algorithms after that.
 
-## Recursion
+## Definitions of recursion
 
 Recursion means defining something in terms of itself, and you have no-doubt seen recursive definitions before, even if they were not explained as such. A classical example is the factorial of a number $n!$. The factorial is usually defined as this:
 
@@ -45,7 +45,7 @@ The more useful definition of recursion is definitions where we have one or more
 
 Strictly speaking, this would be a definition of *recursive definitions*, but it works equally well when we consider computational problems. We have a recursive algorithm when we have some base cases where we can get the solution immediately, and some rules for solving all other cases by solving the same problem on smaller parts of the input.
 
-### Recursive functions
+## Recursive functions
 
 You have already used recursion, defined in this way, several times in the previous chapters. We just didn’t call it recursion then.^[Again, purists would not consider these algorithms recursive. They would reserve that word for when we use recursive functions. I would argue that they *are* recursive algorithms. I would actually argue that *most* algorithms are recursive; it is not always helpful to think of them as such, but recursion is often the way to think about solving a problem in the first place.] Consider linear search. When we search through a list `x`, if we have reached the end of the list without finding the element we are searching for, we are done and can report that the element is not in the list. Otherwise, we look at the first element in the list, and if that is the element we are looking for we are done and can report that we found it. These two cases are the base cases. Otherwise, we do a linear search in the remainder of the list. That is the recursive case.
 
@@ -104,7 +104,7 @@ Some people find recursion a difficult concept, especially when we use recursion
 
 If you still find recursive functions hard to wrap your mind around, you might take comfort in knowing that early computer scientist did as well. Early programming languages could not define recursive functions. It simply didn’t occur to people that this might be useful. This doesn’t mean that they didn’t solve problems recursively; they just didn’t use recursive functions. Just like we did linear and binary search without recursive functions before we reformulated the algorithms as recursive. Recursion is such a powerful technique, however, that all modern languages support it. Some even go so far that they have replaced loops with recursion entirely; they will not let you implement loops at all, only recursive functions.
 
-### Recursion stacks
+## Recursion stacks
 
 To understand how recursive functions work, we first need to understand a little deeper how function calls work. Recall that we have two different kinds of variables in Python, global and local variables.^[There are a bit more to variables than this, but we do not need to worry about that for now. Global and local variables are all we have seen so far.] Global variables are those we assign to at the outermost level in a Python program while local variables are either function parameters or variables we assign to inside a function. For example, in this program
 
@@ -190,7 +190,7 @@ f(1)
 
 you will get an error that says “RecursionError: maximum recursion depth exceeded”. This happens because the memory set aside for the call stack is limited and if the recursion gets too deep, there is no more stack available for more stack frames. This doesn’t happen if you use loops instead of recursion, and is another reason, besides efficiency, to prefer loops over recursion. Of course, in this particular example, there is no way to compute a value in finite time. The function never terminates, so it is not a proper recursive function in the first place, but there are cases where you have a perfectly well-defined recursive function that just needs more stack space than you have available. If that is the case, you need to replace the recursion with a loop.
 
-### A few more examples of recursion
+## Recursion and parsers
 
 Later in this chapter we will see how we can use recursion to solve algorithmic problems, but first I want to show you another classic application of recursion: parsing and evaluating expressions. Parsing is what we do when we take a string (or a file) as input and translate that into something we can manipulate in a program. Such a string can be simple or complex. When you write a Python program, that program is a text (when in a Jupyter Notebook) or a file (otherwise). Before Python can execute your program, it parses it into a structure it can interpret.
 
@@ -303,6 +303,7 @@ The reason for all the restrictions to the notation is that we can always see wh
 There is one more complication with the infix notation. With the prefix notation we expected spaces between all operators and operands. That is how we distinguished them. With infix notation, we would expect something like `"(2+2)"` to mean two plus two. If we simply split the string on whitespaces, using `split`, we would get a single string back. We do not have whitespaces around the tokens in this string. More advanced parser have ways to deal with this. They do not require whitespace around all tokens, but have a function for splitting strings into tokens. We will cheat a little and explicitly put spaces around all operators and parentheses. We write a `tokenise` function for that:
 
 ```python
+def tokenise(expr):
 	for op in ("(", ")", "+", "-", "*", "/"):
 		expr = expr.replace(op, " " + op + " ")
 	return expr.split()
@@ -310,13 +311,153 @@ There is one more complication with the infix notation. With the prefix notation
 
 The `replace` function modifies a string by replacing substrings that matches the first argument with the string that is the second argument.
 
+With this tokeniser in place, the parser is simple to write. We can always determine, from the next token, which case we are in. Parentheses tell us we have an operator; the lack of them tells us we have a number. With operators, we first extract the result of evaluating the first operand, then we get the operator, and finally we get the result of the second operand. We compute the result of the operation the same way as before.
+
+```python
+def evaluate(expr):
+	expr_list = tokenise(expr)
+	val, idx = evaluate_rec(expr_list, 0)
+	return val
+
+def evaluate_rec(expr, i):
+	if expr[i] == '(':
+		a, i = evaluate_rec(expr, i + 1)
+		op = operator_table[expr[i]]
+		b, i = evaluate_rec(expr, i + 1)
+		return op(a, b), i + 1 # + 1 to get past the ')'
+	else:
+		return int(expr[i]), i + 1
+```
+
+Knowing which case we are in from reading the next token is obviously a great help. It is why we can always evaluate prefix notation expressions, but also why we need to put all these restrictions on the infix notation.
+
+Since Python can handle infix expressions without all these restrictions, it should be obvious that this is possible. There are actually many different ways to write parsers, and the restrictions necessary to put on the grammar they can parse differs greatly. One technique is intimately tied to recursion and is, perhaps not so inventive, called *recursive descent*.
+
+In a recursive descent parser, you can handle grammas where you do not need to recurse on the left. This means that you never have a non-terminal that has itself as the left-most component. So the
+
+```
+EXPRESSION := EXPRESSION OP EXPRESSION | number
+```
+
+rule, where `EXPRESSION` is on the left of the rule for `EXPRESSION`, is not allowed. A recursive descent parser has a function for each non-terminal and for each rule, you call the appropriate non-terminal functions to parse it. The reason for the restrictions to the grammar is obvious: if a function to parse an `EXPRESSION` involves a call to the function that parses and `EXPRESSION` you get an infinite regression.
+
+You can often re-write a grammar to obey the "no left-recursion" rule. For arithmetic expressions, for example, we can use the grammar
+
+```
+EXP  := OPEXP | LEXP
+OPEX := LEXP op EXP
+LEXP := PEXP | number
+PEXP := '(' EXP ')'
+```
+
+Here, `EXP` is an expression, `OPEX` is an expression with an operator, `LEXP` is an expression that can occur to the left of an operator, or by itself, and `PEXP` is an expression in parentheses.
+
+Notice that in the grammar, it is impossible for an `EXP` to appear to the left of any rule derived from `EXP`. It is not enough that `EXP` does not appear on the left of a rule explicitly part of `EXP`'s rules. You cannot, through other rules, end up with a left-recursion. That would also lead to infinite recursion.
+
+Following the rule of having one function per non-terminal we can implement a recursive descent parser for this grammar as this:
+
+```python
+class ParseError(Exception):
+	pass
+
+def evaluate_exp(expr, i):
+	try:
+		return evaluate_opex(expr, i)
+	except:
+		return evaluate_lexp(expr, i)
+
+def evaluate_opex(expr, i):
+	lhs, i = evaluate_lexp(expr, i)
+	op = operator_table[expr[i]] ; i += 1
+	rhs, i = evaluate_exp(expr, i)
+	return op(lhs, rhs), i
+
+def evaluate_lexp(expr, i):
+	try:
+		return evaluate_pexp(expr, i)
+	except:
+		return int(expr[i]), i + 1
+
+def evaluate_pexp(expr, i):
+	if expr[i] != '(':
+		raise ParseError
+	val, i = evaluate_exp(expr, i + 1)
+	if expr[i] != ')':
+		raise ParseError
+	return val, i + 1
+
+def evaluate(expr):
+	try:
+		expr_list = tokenise(expr)
+		val, idx = evaluate_exp(expr_list, 0)
+		return val
+	except:
+		raise ParseError
+```
+
+In this parser, I have defined an exception that indicates that the parser fails when trying to apply some rule. We only explicitly raise it when we attempt to parse an expression in parentheses, but both the `evaluate_opex` and `evaluate_lexp` can also raise exceptions, the first if the `op` is not a key in  the `operator_table` table and the second if the number token cannot be converted to `int`. All expressions can raise an exception if they try to move past the last index in `expr`. I catch all exceptions that makes it to the `evaluate` function and translate them into a `ParseError`, just to give the parser a simpler interface. In a real parse, we would want this exception to carry some information about why the parser failed. I leave that as an exercise.
+
+**Exercise:** Modify the `ParseError` exception so it is informative about the reason the parser fails.
+
+All the functions implicitly or explicitly invoke exceptions to indicate when attempting to parse a rule fails. This is part of how a recursive descent parser works. You attempt all the rules for a non-terminal in turn, and pick the first that you can parse. If a rule cannot be parsed, and this can happy deep in a recursion that attempts this, then you must backtrack and try the next rule. You can use returned values to indicate that a rule fails, for example returning `None` to indicate this, but exceptions let you backtrack directly to the list of rules you are trying to match.
+
+By not allowing left-recursions, you avoid infinite recursion. It has another consequence: expressions with infix operators are evaluated right-to-left. If you parse the expression `2 + 3 + 4`, the parser will try to follow the rules
+
+```
+EXP  [2 + 3 + 4]            ->
+OPEX [2 + 3 + 4]            ->
+LEXP [2] `+` EXP [3 + 4]    ->
+PEXP [2] `+` EXP [3 + 4]    -> FAILS, backtrack to LEXP
+2 `+` EXP [3 + 4]           ->
+2 `+` OPEX [3 + 4]          ->
+2 `+` LEXP [3] `+` EXP [4]  ->
+2 `+` PEXP [3] `+` EXP [4]  -> FAILS, backtrack to LEXP
+2 `+` 3 `+` EXP [4]         -> 
+2 `+` 3 `+` OPEX [4]        -> 
+2 `+` 3 `+` LEXP [4] ...    -> FAILS, backtrack to EXP
+2 `+` 3 `+` LEXP [4]        -> 
+2 `+` 3 `+` PEXP [4]        -> FAILS, backtrack to 
+2 `+` 3 `+` 4               -> evaluates 3 + 4
+2 `+` 7                     -> evaluates 2 + 7
+9
+```
+
+It is a simple expression, but a complex series of recursive calls. That is usually how recursive descent parsers work. What I want you to notice is that we evaluate `3 + 4` before we add two. This is the consequence or avoiding left-recursions and allowing right-recursions. Expressions are evaluated right-to-left.
+
+There is another crucial aspect of recursive descent parsers. When you attempt a sequence of rules, you need to take a greedy approach if you want to parser an entire expression. If one derivation can be the prefix of another, you need to attempt the longest first. If you do not, then you will only parse a prefix of the (sub-)expression you are trying to parse.
+
+If, for instance, we flipped the order of the two cases for `EXP`, so it read
+
+```
+EXP := LEXP | OPEX
+```
+
+we would have the same rules, but when parsing `2 + 4` we would do 
+
+```
+EXP [2 + 4]  ->
+LEXP [2 + 4] ->
+PEXP [2 + 4] -> FAIL, backtrack to LEXP
+2 (+ 4)      -> 2
+```
+
+We would conclude that the result of the expression is only the first number, because that is what we would parse. The order in which we attempt to apply rules matter for the correctness of the parser.
+
+**Exercise:** In the parser above, if there are tokens after a complete expression, the `evaluate` function will return the value of the expression but not notice that we have more tokens following it. It will happily evaluate `evaluate('(2+2)5')` and give you four. You can check if there are tokens left in the `evaluate` function and if there is, raise `ParseError`. Extend the function to do this.
+
+
+
+**FIXME: parser with fewer rules**
+
+**FIXME: parser without exceptions (exercise)**
+
+**FIXME: why postfix notation isn't solved as simply**
+
 **FIXME: better tokeniser**
 
-**FIXME: parser**
 
-**FIXME: parser without the parenthesis requirement**
 
-### Recursion and iteration
+## Recursion and iteration
 
 There is a close correspondence between recursion and iteration (or loops). You can always directly translate a loop into recursive function. You cannot always do the opposite—translate a recursive function into a loop. The recursion stack is more powerful than simple iterations, so you can do more with a stack than you can with a loop.^[Obviously, you can implement the stack functionality yourself and then avoid recursive function calls, but this is just an implementation detail. You will still be using recursion and not a simple loop.] Some recursions, however, can be directly translated into loops. These are called *tail-recursive*. We will get to these in a moment.
 
@@ -510,7 +651,7 @@ digits[15] = 'F'
 
 We can then reduce the problem to the second-to-last digit by dividing $i$ by $b$. Implement this idea using a recursive function.
 
-### Tail-recursion
+## Tail-recursion
 
 You can always translate an iterative algorithm into a recursive one, but since iterative algorithms are more efficient, you shouldn’t do this. Recursive algorithms are simpler, though, so you will often find yourself in the situation that you have an elegant recursive solution to a problem, and you want to translate it into a more efficient iterative solution. You cannot always translate a recursive function into an iterative one,[^iterative_is_always_possible] but this section is about the cases where you can.
 
@@ -678,299 +819,3 @@ def merge(x, y, i = 0, j = 0, acc = None):
 			acc.append(y[j])
 			j += 1
 ```
-
-## Divide and conquer
-
-Divide and conquer is the algorithmic version of recursion. The term comes from the political doctrine *divide et impera*, but for algorithms, a more correct description would be *divide and combine*. The key idea is to
-
-1. Split a problem into subproblems of the same type.
-2. Recursively solve these problems.
-3. Combine the results of the recursive calls to a solution of the original problem.
-
-Components 1 and 3 can be very simple or very complex, while 2 is usually one or two recursive calls.
-
-The binary search algorithm, we have seen several times by now, is an example of a divide and conquer algorithm. Step 1 in this algorithm is identifying whether we should search to the left or to the right of the midpoint, the recursive step is searching in one of these intervals. Step 3 is almost non-existing, since we simply return the result of the recursive solution in step 2.
-
-The recursive step(s) in divide and conquer are often implemented as recursive function calls, but need not be. Conceptually, we recurse, but as we saw in binary search, we can replace recursive calls with loops. It is not necessary to use recursion in your implementation of a divide and conquer algorithm; the key component of this class of algorithms is that we solve a subproblem of the same type as the original problem. Since we are using recursion, even if it is only conceptually, we need to have basis cases and recursive cases. The basis case in binary search is when we have an empty interval or when the midpoint is the element we are looking for. The recursive case handles everything else.
-
-As another example of divide and conquer, we can consider a sorting algorithm known as *merge sort*. This algorithm works as follows:
-
-1. Split the initial input into two pieces of half the size of the original problem: the first and the second half of the input list.
-2. Sort these two smaller lists recursively.
-3. Combine the two sorted lists using merge.
-
-This algorithm involves two recursive subproblems, so it is not easy to implement it as an iterative solution. We will implement it recursively. The basis cases for the recursion are when we have empty lists or lists of length one—these will be lists that are already sorted. The recursive case handles everything else.
-
-A straightforward implementation of this could look as follows:
-
-```python
-def merge_sort(x):
-	if len(x) <= 1: return x
-	mid = len(x) // 2
-	return merge(merge_sort(x[:mid]), merge_sort(x[mid:]))
-```
-
-It does exactly what we identified as the steps that merge sort should do, but you might be uncomfortable with the slicing we do to split the input `x`. For `merge`, doing this slicing increased the running time from $O(n)$ to $O(n^2)$. It is not quite as bad here since the linear time slice operation is slower than the time it takes to sort the sub-lists—we discuss the running time shortly, but it will be $O(n\log n)$. Still, we could avoid it using indices into `x` instead:
-
-```python
-def merge_sort_rec(x, low, high):
-	if high - low <= 1: return x[low:high]
-	mid = (low + high) // 2
-	return merge(merge_sort_rec(x, low, mid), 
-		         merge_sort_rec(x, mid, high))
-
-def merge_sort(x):
-	return merge_sort_rec(x, 0, len(x))
-```
-
-I have implemented this using two separate functions, one that handle the actual sorting but takes indices as arguments, and one that only takes `x` as its argument and calls the former. We cannot set `low` and `high` as default arguments, since `high` should be set to the length of `x`, and we do not know what `x` is until we call the function, and default arguments must be known when we define a function. We could use the trick of setting them to `None` and then check if they are, as we did `merge`, but then we would need to check the arguments in each recursive call. This wasn’t a problem when we translated `merge` into an iterative algorithm, but we cannot do this with `merge_sort` since it is not tail recursive. Therefore, I prefer to split the algorithm into two functions.
-
-We still slice `x` when the interval is one or zero, and we still need to concatenate two lists when we merge. We can also avoid this by doing the sorting in-place. For this we need an in-place merge. Doing this was an exercise earlier in the book, but a recursive solution could look like this:
-
-```python
-def inplace_merge(x, i, j, k, l):
-	# invariant: i <= j <= k <= l
-	if i == j or k == l: return # nothing left to be done
-	if x[i] < x[k]:
-		inplace_merge(x, i + 1, j, k, l)
-	else:
-		x[i], x[k] = x[k], x[i]
-		inplace_merge(x, i + 1, j, k, l)
-```
-
-Since this is a tail recursive function, we can transform it into an iterative algorithm in the straightforward way:
-
-```python
-def inplace_merge(x, i, j, k, l):
-	while True:
-		# invariant: i <= j <= k <= l
-		if i == j or k == l: return # nothing left to be done
-		if x[i] < x[k]:
-			i += 1
-		else:
-			x[i], x[k] = x[k], x[i]
-			i += 1
-```
-
-With the in-place merge we can implement an in-place merge sort like this:
-
-```python
-def merge_sort_rec(x, low, high):
-	if high - low <= 1: return
-	mid = (low + high) // 2
-	merge_sort_rec(x, low, mid)
-	merge_sort_rec(x, mid, high)
-	inplace_merge(x, low, mid, mid, high)
-	
-def merge_sort(x):
-	merge_sort_rec(x, 0, len(x))
-```
-
-### Divide and conquer running times
-
-Figuring out the running time for recursive functions, or algorithms that are recursive even if they are not implemented as recursive functions, involves solving recurrence equations. If $T(n)$ denotes the running time on input of size $n4, then a recurrence equation could look like this:
-
-$$T(n) = 2\cdot T(n/2) + O(n)$$
-
-This is the recurrence equation for merge sort. To sort a list of length $n$ we solve two problems of half the size, $2T(n/2)$, and do $O(n)$ additional work. In the first version of merge sort, where we sliced the input, we used linear time both for the slicing and then for the merge; in the final version we only spend linear time with the merge. In either case, we spend linear time in addition to the recursive calls.
-
-What characterise recurrence equations is similar to what characterises recursive solutions to problems. The equations refer to themselves. Strictly speaking, we need basis cases for the recurrence equations to be well defined, so we would have
-
-$$T(n) = \begin{cases}
- O(1) & n \leq 1 \\
- 2\cdot T(n/2) + O(n) & \text{otherwise}
-\end{cases}$$
-
-but when we consider the running time of an algorithm, the basis cases almost always involve constant time, so we often leave that out.
-
-You can solve such recurrence equations by expanding them
-
-\begin{align*}
-	T(n) &= O(n) + 2\cdot T(n/2) \\
-       &= O(n) + 2\left[
-	        O(n/2) + 2\cdot T(n/4)
-       \right] \\
-       &= O(n) + 2\left[
-	        O(n/2) + 2\cdot \left[
-		        O(n/4) + T(n/8)
-	        \right]
-       \right] \\
-       &= \ldots
-\end{align*}
-
-but you have to be a little careful with the expansion and big-Oh notation. Here, we see that we get a $O(n/2)$ in the first expansion, and normally we would consider this equal to $O(n)$. It is, but as we keep expanding, we see the series $O(n)+O(n/2)+O(n/4)+\cdot+O(n/n)$. If we pretend that all the $O(n/2^k)$ components are $O(n)$ this would give us $n\times O(n)=O(n^2)$. This *is* an upper bound on the expression, but it is not actually tight. If you multiply into the parentheses in the equation you will also get
-
-$$2\left[O(n/2) + 2\cdot T(n/4)\right] = 2 O(n/2) + 4 T(n/4)
- = O(n) + 4 T(n/4)$$
-
-which is actually fine, but if you translated $O(n/2)$ into $O(n)$, you would get
-
-$$T(n) = 2O(n) + 4O(n) + 8O(n) + 16\cdot T(n/8)$$
-
-where each of the $O(n)$ components are multiplied by a number $2^k$. You can consider that a constant in each step, but $k$ actually depend on $n$, so it isn't really a constant. Neither is the number we divide $n$ by inside the big-Oh.
-
-The problem here is that if we blindly translate the expanded numbers $2 O(n/2)$ into $O(n)$ are do not take into account that, as we continue the expansion, the number we multiply with and the number we divide by, changes for each expansion. They depend on $n$ in how many times we do this and what the numbers are in each step. They are not constants. The arithmetic rules we have learned for the big-Oh notation is fine, the problem is not in that. The problem is if we misunderstand the numbers in the expansion as constants when they are not. This is usually not a trap you will fall into when reasoning about iterative algorithms as we have done earlier, but it is easy to fall into here.
-
-When expanding a recurrence equation, it is easier to translate $O(n)$ into $cn$ for some constant $c$. We know such a constant exists so $cn$ is an upper bound for whatever the $O(n)$ is capturing. Then we get an expansion like this:
-
-\begin{align*}
-	T(n) &= cn + 2\cdot T(n/2) \\
-       &= cn + 2\left[
-	       cn/2 + 2\cdot T(n/4)
-       \right] \\
-       &= cn + 2\left[
-	       cn/2 + 2\left[cn/4) + 2\cdot T(n/8)
-	       \right]
-       \right]\\
-       &= \ldots
-\end{align*}
-
-If we take this expansion all the way down, we get
-
-$$T(n)=\sum_{k=0}^{\log n} c\cdot 2^k n / 2^k
-		  =\sum_{k=0}^{\log n} c\cdot n = c\cdot n\log n$$
-		  
-where $\log n$ is the base-two logarithm, and we get that limit because $2^{\log n}=n$ is when we reach $n/n=1$. This means that this recurrence is in $O(n\log n)$, so this is the big-Oh running time for merge sort.
-
-Usually, you can solve recurrence equations just by expanding them and recognising the form of the sum you get back from it. This often take the form of a series you know is convergent or such. By far, the divide and conquer algorithms you will run into are in one of the forms listed below, so I find it easier to just remember these.
-
-$$T(n) = 2\cdot T(n/2) + O(n) \in O(n\log n)$$
-
-We just saw an example of this. Whenever you can break a problem into two subproblems of half the length as the original and you do not spend more than linear time splitting or combining, you get an $O(n\log n)$ algorithm. The merge sort is one such algorithm. This is also the first comparison-based sorting algorithm we have seen that runs in this time, and it can be shown to be optimal (in the sense of big-Oh) because all comparison-based sorting algorithms need to do $\Omega(n\log n)$ comparisons.
-
-$$T(n) = T(n-1) + O(1) \in O(n)$$
-
-If we, in constant time, remove one from the problem size we have an algorithm that runs in linear time. If we consider linear search a recursive problem—the basis case is when the first element is the one we are searching for and the recursive case is doing a linear search on the rest of the input—then that would be an example of such an algorithm.
-
-$$T(n) = T(n-1) + O(n) \in O(n^2)$$
-
-If we need linear time to reduce the problem size by one, then we get a quadratic time algorithm. Selection sort, where we find the smallest element in the input, in linear time, swap it to the first element, and then recursively sort the rest of the list is an example of this.
-
-$$T(n) = T(n/2) + O(1) \in O(\log n)$$
-
-If you can reduce the problem to half its size in constant time, then you have a linear time algorithm. Binary search is an example of this.
-
-$$T(n) = T(n/2) + O(n) \in O(n)$$
-
-If you can reduce the problem to half its size in linear time, and get the solution for the full problem after the recursive computation in linear time as well, then you have a linear time algorithm. Notice that this equation is different from the one we had for merge sort; in that recursion we needed *two* recursive calls, in this we only need one.
-
-As an example of this running time, consider a function that adds a list of numbers by first adding them pairwise and then adding all the pairwise sums in a recursive call:
-
-```python
-def binary_sum(x):
-	if len(x) == 0: return 0
-	if len(x) == 1: return x[0]
-
-	# O(n) work
-	y = []
-	for i in range(1, len(x), 2):
-		y.append(x[i - 1] + x[i])
-	if i + 1 < len(x): # handle odd lengths
-		y[0] += x[i + 1]
-	
-	return binary_sum(y) # recurse on n//2 size
-```
-
-This looks like just a complicated way of adding numbers—and in some ways it is—but it can be relevant if you need to compute the sum of floating point numbers (see the last section of this chapter). When you add two floating point numbers, you might not end up with their sum. If this surprises you, remember that a number must be represented in finite computer memory, but not all real numbers can. For example, the decimal representation of $1/3$ require infinitely many decimals, $0.333333\ldots$. In your computer, you do not use decimal notation but binary, but the problem is the same. (You can, of course, represent rational numbers like $1/3$ as two integers, and you can represent arbitrarily large integers, but there are more real numbers than rational numbers).
-
-If you add two floating point numbers, you will lose bits of information proportional to how many orders of magnitude the numbers are apart, so the larger the difference, the less precise your addition is. If you add the numbers in a large list by starting from the left and moving right, as we have seen before, then this can become a problem. The accumulator will grow and grow as we add more and more numbers, and if the numbers in the list are of roughly the same order of magnitude, the next number to add will be many orders of magnitude smaller than the accumulator. If the difference gets large enough, adding a number to the accumulator simply gives you the accumulator back.
-
-If you start with numbers of the same order of magnitude, then adding them pairwise as in the algorithm above, will keep them at roughly the same order of magnitude in the recursion, and this will alleviate the problem of loosing precision in floating point numbers.
-
-$$T(n) = 2\cdot T(n/2) + O(1) \in O(n)$$
-
-If we can split and combine in constant time but require two recursive calls on half the size, we also get a linear time algorithm. Again, notice that this is different from the recurrence equation for merge sort where we needed linear time to merge the results of the two recursive calls.
-
-An example of an algorithm that has this recurrence, consider the problem of finding the largest difference between two numbers in a list. You could, of course, run through all pairs and find the largest, but that would take time $O(n^2)$. Instead, you can solve a slightly harder problem and get the solution from there—where by "harder" I mean that it solves more than just finding the maximum difference, I do not mean that this is a harder complexity class. We can actually solve it in linear time by using a divide and conquer algorithm with the recurrence above.
-
-The problem we will solve is to find the smallest and the largest number in a list as well as the largest difference. We do this recursively. We split the input into two halves, find the smallest and largest elements in both halves, as well as the largest difference in the two halves. We can then combine these. The smallest element for the full list is the smallest of the smallest in either half. The largest element is the maximum of the two we got from the recursive calls. The largest difference in the full list is either found in one of the two halves, or we can get it as the difference between the largest element in one half and the smallest in the other. We can implement the entire algorithm like this:
-
-```python
-def min_max_maxdiff(x, i, j):
-	# Invariant: j > i
-	if i + 1 == j:
-		return x[i], x[i], 0
-	else:
-		mid = (i + j) // 2
-		min_l, max_l, maxdiff_l = min_max_maxdiff(x, i, mid)
-		min_r, max_r, maxdiff_r = min_max_maxdiff(x, mid, j)
-		min_res = min(min_l, min_r)
-		max_res = max(max_l, max_r)
-		maxdiff_res = max(maxdiff_l, maxdiff_r,
-			              max_r - min_l, max_l - min_r)
-		return min_res, max_res, maxdiff_res
-```
-
-If we only want the maximum difference, we can wrap the function:
-
-```python
-def maxdiff(x):
-	if len(x) == 0: return None
-	_, _, md = min_max_maxdiff(x, 0, len(x))
-	return md
-```
-
-Splitting the data and combining the results from the recursive calls can be done in constant time and we make two recursive calls of half the size, so by the recurrence equation above, the running time is $O(n)$.
-
-### Representing floating point numbers
-
-Floating point numbers, the computer analogue to real numbers, can be represented in different ways, but they are all variations of the informal presentation I give in this section. If you are not particularly interested in how these numbers are represented, you can safely skip this section. You can already return to it if you think you are getting weird behaviour when working with floating point numbers.
-
-In the representation used by modern computers is standardised as IEEE 754. It basically represents numbers as explained below, but with some tweaks that lets you represent plus and minus infinity, “not a number” (NaN), and with a higher precision for numbers close to zero than the presentation here would allow. It also uses a sign bit for the coefficient while it represents the exponent as a signed integer for reasons lost deep in numerical analysis. All that you need to know is that floating point numbers work roughly as I have explained here, but with lots of technical complications. If you find yourself a heavy user of floating point numbers, you will need to study numerical analysis beyond what we can cover in this book, and you can worry about the details of number representations there.
-
-Floating point numbers are similar to the *scientific notation* for base-$b$ numbers,^[To get a binary notation, replace $b$ by $2$. For non-zero numbers, $a_1$ must be 1, so we do not represent it explicitly, which gives us one more bit to work with.] where numbers are represented as
-
-$$x = \pm a\times b^{\pm q}$$
-
-where $a = a_1.a_2a_3\ldots a_n, a_i\in\{0,1,\ldots,b-1\}$ is the *coefficient* and $q = q_1q_2q_3\ldots q_m, q_i\in\{0,1,\ldots,b-1\}$ is the *exponent* of the number. Not all real numbers can be represented with this notation if $a$ and $q$ are finite sequences,^[Which real numbers are representable using finite a number of digits depend on the base, $b$. You cannot represent $1/3$ in finite decimal ($b=10$) notation but in base $b=3$ it is simply $1\times 3^{-1}$.  Likewise, you cannot represent $1/10$ in binary in a finite number of digits, where you trivially can in base 10.] but all can be arbitrarily closely approximated by using sufficiently large numbers of digits, $n$ for the coefficient and $m$ for the exponent. We usually assume that if $x\neq 0$ then $a_1\neq 0$ since, if $a_1 = 0$ we can update $a$ to $a_2.a_3\ldots a_n$ and decrease $q$ by one if positive or increase it by one of positive.
-
-Where floating point numbers differ from this notation is that we have a limit on how many digits we have available for the coefficient and the exponent. To represent any real number, we can choose sufficiently high values for $n$ and $m$, but with floating point numbers there is a fixed number of digits for $a$ and $b$. You cannot approximate all numbers arbitrarily close. For example, with $b=2$ and $n=m=1$, we have $\pm a\in\{-1,0,1\}, \pm q\in\{-1,0,1\}$, so we can only represent the numbers $\{-1, -1/2, 0, 1/2, 1\}$: $\pm 1/2 = \pm 1\times 2^{-1}$, $\pm 0 = \pm 0\times 2^q$, and $\pm 1 = \pm 1\times 2^{\pm 0}$ (where $\pm 0$ might be represented as two different numbers, signed and unsigned zero, or as a single unsigned zero, depending on the details of the representation). If we use two bits for the exponent, we get the number line shown in [@fig:number-line].
-
-![Number line when we have one bit for the coefficient and two bits for the exponent.](figures/number-line){#fig:number-line}
-
-As a rule of thumb, floating point numbers have the property that is illustrated in [@fig:number-line]. The numbers are closer together when you get closer to zero and further apart when their magnitude increase. There is a positive and a negative minimal number; you cannot get closer than those to zero except by being zero. If you need to represent a non-zero number of magnitude less than this, we say that you have an *underflow* error. There are also a smallest and a largest number (the positive and negative numbers furthest from zero). If you need to represent numbers of magnitude larger than these, we say you have an *overflow* error.
-
-There isn’t really much you can do about underflow and overflow problems except to try to avoid them. Translating numbers into their logarithm is often a viable approach if you only multiply numbers, but can be tricky if you also need to add them.
-
-In the binary sum example from earlier, the problem is not underflow or overflow, but rather loosing significant bits when adding numbers. The problem there is the fixed number of bits set aside for the coefficient. If you want to add two numbers of different magnitude, i.e. their exponents are different, then you first have to make the exponents equal, which you can do by moving the decimal point. Consider $1.01101\times 2^{3}$ to $1.11010\times 2^0$—where we have five bits for the coefficients (plus one that is always 1, i.e. $n=6$). If you want to add $1.01101\times 2^{3}$ to $1.11010\times 2^0$ you have move the decimal point in one of them. With the representation we have for the coefficients, $a=a_1.a_2\ldots a_n$, we can only have one digit before the decimal point, so we cannot translate $1.01101\times 2^3$ into $1011.01\times 2^0$ so we have to translate  $1.11010\times 2^0$ into $0.00111010\times 2^3$. We want the most significant bit to be one, of course, but we make this representation for the purpose of addition; once we have added the numbers we put it in a form where the most significant bit in the coefficient is one. The problem with addition is that we cannot represent $0.00111010\times 2^3$ if we only have five (informative, i.e. $n-1$) bits in the coefficient. So we have to round the number off and get $0.00111\times 2^3$. The difference in the sum is $2^{-4} = 0.0625$, so not a large difference in the final result, but we have lost three bits of accuracy from the smaller number.
-
-```
-1.01101    * 2**3 +
-1.11010    * 2**0 =
-1.01101    * 2**3 +
-0.00111010 * 2**3 =
-1.01101    * 2**3 +
-0.00111010 * 2**3 =
-1.10100010 * 2**3 !=
-1.01101    * 2**3 +
-0.00111    * 2**3 =
-1.10100    * 2**3
-```
-
-In general, you expect to loose a number of bits equal to the difference in the exponents of the numbers. The actual loss depends on the details of the representation, but as a rule of thumb, this is what you will lose.
-
-Assume we have one informative bit for the coefficient ($n=2$) and two for the exponent, ($m=2$), and we wanted to add six ones together $6\times 1.0_2 \times 2^0 = 1.1_2\times 2^2$. Adding the numbers one at a time we get:
-
-```
-1.0 * 2**0 +
-1.0 * 2**0 = 1.0 * 2**1 +
-1.0 * 2**0 = 0.1 * 2**1 = 1.1 * 2**1 +
-1.0 * 2**0              = 0.1 * 2**1 = 1.0 * 2**2 +
-1.0 * 2**0                           = 0.0 * 2**2 = 1.0 * 2**2 +
-1.0 * 2**0                                        = 0.0 * 2**2 = 1.0 * 2**2
-```
-
-which is off by 2. If we add the numbers as we did with our `binary_sum` function, we instead have
-
-```
-1.0 * 2**0 +
-1.0 * 2**0 = 1.0 * 2**1 +
-1.0 * 2**0 + 
-1.0 * 2**0 = 1.0 * 2**1 = 1.0 * 2**2 +
-1.0 * 2**0 +
-1.0 * 2**0 = 1.0 * 2**1 = 0.1 * 2**2 = 1.1 * 2**2
-```
-
-which is correct.
-
-Obviously, the floating point numbers you use in Python have a much higher precision than one bit per coefficient and two per exponent, so you will not run into problems with accuracy as fast as in this example. The principle, is the same, however. If you add enough numbers you risk that the accumulator becomes too large for the addition with the next number to have an effect. If you run into this, then adding the numbers pairwise as in `binary_sum` can alleviate this.
