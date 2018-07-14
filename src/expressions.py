@@ -125,4 +125,32 @@ print(evaluate('(2 + 3)'))
 print(evaluate('2 + 3 + 4'))
 print(evaluate('((2 + 2) * 3)'))
 
-print(evaluate('(2+2)5'))
+
+# EXP  := LEXP op EXP | LEXP
+# LEXP := '(' EXP ')' | number
+
+def evaluate_exp(expr, i):
+	lhs, i = evaluate_lexp(expr, i)
+	if i < len(expr) and expr[i] in operator_table:
+		op = operator_table[expr[i]]
+		rhs, i = evaluate_exp(expr, i + 1)
+		return op(lhs, rhs), i
+	else:
+		return lhs, i
+
+def evaluate_lexp(expr, i):
+	if expr[i] == '(':
+		res, i = evaluate_exp(expr, i + 1)
+		if expr[i] != ')':
+			raise ParseError
+		return res, i + 1
+	else:
+		return int(expr[i]), i + 1
+
+
+print("infix 3")
+print(evaluate('12'))
+print(evaluate('(12)'))
+print(evaluate('(2 + 3)'))
+print(evaluate('2 + 3 + 4'))
+print(evaluate('((2 + 2) * 3)'))

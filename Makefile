@@ -8,6 +8,7 @@ CHAPTERS := 000_header.yml \
               Searching_and_sorting.txt \
               Recursion.txt \
               Divide_and_conquer.txt \
+              Stacks.txt \
               Conclusions.txt \
               Solutions.txt
 
@@ -16,8 +17,8 @@ CHAPTERS := 000_header.yml \
 
 CHAPTERS := 000_header.yml \
               Introducing_Python.txt \
-              Recursion.txt \
-              Divide_and_conquer.txt \
+              Parsers_and_languages.txt \
+              Stacks.txt \
 
 
 
