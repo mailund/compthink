@@ -327,11 +327,25 @@ Grammars and the kind of restrictions we put on them is a fundamental topic in c
 
 ## Types of grammars and the Chomsky hierarchy of languages
 
+The grammars we have used for specifying valid expressions describe what valid expressions are, and our parser/evaluator how we should interpret the expressions as numbers. In computer science, we distinguish between what valid expressions are, given a grammar, and what expressions mean. We call the first the syntax of a language and the second the semantics of the language. You don't necessarily *need* to distinguish the two, because you can think of grammars both as specifying valid expressions in a language *and* as describing rules for computation. A rule such as
+
+```
+2 + 2 := 4
+```
+
+describes how to add two and two. This rule might look strange compared to the rules earlier, where we always had one non-terminal on the left of `:=`, but requiring that is a restriction on the grammars—we *could* allow arbitrary expressions both on the left and the right of `:=`.
+
+If we wanted to write down the arithmetic rules like this, we would need an infinite number of rules. We don't *need* there to be a finite set. In most formal theory about languages, however, we do only consider grammars with a finite number of rules; those are the only one we could ever imaging building a real computer for. We have finite-size computers doing arithmetic, so you will not be surprised to learn that it is possible to write down a finite set of rules for arithmetic. There are some things that a finite-rules computer cannot do. I mentioned the *halting problem*, deciding if a program will terminate on a given input, is one of those.
+
+What can and cannot be computed, and how we determine that, is beyond the scope of this book, but in this section we will have a look at something very similar: which kinds of languages can be recognised by different theoretical machines. By *recognise*, when we speak of languages, we mean that given a string and a (finite) set of rules, can we determine if the string can be constructed from the rules of the grammar. This is what a parser does, essentially. It figures out the rules in reverse; it figures out which rules were used to form each part of the input string. If we ignored how it did this, and only wanted to know if it could parse the string or not, i.e. if there is a parse error or not, then we would be determining if the string was in the language described by the grammar. So a parser does a bit more than recognising strings for languages, and in most applications we want a little more, but for formal languages we care about whether we can build machines that recognises if strings are from a given language.
+
+We will only scratch the surface of this and I will not define the "machines" in general. I just hope I can convince you that there are different classes of languages and that they require different computational power to recognise.
+
 #### Deterministic versus non-deterministic formal machines
 
 **FIXME: postfix parsing with nondeterministic machine**
 
-### General transformations and computability
+
 
 ### Context sensitive languages
 
