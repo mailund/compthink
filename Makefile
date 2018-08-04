@@ -7,18 +7,20 @@ CHAPTERS := 000_header.yml \
               Algorithmic_complexity.txt \
               Searching_and_sorting.txt \
               Recursion.txt \
+              Parsers_and_languages.txt \
               Divide_and_conquer.txt \
               Stacks.txt \
+              Python-vm.txt \
               Conclusions.txt \
               Solutions.txt
 
 #CHAPTERS := 000_header.yml \
 #              Solutions.txt
 
-CHAPTERS := 000_header.yml \
-              Introducing_Python.txt \
-              Parsers_and_languages.txt \
-              Stacks.txt \
+#CHAPTERS := 000_header.yml \
+#              Introducing_Python.txt \
+#              Parsers_and_languages.txt \
+#              Stacks.txt \
 
 
 
