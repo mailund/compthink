@@ -1,7 +1,6 @@
 
 def merge(x, y, i = 0, j = 0, acc = None):
-	if acc is None:
-		acc = []
+	acc = acc or []
 	while True:
 		if i == len(x):
 			acc.extend(y[j:])
