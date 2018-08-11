@@ -1,8 +1,9 @@
 
 
-
+# Full
 CHAPTERS := 000_header.yml \
-		          Introduction_to_computation.txt \
+		      Introduction_to_computation.txt \
+		      Introducing_Python.txt \
               Introduction_to_algorithms.txt \
               Algorithmic_complexity.txt \
               Searching_and_sorting.txt \
@@ -13,6 +14,15 @@ CHAPTERS := 000_header.yml \
               Python-vm.txt \
               Conclusions.txt \
               Solutions.txt
+
+# Class
+CHAPTERS := 000_header.yml \
+		      Introduction_to_computation.txt \
+              Introduction_to_algorithms.txt \
+              Algorithmic_complexity.txt \
+              Searching_and_sorting.txt \
+              Recursion.txt \
+              Divide_and_conquer.txt \
 
 #CHAPTERS := 000_header.yml \
 #              Solutions.txt
@@ -36,12 +46,9 @@ PANDOC_OPTS_ALL :=  --standalone --toc -f markdown+smart \
 PANDOC_PDF_OPTS := $(PANDOC_OPTS_ALL) \
                     --default-image-extension=pdf \
                     --variable links-as-notes \
+                    --variable secnumdepth=section \
+                    --toc-depth=2 \
                     --template=templates/latex-template.tex
-
-PANDOC_EPUB_OPTS := $(PANDOC_OPTS_ALL) \
-                    --default-image-extension=png \
-                    -t epub3 --toc-depth=1 \
-                    --epub-cover-image=cover.png
 
 all: book.pdf wc
 

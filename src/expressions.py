@@ -154,3 +154,5 @@ print(evaluate('(12)'))
 print(evaluate('(2 + 3)'))
 print(evaluate('2 + 3 + 4'))
 print(evaluate('((2 + 2) * 3)'))
+
+# EXP := EXP EXP OP | ""
