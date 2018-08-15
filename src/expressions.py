@@ -1,5 +1,5 @@
 
-prefix_expr = '+ * 2 3 1'
+
 
 def evaluate(expr):
 	expr_list = expr.split()
@@ -24,6 +24,12 @@ def evaluate_rec(expr, i):
 		b, i = evaluate_rec(expr, i)
 		return a / b, i
 	else:
+		return evaluate_number(expr, i)
+
+def evaluate_number(expr, i):
+	if expr[i] == '~':
+		return - int(expr[i + 1]), i + 2
+	else:
 		return int(expr[i]), i + 1
 
 import operator
@@ -42,15 +48,15 @@ def evaluate_rec(expr, i):
 		b, i = evaluate_rec(expr, i)
 		return op(a, b), i
 	else:
-		return int(expr[i]), i + 1
+		return evaluate_number(expr, i)
 
 
-print(evaluate(prefix_expr))
-
+print(evaluate('+ * 2 3 1'))
+print(evaluate('~ 2'))
 
 ## Infix
 def tokenise(expr):
-	for op in ("(", ")", "+", "-", "*", "/"):
+	for op in ("(", ")", "+", "-", "*", "/", "~"):
 		expr = expr.replace(op, " " + op + " ")
 	return expr.split()
 
@@ -147,6 +153,16 @@ def evaluate_lexp(expr, i):
 	else:
 		return int(expr[i]), i + 1
 
+def evaluate(expr):
+	try:
+		expr_list = tokenise(expr)
+		val, idx = evaluate_exp(expr_list, 0)
+		if idx != len(expr_list):
+			raise ParseError
+		return val
+	except:
+		raise ParseError
+
 
 print("infix 3")
 print(evaluate('12'))
@@ -155,4 +171,46 @@ print(evaluate('(2 + 3)'))
 print(evaluate('2 + 3 + 4'))
 print(evaluate('((2 + 2) * 3)'))
 
-# EXP := EXP EXP OP | ""
+print(evaluate('2 - 2 + 2'))
+
+# EXP := BINOP op EXP | BINOP
+# BINOP := TERM op TERM | TERM
+# TERM := '(' EXP ')' | number
+
+def evaluate_exp(expr, i):
+	lhs, i = evaluate_binop(expr, i)
+	if i < len(expr) and expr[i] in operator_table:
+		op = operator_table[expr[i]]
+		rhs, i = evaluate_exp(expr, i + 1)
+		return op(lhs, rhs), i
+	else:
+		return lhs, i
+
+def evaluate_binop(expr, i):
+	lhs, i = evaluate_term(expr, i)
+	if i < len(expr) and expr[i] in operator_table:
+		op = operator_table[expr[i]]
+		rhs, i = evaluate_term(expr, i + 1)
+		return op(lhs, rhs), i
+	else:
+		return lhs, i
+
+def evaluate_term(expr, i):
+	if expr[i] == '(':
+		val, i = evaluate_exp(expr, i + 1)
+		if expr[i] != ')':
+			raise ParseError
+		return val, i + 1
+	else:
+		return int(expr[i]), i + 1
+
+
+print("infix 4")
+print(evaluate('12'))
+print(evaluate('-12'))
+print(evaluate('(12)'))
+print(evaluate('(2 + 3)'))
+print(evaluate('2 + 3 + 4'))
+print(evaluate('((2 + 2) * 3)'))
+
+print(evaluate('2 - 2 + 2'))
