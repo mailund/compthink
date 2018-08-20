@@ -1,4 +1,5 @@
 # Trees and graphs {#sec:trees-and-graphs}
 
-- [ ] Topological sorting
 
+
+## Topological sorting {#sec:toplogical-sorting}

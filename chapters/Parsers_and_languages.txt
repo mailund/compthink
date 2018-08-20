@@ -45,7 +45,8 @@ handles negative and positive numbers, respectively. It uses a special symbol, `
 
 As I said, we assume that all expressions are valid, that is, they follow this grammar. In general, this is not something you can assume when your input is a string. The code that evaluates an expression is also responsible for checking that it is valid. I also leave that as an exercise.
 
-To evaluate a string, the easiest is to first split the string into tokens, i.e. the terminals in the grammar. For this expression, that simply means splitting the string at all the whitespaces, something we can do with the `split` method. This gives us a list of the tokens, and now it is just a question of running through that. For this to work, we will require whitespace between operators and their operand. This means that we will not allow strings such as `”+2 3”` but require instead `”+ 2 3”`. We consider `~` an operator, just a unary operator rather than a binary, which means that we must write `”~ 2”` for minus two and not `”~2”`. We relax these constraints in a little bit by preprocessing the input string, but these restrictions make it easier to handle expressions, so we require them for now.
+To evaluate a string, the easiest is to first split the string into tokens, i.e. the terminals in the grammar. For this expression, that simply means splitting the string at all the whitespaces, something we can do with the `split` method. This gives us a list of the tokens, and now it is just a question of running through that. For this to work, we will require whitespace between operators and their operand. This means that we will not allow strings such as `"+2 3"` but require instead `"+ 2 3:`. We consider `~` an operator, just a unary operator rather than a binary, which means that we must write `"~ 2"` for minus two and not `"~2"`. We relax these constraints in a little bit by preprocessing the input string, but these restrictions make it easier to handle expressions, so we require them for now.
+
 
 We can run through the tokens and evaluate expressions with a recursive function. Our main function is therefore
 
@@ -142,7 +143,6 @@ The `replace` function modifies a string by replacing substrings that matches th
 
 
 ### Parsing infix notation expressions
-
 
 **FIXME: updated tokenizer**
 

@@ -1,5 +1,5 @@
 
-# Divide and conquer
+# Divide and conquer {#sec:divide-and-conquer}
 
 Divide and conquer is the algorithmic version of recursion. The term comes from the political doctrine *divide et impera*, but for algorithms, a more correct description would be *divide and combine*. The key idea is to
 

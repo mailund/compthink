@@ -1,5 +1,5 @@
 
-# Algorithmic efficiency
+# Algorithmic efficiency {#sec:algorithmic-efficiency}
 
 As a general rule, we want our algorithms to work as efficiently as possible, which usually means that we want them to solve the problem they are designed for quickly and using as few resources, such as memory or disk space, as possible. This is just a rule of thumb, of course, because we also need to factor in programmer time—if you need a problem solved a month from now, and you have the choice between an algorithm that can solve the problem in two weeks and takes one week to implement, that is preferable over an algorithm that can solve the problem in an hour but takes a month to implement.
 

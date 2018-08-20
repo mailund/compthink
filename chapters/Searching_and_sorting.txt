@@ -1,16 +1,24 @@
 # Searching and sorting
 
-In this chapter we will explore two key problems that are the foundations of many other algorithms: searching for an element in a sequence and sorting a sequence. These are very fundamental problems and Python has builtin functionality for solving them, and in most cases where you need to solve this problems, you should just use the existing implementations. They are well engineered and optimised, so you are not likely to implement faster solutions. We consider them here to get a better feeling for algorithms and how to analyse them. That being said, sometimes your data is in a form where customised algorithms will be better than the builtin solutions, so we also discuss pros and cons of the algorithms.
+In this chapter, we will explore two fundamental problems that are the foundations of many other algorithms: sorting sequences and searching for an element in them. These are central problems used as building blocks for many different algorithms, and Python already has built-in functionality for solving them. You should practically always use the existing implementations; they are well engineered and optimised, so you are not likely to implement faster solutions. The exception is when there are you have some a priori knowledge about your data that Python does not have that you can exploit it while Python must use a general algorithm. Different algorithms have different pros and cons, and we will briefly discuss these. You can choose the right algorithm for the job because you know more about the data than Python does. Optimising the algorithm you use this way is rarely worthwhile, though, so you are usually better off just using what Python already has. Anyway, onward to the algorithms.
 
 ## Searching
 
-We first consider the simplest of the two problems: searching.  Given a list of numbers, `numbers`, and a value, `x`, we want to determine if `x` is in `numbers`. We have one solution to this problem that does not make any assumptions about `numbers`, where we need a *linear search*, and one where we assume that `numbers` are sorted, where we can use *binary search*. The former takes worst-case linear time, thus the name, while the latter only takes logarithmic time. Because of their running time, you should prefer the latter over the former, as a rule of thumb. However, the cost of sorting before you can use binary search should also be taken into account. If you search for $m$ elements in a sequence of $n$ numbers[^search_types], linear search will take time $O(mn)$ while binary search will take time $O(S(n)+m\log n)$ where $S(n)$ is the cost of sorting $n$ numbers. The sorting algorithms we see in this chapter take time $O(n^2)$ or $O(n)$, depending on whether we can bound the values of the numbers. For general numbers it can be shown that any sorting algorithm must take time $\Omega(n\log n)$, and we shall see algorithms that run in this time in when we return to sorting after the divide-and-conquer chapter.
+We first consider the simplest of the two problems: searching.  Given a sequence of numbers,[^numbers_vs_general_search_sort] `numbers`, and a value, `x`, we want to determine if `x` is in `numbers`. We consider two solutions to this problem. The first, *linear search*, assumes nothing about `numbers` except that it is a sequence we can loop through. The second, *binary search* makes a few more assumptions: 1) `numbers` is a sorted sequence and 2) we can access any element in `numbers` by index, `numbers[i]` in constant time.[^search_types]
 
-[^search_types]: In this chapter we assume we are working with numbers, but we can search in any type of data. If the data does not have a total order to it, we have to use linear search; if we can define an ordering on the type we search in, we can use both algorithms.
+[^numbers_vs_general_search_sort]: In this chapter, we assume we are working with numbers, but we can search for any type of data as long as we can compare two items to see if they are equal. With only this assumption, the linear search will get the job done. If we furthermore assume that our data has a total order, i.e. for any two items we can decide if they are equal, or if the first is smaller than or greater than the second, then the elements can be sorted and we can use binary search. These properties are satisfied by more than just numbers, and we briefly discuss what it takes to handle more general sequences in [@sec:general-search-sort].
+
+
+[^search_types]: If we have a list or a tuple of numbers, we can always get the element at any given index in constant time. This property is called *random access* and data structures we can get an element by index in constant time are called *random access* data structures. It is necessary to have the distinction between random access data and not because there are many data structures where we do not have constant time random access. In [@sec:linked-lists], we shall see one common sequence structure, linked lists, that enable us to scan through its elements in linear time but not access items by index in constant time. There are many more.
+
+The linear search algorithm runs in worst-case linear time, thus the name. Binary search only takes logarithmic time. This makes the binary search algorithm the prefered choice whenever your data is sorted. If the data is not sorted to begin with, however, the cost of sorting the data before you can use binary search should also be taken into account. If you search for $m$ elements in a sequence of $n$ numbers, the linear search will take time $O(mn)$ while binary search will take time $O(S(n)+m\log n)$ where $S(n)$ is the cost of sorting $n$ numbers.
+
+How fast we can sort data depends on the assumptions we can make about our data items. If all we can do with data objects is to compare them to learn which is smaller than the other, then it can be shown that the sorting problem cannot be solved faster than $\Omega(n\log n)$. Algorithms that only assume that we can compare objects are called *comparison-based* sorting algorithms. Not that inventive, I know. We shall see comparison-based algorithms that run in time $O(n\log n)$ in [Chapter @sec:divide-and-conquer] and [Chapter @sec:return-to-sorting]. In this chapter, we will only see comparison-based sorting algorithms that run in worst-case time $O(n^2)$. We will also see algorithms that run in linear time. This doesn't conflict with the lower bound of $\Omega(n\log n)$ for comparison-based algorithms because our linear time algorithms will depend on more than simple comparison; with more assumptions about what we can do with our data, we have more to exploit when building algorithms to solve a problem.
+
 
 ### Linear search
 
-Linear search is straightforward. We loop over all the elements in `numbers` and compare them in turn to `x`. If we see `x` we break the search and report that we found it. If we reach the end of `numbers` without having seen `x`, we report that it wasn’t found.
+Linear search is straightforward. We loop over all the elements in `numbers` and compare each in turn to `x`. If we see `x` we break the search and report that we found it. If we reach the end of `numbers` without having seen `x`, we report that it wasn’t found.
 
 ```python
 found = False
@@ -20,17 +28,19 @@ for n in numbers:
 		break
 ```
 
-The builtin solution in Python for linear search uses the `in` keyword:
+The built-in solution in Python for linear search uses the `in` keyword:[^prefer_to_use_in]
 
 ```python
 x in numbers
 ```
 
-That this algorithm has a worst-case running time of $O(n)$ is equally straightforward. The `for`-loop has to run over all the $n$ elements in `numbers` if it doesn’t find $x$ and breaks early. The best-case running time is obviously $O(1)$ because we could get lucky and find $x$ in the very first iteration.
+That the linear search algorithm has a worst-case running time of $O(n)$ is also straightforward. The `for`-loop has to run over all the $n$ elements in `numbers` if it doesn’t find $x$ and breaks early. The best-case running time is obviously $O(1)$ because we could get lucky and find $x$ in the very first iteration.
+
+[^prefer_to_use_in]: Unless you have a good reason to, you should use the `in` operator to check membership of an item in a data structure. It will work for all sequences, using the linear search algorithm, but for data structures that allow for faster lookup, such as dictionaries or sets, the `in` operator will use the faster algorithms. The only case I can think of where you wouldn't necessarily use `in` is for sorted, random-access sequences. Python cannot know if a sequence is sorted or not so it will use linear search when you use the `in` operator on general sequences. Even for sorted sequences, I would probably use `in` unless the search is a bottleneck in my algorithm because of the simpler syntax and because it makes it easier to replace a sequence with another data structure that provides faster membership checks. In [Chapter @sec:data-model] we will see how we can make Python use a custom algorithm to implement the `in` operator so we can tailor searching to our data.
 
 ### Binary search
 
-We already saw the binary search algorithm in the previous chapter. It looks like this:
+If we assume we have random-access sorted input, we can do better than a linear search, we can do a binary search. We already saw the binary search algorithm in the previous chapter. It looks like this:
 
 ```python
 low, high = 0, len(numbers)
@@ -46,48 +56,91 @@ while low < high:
 		high = mid
 ```
 
-The algorithm works by keeping track of an interval, `[low,high)`, in which $x$ must be, if it is in the list at all. In each iteration of the `while`-loop we look at the mid-point of the interval (rounded down if the midpoint is not an integer). If the midpoint is equal to $x$ we are done. If it is less than $x$, we know that $x$ must be found in the interval `[mid+1,high)`. The elements are sorted, so if the midpoint is less than $x$, then all elements to the left of the midpoint are less than $x$ as well. If the midpoint is greater than $x$, then we know that all elements to the right of the midpoint are greater than $x$ as well, so if $x$ is in the list, then it must be in the interval $[low,mid)$. Notice the asymmetry in the updated intervals. When we increase `low` we use `mid+1`, but when we decrease `high` we use `mid`. This is a consequence of how we represent the interval. We include the point at `low` in the interval but not the point at `high`. So, when we decrease `high` to `mid`, we have already eliminated the point at `mid` from the search, just as when we increase `low` to `mid+1`.
+The algorithm works by keeping track of an interval, `[low,high)`. The algorithm makes sure that if `x` is found in `numbers`,  it is found in this range. In each iteration of the `while`-loop we look at the mid-point of the range (if the midpoint is not an integer, we round down when we do integer division). If the midpoint is equal to $x$ we are done. If it is less than $x$, we know that $x$ must be found in the interval `[mid+1,high)`. The elements are sorted, so if the midpoint is less than $x$, then all elements to the left of the midpoint are less than $x$ as well. If the midpoint is greater than $x$, then we know that all elements to the right of the midpoint are greater than $x$ as well, so if $x$ is in the list, then it must be in the interval $[low,mid)$. Notice the asymmetry in the updated intervals.[^asymmetry_quote] When we increase `low` we use `mid+1`, but when we decrease `high` we use `mid`. This is a consequence of how we generally represent ranges in Python. We include the point at `low` in the range but exclude point at `high`. So, when we decrease `high` to `mid`, we have already eliminated the point at `mid` from the search, just as when we increase `low` to `mid+1`.
+
+[^asymmetry_quote]: "Like the situation at ski resorts of young women looking for husbands and husbands looking for young women, the situation is not as symmetric as it first appears." --- Unknown
 
 **Exercise:** Consider a modified solution where we set `high` to `mid-1` instead of `mid`. Give an example where the algorithm would give you the wrong answer.
 
-The builtin solution in Python is implemented in the module `bisect` and looks like this:
+The built-in solution in Python is implemented in the module `bisect` and looks like this:
 
 ```python
 import bisect
 print(bisect.bisect(numbers, x))
 ```
 
-The `bisect` algorithm does something *slightly* different from our implementation. It returns an index where $x$ is found, or where it should be put if we want to insert it. We just consider the simpler problem of determining if $x$ is there.
+The `bisect` algorithm does something *slightly* different from our implementation. It returns an index where `x` is found, or if `x` is not in `numbers`, it returns the index at which it should be inserted if we wanted to do that. We just consider the simpler problem of determining if `x` is in the sequence or not.
 
-The `numbers` list[^random_access_bsearch] has to be sorted for the algorithm to work. It is this property that gives us information about where to continue the search if the midpoint of the interval is smaller or larger than $x$. If the list were not sorted, knowing whether the midpoint is smaller than or larger than $x$ would give us no information about where $x$ would be found if it were in the list.
+The `numbers` sequence has to be sorted for the algorithm to work. It is this property that gives us information about where to continue the search if the midpoint of the interval is smaller or larger than $x$. If the list were not sorted, knowing whether the midpoint is smaller than or larger than $x$ would give us no information about where $x$ would be found if it were in the list.
 
-[^random_access_bsearch]: The algorithm also exploits that we can do random-access into `numbers`. We can always do that for Python lists, but there are other ways to represent sequential data where this is not true. For those, we need to use linear search.
 
-To hone our skills at reasoning about algorithms, we will formally prove termination and correctness. Termination first. For our termination function we take `high-low`. Clearly, if this function is at or below zero, the `while`-loop condition is false. To see that it decreases in each iteration, we consider the two options for updating the interval. If we set `low` to `mid + 1`, we clearly reduce `high-low`. To see that we also decrease the size of the interval when we update `high`, we observe that `mid < high` when we use integer-division when updating `mid`.
+To hone our skills at reasoning about algorithms, we will formally prove termination and correctness. Termination first. For our termination function we take `high-low`. Clearly, if this function is at or below zero, the `while`-loop condition is false. To see that it decreases in each iteration, we consider the two options for updating the interval. If we set `low` to `mid + 1`, we clearly reduce `high-low`. To see that we also decrease the size of the interval when we update `high`, we observe that `mid < high` when we use integer-division for determining `mid`.
 
 **Exercise:** If we updated `low` by setting it to `mid` instead of `mid + 1`, our reasoning about the termination function fails. Give an example where this would result in the loop never terminating.
 
 To prove correctness, we specify the loop-invariant: `x` is not in the interval `[0,low)` and not in the interval `[high,n)`. This invariant guarantees us that if we reach the point where the `[low,high)` interval is empty, then `x` was not in `numbers`. Since we do not set `found` to true unless we actually see $x$, we also know that we do not report that $x$ *is* in `numbers` unless it is.
 
-We already discussed the algorithms running time in the previous chapter, but to recall: if we reduce the size of a problem from $n$ to $n/2$ in each iteration, and only use $O(1)$ per iteration, then the running time amounts to how many times we can divide $n$ by two until we reach a size of one. That is the base-two logarithm of $n$, so the worst-case running time of binary search is $O(n \log n)$.
+We already discussed the algorithms running time in the previous chapter, but recall: if we reduce the size of a problem from $n$ to $n/2$ in each iteration and only use $O(1)$ per iteration, then the running time amounts to the number of times we can divide $n$ by two until we reach one (or below). That is the base-two logarithm of $n$, so the worst-case running time of binary search is $O(n \log n)$.
 
 ## Sorting
 
-The sorting problem is this: given a sequence of elements $x$ of length $n$, create a new sequence $y$ that contain the same element as $x$ but such that $y[i]\leq y[i+1]$ for $i=0,\ldots,n-1$. That sounds simple enough, but there’s a devil in the details.
+The sorting problem is this: given a sequence of elements $x$ of length $n$, create a new sequence $y$ that contain the same element as $x$ but such that $y[i]\leq y[i+1]$ for $i=0,\ldots,n-1$. For this problem to even make sense we must make clear what we mean by $y[i]\leq y[i+1]$. Not all data has a natural order of elements. For some data, there is no natural way to define an order. For other data, it is possible to have a *partial order*, which means that for *some* elements $a$ and $b$ we can determine if $a=b$, $a<b$ or $a>b$, but not all; some elements $a\neq b$ are *neigher* $a<b$ nor $a>b$. In such a case, we might require of $y$ simply that $y[i]\not\geq y[i+1]$. This is known as *topological sorting*. We return to this in [@sec:toplogical-sorting]. In this chapter, we only consider data that has a total order.
 
-First of all, what kind of order do we mean when we write $a\leq b$. Not all kinds types of data have a total order. For some data, which we will not consider in this chapter, it is possible to have a *partial order*, which means that for *some* elements $a$ and $b$ we can determine if $a<b$ or $a>b$, but not all. In such a case, we do not require $y[i]\leq y[i+1]$, but only that $y[i]\not\geq y[i+1]$. This is know as *topological sorting*.
+In this chapter, we assume that our elements have a *total order*, which means that for any two elements, $a$ and $b$, (exactly) one of these three relations are true: $a<b$, $a=b$, or $a>b$. This is, for example, the case for numbers, with the usual order, but also for strings with the alphabetical order, also known as the *lexical* order, of strings.
 
-In this chapter, we assume that our elements have a *total order*, which means that for any two elements, $a$ and $b$, (exactly) one of these three relations are true: $a<b$, $a=b$, or $a>b$. This is true for numbers or when we consider the alphabetical order, also known as *lexical* order, of strings.
+Even if we have managed to define a total order on our data points, we are not out of the woods yet. The total order only means that we have well-defined comparison relations, $a=b$, $a<b$, and $b>a$, where for any given elements $a$ and $b$ exactly one is true. But what *exactly* can we assume about $a$ and $b$ when we write $a=b$? Using the relation "$=$" to mean (object) equality is simple. If $a=b$, then we know that $a$ and $b$ are the same object. This isn't the only way we use equality, though. Sometimes it is used to define an equivalence relation instead of actual equality. This happens when we sort elements according to some key or keys, and the order is defined by these keys. If the keys are only part of the data, we can have two elements that have the same values for all keys (so we would conclude $a=b$), but they are actually different objects with different non-key attributes.
 
-Another issue is whether elements $a=b$ are identical. This might sound trivial, after all, if $a=b$ it means they are the same objects, but it doesn’t actually mean this. To sort elements we need some order on them, but this does not mean that two elements that are identical with respect to this order are indistinguishable. If we sort a list of people by their last name, then we consider “John Doe” and “Jane Doe” as equal with relation to the order—after all “Doe” equals “Doe”—but that does not mean that “John” equals “Jane”. We can resolve this by first sorting by last name and then by first name, but this raises a new problem. If we first sort by last name and then by first name, do we risk of messing up the first order. If we sort “John Doe”, “John Smith”, and “Jane Doe” by last name we get the order “John Doe”, “Jane Doe”, and “Joe Smith” (or maybe we get “Jane Doe”, “John Doe”,  and “Joe Smith” since “Jane Doe” and “John Doe” are equal with respect to last name). If we then sort by first name, we mess up the first sort, because now we might get “Jane Doe”, “Joe Smith”, and “John Doe”.
+If we sort a list of people by their last name, then we consider “John Doe” and “Jane Doe” as equal with relation to the order—after all “Doe” equals “Doe”—but that does not mean that “John” equals “Jane”. We can resolve this by first sorting by the last name and then by the first name, but this creates a new problem. If we first sort by the last name and then by the first name, do we risk of messing up the first order. If we sort 
 
-When we only sort elements based on part of their value, an algorithm can be *stable* or *unstable*. If it is stable it means that elements we consider equal end up in the same order as they appear in the input, if it is unstable, there is no such guarantee. We can sort by last name and then first name using a stable sort algorithm in the opposite order: first name first and last name last. If we sort by first name, we get “Jane Doe”, “Joe Smith” and “John Doe”. If we then sort by last name with a stable sort, “Jane Doe” must appear before “John Doe” because that is the order they are in when we apply the stable sort.
+- “John Doe”
+- “John Smith”
+- “Jane Doe” 
 
-When we sort elements based on part of the data they constitute of we call that part their *key*. When we sort elements, it is based on their keys and we consider two elements equal in their order if they keys are equal. If keys are the only thing we are sorting, i.e., there is no additional data associated with the values beside their keys, then a stable and an unstable algorithm are indistinguishable.
+by last name, we get the order 
 
-Another issue is how we can compare elements. If all we can do is test which of the three relationships they have, $a<b$, $a=b$, or $a>b$ we are doing what is called *comparison sort*. It can be shown that this cannot be done faster, by any algorithm, than $\Omega(n \log n)$. If our elements are totally ordered and positive integer numbers with values less than some $m$, however, we can sort them in time $O(n+m)$, which if $m\in O(n)$ is linear time. We will see how later in this chapter.
+- “John Doe”
+- “Jane Doe”
+- “Joe Smith”
 
-Yet another issue is whether we can sort $x$ by modifying it, turning $x$ into $y$. This issue is relevant for the memory complexity of a sorting algorithm. We have only focused on running time complexity in the previous chapter, but how much memory is used by an algorithm can be equally important. An algorithm that modifies $x$ and only uses a constant amount of extra memory has a $O(1)$ memory usage—we do not count the size of our input as part of the memory cost, just as we do not count the size of the input list when we do binary search. Some algorithms require more memory than that and inherently produce a new list for $y$. You can, of course, always produce a new list for $y$ even if the algorithm you use is based on modifying its input because you can always copy $x$ first, but that takes up extra $O(n)$ memory. Algorithms that modify their input when sorting $x$ are called *in place* and can use less than $O(n)$ memory. Algorithms that produce a new list cannot use less than $O(n)$ memory.
+(or maybe we get “Jane Doe”, “John Doe”,  and “Joe Smith” since “Jane Doe” and “John Doe” are equal concerning last names). If we then sort by the first name, we mess up the first sort, because now we might get “Jane Doe”, “Joe Smith”, and “John Doe”.
+
+When we only sort elements based some sub-set of their attributes, what we call *keys*, an algorithm can be *stable* or *unstable*. If it is stable, it means that elements we consider equal end up in the same order as they appear in the input; if it is unstable, there is no such guarantee. To correctly sort names, first by family name and then by Christian name, we can first sort by Christian name and then use a stable sort on the family name. If we sort  our list with the first names as keys we get
+
+- “Jane Doe”
+- “Joe Smith”
+- “John Doe”
+
+If we then sort with a stable sort, using the family names as the key, “Jane Doe” must appear before “John Doe” because that is the order they are in when we apply the stable sort.
+
+We also classify sorting algorithms by whether they are *comparison-based* or not. If all we can do, when we have two elements, is to test which of the relations, $a<b$, $a=b$, and $a>b$ are true, then we are doing what is called *comparison* sort. As I mentioned at the start of this chapter, no comparison-based algorithm can sort $n$ elements faster than $\Omega(n \log n)$, and some algorithms do run in $\Theta(n\log n)$, although we won't see them in this chapter. Sorting algorithms do not have to be comparison-based, though. We will see two such algorithms in this chapter that can sort in worst-case linear time, as long as we can reduce our keys to numbers bounded by $n$.
+
+Another property we use to classify sorting algorithms is whether they sort the elements *in-place* or not. If we sort in-place, it means that we swap around the items in our input sequence to turn it into a sorted sequence without using any additional memory. In the previous chapter, we focused on running time complexity, but how much memory an algorithm needs can be equally important. An in-place algorithm has optimal memory usage, $O(1)$.^[Some might also classify as in-place algorithms that use $O(\log n)$ extra memory, but this is to explicitly allow for the number of bits it takes to represent numbers up to magnitude $n$; we will not get this technical here.] Just as we didn't include the input size for the time-usage of the binary search algorithm, we do not include the input size as part of sorting algorithm's memory usage. When algorithms are not in-place, i.e., when they use more than constant memory, their memory consumption is often equally important to their time usage.
+
+For implementations of sorting algorithms, we also distinguish between them being *destructive* or *non-destructive*. If you modify the input sequence when you sort it, you destroy the original order you got the data in. Sometimes, this is what you want. You only care about the sorted version of your data, so the original order is irrelevant. Other times, you want to keep the original order around, for some reason or other, and just want a sorted copy around as well. This is not so much a property of algorithms as it is for implementations. You can copy the input data and then use a destructive algorithm to sort it, thus preserving the original sequence. The only consequence of making a non-destructive sort out of a destructive one is the memory usage. You can take the memory usage of any sorting algorithm, make it at least linear and then you can sort non-destructively in that complexity. In-place algorithms use constant space but are by nature destructive; if you first create a copy of the input and sort that destructively, you now have a linear space implementation.
+
+There are more properties used to classify sorting algorithms than these, but they are the main ones. To summarise, the classifications we have seen are:
+
+- **comparison based**: All we can do with our data items is to compare pairs ($a,b$) to determine whether $a<b$, $a=b$, or $a>b$.
+
+- **stable**: When we sort data items by some key, we do not change the order of the input items that have the same key.
+
+- **in-place**: When we only use constant extra memory to sort a sequence.
+
+- **destructive** (For implementations): Whether sorting a sequence modifies it or whether we create a copy of the data in sorted order.
+
+In this chapter, we will see three algorithms that are comparison-based algorithms and two that are not, four that are stable and one that is not, and three that are in-place and two that are not:
+
+| Algorithm | Comparison based | Stable | In-place | 
+|:--|:--:|:--:|:--:|
+| Insertion | $\checkmark$ | $\checkmark$ | $\checkmark$ |
+| Bubble | $\checkmark$ | $\checkmark$ | $\checkmark$ |
+| Selection |  $\checkmark$ |  | $\checkmark$ |
+| Bucket | | $\checkmark$ |  |
+| Radix | | $\checkmark$ |  |
+
+You can implement all of them both as destructive and non-destructive. For the in-place algorithms this changes the memory complexity from constant to linear; for the bucket- and radix-sort, it does not alter the space complexity.
+
+### Built-in sorting in Python
 
 Python lists have a builtin sorting method
 
@@ -95,9 +148,9 @@ Python lists have a builtin sorting method
 x.sort()
 ```
 
-that implements an algorithm known as *Timsort* (named after Tim Peters who implemented it). This is a comparison based stable sorting algorithms that runs in worst-case time $O(n\log n)$ and best-case time $O(n)$ with $O(n)$ memory usage. It is not entirely in-place and uses worst-case $O(n)$ memory, but it does modify the input list.^[Timsort modifies the input list in-place when it can get away with it but uses additional memory to speed up the computations.]
+using an algorithm known as *Timsort* (named after Tim Peters who created it). This is a comparison based stable sorting algorithm that runs in worst-case time $O(n\log n)$ and best-case time $O(n)$ with $O(n)$ memory usage.^[Timsort modifies the input list in-place when it can get away with it but uses additional memory to speed up the computations when necessary.]
 
-Calling `x.sort()` modifies `x`, but Python also provides a way to get a sorted copy:
+Calling `x.sort()` is destructive; modifies `x` so the object is in sorted order after the call. Python also provides a non-destructive way to get a sorted copy:
 
 ```python
 y = sorted(x)
@@ -105,17 +158,14 @@ y = sorted(x)
 
 This uses the same Timsort algorithm as `x.sort()`; it just doesn’t modify `x` but creates a new copy.
 
-In this chapter we will three comparison based, in-place sorting algorithms that runs in worst-case $O(n^2)$ and use $O(1)$ memory (in addition to the input). Two of them, *insertion sort* and *bubble sort* are stable and have a best-case running time of $O(n)$. The third, *selection sort*, is not stable and has a best-case running time of $O(n^2)$.
-
-After considering comparison based sorting we consider two non-comparison based stable algorithms: *bucket sort* and its big brother *radix sort*. Bucket sort assume that we sort positive integer keys with a max value of $m$ and runs in worst- and best-case $O(n+m)$ while using $O(m)$ memory if we only sort keys but $O(n+m)$ if we have additional data associated with our elements. Radix sort relaxes the  requirement that the keys should be less than $m$ in magnitude but instead assume that we can split keys into $k$ sub-keys that are bounded by $m$. It then uses bucket sort on these keys $k$ times, achieving a best- and worst-case running time of $O(k(m+n)$. Neither of these algorithms are in-place.
 
 ### Comparison sorts
 
-The discussion at the beginning of this section was rather long and this point might have been lost in all the discussion, so please recall that when we talk about comparison based sorting we assume that we can answer which of the following relations are true, $a<b$, $a=b$, or $a>b$. We do not assume anything else about the elements.
+We've seen enough algorithm classification terms now to satisfy even the most pedantic programmer, so we now turn to actual algorithms. We first consider three comparison-based, in-place sorting algorithms. Two of them, *insertion sort* and *bubble sort* are stable and have a best-case running time of $O(n)$. The third, *selection sort*, is not stable and has a best-case running time of $O(n^2)$.
 
-### Selection sort
+#### Selection sort
 
-A very straightforward comparison sort algorithm is *selection sort*. It works similar to how you might sort elements by hand. You keep a list of sorted elements and a set of yet-to-be sorted elements and one by one you pick the smallest of the unsorted elements and append it to the list of sorted elements. Selection sort follows this strategy but keeps the list of sorted and the set of unsorted elements in the input list, doing in-place sorting and using $O(1)$ additional space. It uses a variable, $i$, that iterates from zero to $n-1$, where $n$ is the length of the input list. The elements below $i$ are kept sorted and are less than or equal to the elements above $i$. Formalised as a loop invariant we can write this as
+A straightforward comparison sort algorithm is *selection sort*. It works similar to how you might sort items by hand. You keep a list of sorted items and a set of yet-to-be-sorted items. One by one, you pick the smallest of the unsorted elements and append it to the list of sorted elements. Selection sort follows this strategy but keeps the list of sorted and the list of unsorted elements in the same list as the input, making it an in-place algorithm. It uses a variable, $i$, that iterates from zero to $n-1$, where $n$ is the length of the input list. The items below $i$ are kept sorted and are less than or equal to the items above $i$. Formalised as a loop invariant we can write this as
 
 $$I_1: \forall j\in[0,i) : x[j-1] \leq x[j]$$
 
@@ -125,9 +175,9 @@ $$I_2: \forall j\in[0,i), \forall k\in[i,n) : x[j] \leq x[k]$$
 
 where $x$ is the sequence to be sorted.
 
-If $i$ iterates from $0$ to $n-1$, then in the last iteration, when $i$ is incremented form $n-1$ to $n$, invariant $I_1$ guarantees us that all elements in the range $[0,n)$ are sorted, so the loop invariant guarantees correctness. (We still have to guarantee that we satisfy the invariant, of course). The algorithm will consist of two loops, one nested inside the other, but both will be `for`-loops, iterating through finite length sequences, so termination is also guaranteed.
+If $i$ iterates from $0$ to $n-1$, then in the last iteration, when $i$ is incremented form $n-1$ to $n$, invariant $I_1$ guarantees us that all elements in the range $[0,n)$ are sorted, so the loop invariant guarantees correctness. (We still have to guarantee that we satisfy the invariant in each iteration over variable $i$, of course). The algorithm will consist of two loops, one nested inside the other, but both will be `for`-loops, iterating through finite length sequences, so termination is also guaranteed.
 
-In each iteration, we locate the index of the smallest element in the range $[i,n)$, call it $j$, and we swap $x[i]$ and $x[j]$, see [@fig:selection-sort-swap] From invariant $I_2$ we know that the $x[j]$ we locate is greater than or equal to all elements in the range $[0,i)$, so when we put it at index $i$, the range $[0,i+1)$ is sorted, satisfying $I_1$. Since $x[j]$ was the smallest element in the range $[i,n)$, we also know that for all $\ell \in [i,n): x[j] \leq x[\ell]$, so after we swap $x[i]$ and $x[j]$—we can call the resulting list $x^\prime$—we have $\ell \in [i+1,n) : x^\prime[i]=x[j]\leq x[\ell]$, satisfying $I_2$. Thus, swapping the smallest element in $[i,n)$ into position $x[i]$ and incrementing $i$ each iteration satisfy the loop invariants, so the algorithm is correct.
+In each iteration, we locate the index of the smallest element in the range $[i,n)$, call it $j$, and we swap $x[i]$ and $x[j]$, see [@fig:selection-sort-swap]. From invariant $I_2$ we know that the $x[j]$ we locate is greater than or equal to all elements in the range $[0,i)$, so when we put it at index $i$, the range $[0,i+1)$ is sorted, satisfying $I_1$. Since $x[j]$ was the smallest element in the range $[i,n)$, we also know that for all $\ell \in [i,n): x[j] \leq x[\ell]$, so after we swap $x[i]$ and $x[j]$—we can call the resulting list $x^\prime$—we have $\ell \in [i+1,n) : x^\prime[i]=x[j]\leq x[\ell]$, satisfying $I_2$. Thus, swapping the smallest element in $[i,n)$ into position $x[i]$ and incrementing $i$ each iteration satisfy the loop invariants, so the algorithm is correct.
 
 ![Swapping $x[i]$ and $x[j]$ in selection sort.](figures/selection-sort-swap){#fig:selection-sort-swap}
 
@@ -175,15 +225,13 @@ In each iteration, we locate the smallest element amongst those not yet sorted a
 
 **Exercise:** Give an example input where selection sort is not stable.
 
-It *is* possible to make the algorithm stable, but not by swapping as we do here.^[Using a so-called *linked list* data structure we can implement a selection sort in-place that is stable and still use $O(1)$ additional memory.]
+It *is* possible to make the algorithm stable, but not by swapping as we do here. For that, we need a data structure where we can move an element from one location to another in constant time. The linked lists we see in [@sec:linked-lists] permits this, and there, we will revisit selection sort.
 
-To derive the running time of the algorithm, we see that the outer loop execute $n-1$ operation and the inner look execute $n-i$ iterations in iteration $i$ of the outer loop, which gives us $n + (n-1) + (n-2) + \cdot +1 = \sum_{i=1}^n i = \frac{1}{2}n(n+1) = \frac{1}{2}n^2 + \frac{1}{2}n \in O(n^2)$. The running time does not depend on the actual input, only on the size, so this running time is also the best case running time.
+To derive the running time of the algorithm, we see that the outer loop execute $n-1$ operation and the inner look execute $n-i$ iterations in iteration $i$ of the outer loop, which gives us $n + (n-1) + (n-2) + \cdots +1 = \sum_{i=1}^n i = \frac{1}{2}n(n+1) = \frac{1}{2}n^2 + \frac{1}{2}n \in O(n^2)$. The running time does not depend on the actual input, only on the size, so this running time is also the best case running time.
 
 #### Insertion sort
 
-The *insertion sort* algorithm works similar to selection sort in that it does an in-place sorting where it keeps the first part of the input array sorted. 
-
-In Python, it can be implemented as follows:  
+The *insertion sort* algorithm is superficially similar to selection sort. It is an in-place sorting algorithm where we keep the first part of the input array sorted. We iterate from the beginning of the input to the end and in each iteration we move one element from the unsorted part to the sorted. We can implement it as follows:  
 
 ```python
 for i in range(1,len(x)):
@@ -197,23 +245,23 @@ Just as for selection sort, in iteration $i$, we have the loop invariant:
 
 $$I: \forall j\in[0,i) : x[j-1] \leq x[j]$$
 
-As we also observed for selection sort, this invariant guarantees us that when we reach $i=n$, and the algorithm terminates, all the elements in $x$ are sorted. Unlike selection sort, however, we do not guarantee that the elements to the left of index $i$ are smaller than or equal to the elements to the right of index $i$, the $I_2$ invariant for selection sort. And we do not search for the smallest element in the unsorted part of $x$ in each iteration, but rather move $x[i]$ to the left until we find its proper location in the range $[0,i+1)$. 
+As we also observed for selection sort, this invariant guarantees us that when we reach $i=n$, and the algorithm terminates, all the elements in $x$ are sorted. Unlike selection sort, however, we do not guarantee that the elements to the left of index $i$ are smaller than or equal to the elements to the right of index $i$, the $I_2$ invariant for selection sort. And we do not search for the smallest element in the unsorted part of $x$ in each iteration, but rather we move $x[i]$ to the left until we find its proper location in the range $[0,i+1)$. 
 
-When we consider $x[i]$ in iteration $i$, the elements to the left of $i$ are sorted. This means that we can split them into three contiguous regions (all three can potentially be empty), where the $x$ list first contain elements with keys less than $x[i]$’s, then a region containing elements with keys equal to $x[i]$’s and then a region containing elements with keys larger than $x[i]$’s, see [@fig:insertion-sort-swap]. The inner loop in the insertion sort algorithm moves $x[i]$ to the left until it reaches the first index with a key that is equal to or less than $x[i]$. This movement is done through swapping, so a side effect of moving $x[i]$ to the left is that all the elements that end up to the right of the new index for $x[i]$ are moved to the right.
+When we consider $x[i]$ in iteration $i$, the elements to the left of $i$ are sorted. This means that we can split this first part of $x$ into three contiguous regions (all three can potentially be empty). The first region of $x$ contains elements with keys less than $x[i]$, the second region contains elements with keys equal to $x[i]$, and the third region contains elements with keys larger than $x[i]$, see [@fig:insertion-sort-swap]. The inner loop in the insertion sort algorithm moves $x[i]$ to the left until it reaches the first index with a key that is equal to or less than $x[i]$. This move is done through swapping, so a side effect of moving $x[i]$ to the left is that all the elements in the sorted part of $x$ that are larger than $x[i]$ will be moved one position to the right.
 
 ![Moving element $x[i]$ to its correct location in $x^\prime$ by swapping it to the left in insertion sort.](figures/insertion-sort-swap){#fig:insertion-sort-swap}
 
-That the invariant $I_1$ is satisfied after this movement, if it was satisfied before the inner loop, simply by considering the three blocks in [@fig:insertion-sort-swap]. The invariant guarantees us that the two grey segments of $x$ are sorted, so when we extend the region where all keys are the same as $x[i]$’s by one, we still have a sorted list.
+To see that the invariant $I_1$ is satisfied after each such move (if it was satisfied before the inner loop), consider the three blocks in [@fig:insertion-sort-swap]. The invariant guarantees us that the two grey segments of $x$ are sorted, so when we extend the region where all keys are the same as $x[i]$’s by one, we still have a sorted list.
 
-To see that the algorithm terminates, we first observe that the outer loop is a `for`-loop through $n-1$ elements, so this is guaranteed to terminate if the inner loop does. For the inner loop, we condition that $j>0$ and we decrease $j$ by one each iteration, so we can use $j$ as a termination function. It  might not actually reach $j=0$ because we also condition on $x[j-1] > x[j]$, but using this termination function we are guaranteed that the inner loop terminates.
+To see that the algorithm terminates, we first observe that the outer loop is a `for`-loop through $n-1$ elements, so this is guaranteed to terminate if the inner loop does. For the inner loop, we condition that $j>0$ and we decrease $j$ by one each iteration so we can use $j$ as a termination function. The inner look might not actually reach $j=0$ because we also condition on $x[j-1] > x[j]$, but using this termination function we are guaranteed that the inner loop terminates.
 
 For the running time, we can do an analysis similar to selection sort. We iteration $n-1$ times in the outer loop and the inner loop is bounded by $i$ in iteration $i$, so we have the worst-case upper bound $1+2+3+\cdots+(n-2)+(n-1) = \frac{1}{2}(n-1)n\in O(n^2)$. In the best case, however, we only ever test the inner loop condition once, so the best-case time usage is only $O(n)$, unlike selection sort where the best-case is also $O(n^2)$.
 
 **Exercise:** Describe what the input list should look like to achieve best-case and worst-case time performance, respectively.
 
-Now, since selection sort and insertion sort both have the same worst-case running time but insertion sort has a better best-case running time—and would be expected to perform better every time we have runs of consecutive, non-decreasing elements in the input—we could argue that insertion sort is always the better choice. If the elements are all single computer words, so swapping elements cost no more than decreasing a counter, this would be true. The elements in the input list *could*, however, be more complex, and swapping could therefore be a more expensive operation. If that is the case, we would also have to take into account the cost of swapping. Instead of simply counting operations, we could distinguish between comparison operations and swap operations.
+Now, since selection sort and insertion sort both have the same worst-case running time, but insertion sort has a better best-case running time—and would be expected to perform better every time we have runs of consecutive, non-decreasing elements in the input—we could argue that insertion sort is always the better choice. If the elements are as simple as single computer words, so swapping items cost no more than decreasing a counter, this would be true. The items in the input list *could*, however, be more complex, and swapping could, therefore, be a more expensive operation. If that is the case, we should also take into consideration the cost that swapping incurs; instead of merely counting operations, we should distinguish between comparison operations and swap operations.
 
-Selection sort, as we have implemented it, swaps $O(n)$ elements on all input. We could avoid this by not moving the smallest element in the unsorted elements to a temporary variable and only swap $x[i]$ and $x[j]$ when $x[j] < x[j]$
+Selection sort, as we have implemented it, swaps $O(n)$ elements on all input. We could avoid this by not moving the smallest item in the unsorted sequence to a temporary variable and only swap $x[i]$ and $x[j]$ when $x[j] < x[j]$
 
 ```python
 		if x[i] > min_val:
@@ -222,7 +270,7 @@ Selection sort, as we have implemented it, swaps $O(n)$ elements on all input. W
 
 In that case, selection sort will have a best-case swap-count of zero, which happens when the input list is already sorted. So selection sort has a swap-complexity of worst-case $O(n)$ and best-case $O(1)$.
 
-The worst-case swap count for insertion sort is obviously $O(n^2)$. If we consider when elements are swapped more carefully, we will see that each element is either swapped upwards only or downwards only and will end up at the right index it should be at when the sorting is done. So an element that starts at index $i$ and ends at index $k$, has been swapped $|i-k|$ times. If the input list is already sorted, we swap zero elements. So the insertion sort has a swap-complexity of worst-case $O(n^2)$ and best-case $O(1)$.
+The worst-case swap count for insertion sort is obviously $O(n^2)$. If we consider how elements are swapped more carefully, we will see that each object is either always swapped upwards or always swapped downwards until it finds its final position. No object will be swapped both up and down in the algorithm. This means that an element that starts at index $i$ and ends at index $k$, has been swapped $|i-k|$ times. If the input list is already sorted, we swap zero elements. So the insertion sort has a swap-complexity of worst-case $O(n^2)$ and best-case $O(1)$.
 
 The best-case scenario is better for insertion sort than selection sort, since both algorithms would perform zero swaps but the selection sort will do $O(n^2)$ comparisons while insertion sort will do only $O(n)$. The worst-case performance is better for selection sort. Selection sort will do $O(n^2)$ comparisons and $O(n)$ swaps, worst-case, while insertion sort will do $O(n^2)$ comparisons and $O(n^2)$ swaps.
 
@@ -323,9 +371,15 @@ In [@fig:quadratic-sort-comparison-comparisons] and [@fig:quadratic-sort-compari
 
 ### Non-comparison sorts
 
-The sorting algorithms we have seen so far all runs in worst-case time $O(n^2)$. It can be shown that any sorting algorithm that only relies on comparison of keys must run in at least $\Omega(n\log n)$, worst case, but algorithms that achieve this running time are based on recursion so we have to wait a little bit before we explore these. Instead, we will consider algorithms that are not based on comparison but instead exploit the situation when the keys we sort are small positive integers.
 
-If our keys are small positive integers we can use them as indices into lists. We can then exploit that we can create a list of length $m$ in $O(m)$ and for a list `x` we can get index `k`, `x[k]`, in constant time. We will also exploit that we can append elements to a list `y`, `y.append(k)`, in constant time.[^lists_are_not_linked_lists] 
+**FIXME: Intro paragraph.**
+
+
+If our keys are small positive integers we can use them as indices into lists. We can then exploit that we can create a list of length $m$ in $O(m)$ and for a list `x` we can get index `k`, `x[k]`, in constant time. We will also exploit that we can append elements to a list `y`, `y.append(k)`, in constant time.[^lists_are_not_linked_lists] In this section, we will look at two algorithms that exploit this: *bucket sort* and its big brother *radix sort*.
+
+Bucket sort assumes that we sort positive integer keys with a max value of $m$ and runs in worst- and best-case $O(n+m)$. Radix sort relaxes the requirement that the keys should be less than $m$ in magnitude but instead assume that we can split keys into $k$ sub-keys that are bounded by $m$. It then uses bucket sort on these keys $k$ times, achieving a best- and worst-case running time of $O(k(m+n)$.
+
+The memory usage depends on whether we are only sorting keys---i.e. the values we sort are identical to their keys---or whether our data items carry more information than their keys. This matters because we need to remember actual data values in the latter case but only a counter in the former.  If we are simply sorting keys, then the memory usage for bucket sort is $O(m)$. If data items are more than their keys, bucket sort needs $O(n+m)$ memory. It is for this case that it is essential that we can add to a list in constant time; we use this to keep track of data items efficiently. Radix sort just runs bucket sort $k$ times, without needing extra memory between runs, so its memory complexity is the same as bucket sort. Neither of these two algorithms are in-place.
 
 [^lists_are_not_linked_lists]: Strictly speaking, we are not guaranteed that appending to a list is always constant time, but there is a guarantee that if we append to a list $n$ times, then all $n$ operations can be done in $O(n)$. So although some operations are not in $O(1)$, on average they are. Using a different data structure, a so-called *doubly linked list*, we *can* achieve worst-case constant time for all append and prepend operations—at the cost of linear time to look up elements. If we use these, then we need a list `x` with constant time lookup, as we have for python `list` objects, and other lists, `y`, where prepend or append are constant time, but where we do not need to access random indices. We consider linked lists later in the book; for the sorting algorithms we consider now, we can still use Python’s `list` objects without affecting the worst-case running time.
 
@@ -500,7 +554,8 @@ There is a simple trick to sorting integers with both positive and negative numb
 
 If you sort variable length keys, for example strings, you do not necessarily have a constant bound on how many sub-keys you need. If $d\in O(n)$, you are back to having a $O(n^2)$ algorithms, and you can do better with a $O(n\log n)$ comparison sort.
 
-#### Bit operations for splitting a word into bytes
+## Binary representation of numbers
+**FIXME: better title?**
 
 Manipulation of computer words with bit-operations is very low-level programming, and not something you usually worry about in day to day programming. If you are not interested in knowing the low-level details of how we do this, you can skip this section. For radix sorting integers, though, you do need to be able split a computer word into bytes—or in general, $k$-bit sub-keys.
 
@@ -529,7 +584,7 @@ Unfortunately, there is one complication when we do this. Different hardware int
 
 In the code above, we put the least-significant byte as the first sub-key, the second-least significant byte as the second, and so forth. If we sort the sub-keys in this order, it means that the final result is sorted first by the right-most byte, $b_4$, then by byte $b_3$, and then $b_2$ and $b_1$. You are most likely using an x86 architecture, since all PCs use this architecture these days. If you do, you are using a little-endian architecture, and this means that a 32-bit integer is represented as $b_4\times 256^0 + b_3\times 256^1 + b_2\times 256^2 + b_1\times 256^3$ and the code above gives you sub-keys where a lexicographical sorting matches a numerical sorting of the original number. If you are on a big-endian architecture, you need to reverse the order of the elements of the tuple to get the right order when you sort based on it. Or, you need to sort the four bites in the opposite order, as we saw in the example where we sorted pairs.
 
-#### Two-complement representation of negative numbers
+### Two-complement representation of negative numbers
 
 To sort numbers, you do not necessarily need to know how they are represented as bit patterns, but you do need to know that the binary order of numbers do not match the nominal order. If you have only positive numbers, then you can sort these bit-wise. The negative numbers will come after the positive and be in reverse order. If you are not interested in how numbers are represented as low-level bit patterns, you can safely skip this section. I only include it for completeness.
 
@@ -572,3 +627,7 @@ With arithmetic shift, we fill the left-most bits with the value the left-most b
 $$-2_{10} \gg 1 = 1110_2 \gg 1 = 1111_2 = 15_{10} \mod 16 = -1\mod 16$$
 
 In Python, shifting to the right is arithmetic shift.
+
+## Generalising searching and sorting {#sec:general-search-sort}
+
+**FIXME**

@@ -10,27 +10,14 @@ CHAPTERS := 000_header.yml \
               Recursion.txt \
               Parsers_and_languages.txt \
               Divide_and_conquer.txt \
+              Return_to_sorting.txt \
               Stacks.txt \
+              Set_sequences_maps.txt \
+              Trees_and_graphs.txt \
+              Pythons_data_model.txt \
               Python-vm.txt \
               Conclusions.txt \
               Solutions.txt
-
-# Class
-CHAPTERS := 000_header.yml \
-		      Introduction_to_computation.txt \
-              Introduction_to_algorithms.txt \
-              Algorithmic_complexity.txt \
-              Searching_and_sorting.txt \
-              Recursion.txt \
-              Divide_and_conquer.txt \
-
-#CHAPTERS := 000_header.yml \
-#              Solutions.txt
-
-#CHAPTERS := 000_header.yml \
-#              Introducing_Python.txt \
-#              Parsers_and_languages.txt \
-#              Stacks.txt \
 
 
 
@@ -60,6 +47,7 @@ wc: $(SOURCE_CHAPTERS)
 
 refs: $(SOURCE_CHAPTERS)
 	grep -ho '{#.*:.*}' chapters/*.txt
+	egrep -ho '\[@.*:*?\]' chapters/*.txt
 
 clean:
 	rm book.pdf book.epub

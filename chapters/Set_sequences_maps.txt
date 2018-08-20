@@ -1,0 +1,7 @@
+# Sets, sequences, and maps
+
+## Sets, sequences, and maps abstract data structures
+
+## Linked lists {#sec:linked-lists}
+
+### Selection sort
