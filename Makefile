@@ -7,6 +7,7 @@ CHAPTERS := 000_header.yml \
               Introduction_to_algorithms.txt \
               Algorithmic_complexity.txt \
               Searching_and_sorting.txt \
+              Functions.txt \
               Recursion.txt \
               Parsers_and_languages.txt \
               Divide_and_conquer.txt \

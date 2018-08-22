@@ -4,4 +4,6 @@
 
 ## Linked lists {#sec:linked-lists}
 
+## Doubly linked lists {#sec:doubly-linked-lists}
+
 ### Selection sort
