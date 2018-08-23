@@ -1,4 +1,4 @@
-# Searching and sorting
+# Searching and sorting {#sec:searching-and-sorting}
 
 In this chapter, we will explore two fundamental problems that are the foundations of many other algorithms: sorting sequences and searching for an element in them. These are central problems used as building blocks for many different algorithms, and Python already has built-in functionality for solving them. You should practically always use the existing implementations; they are well engineered and optimised, so you are not likely to implement faster solutions. The exception is when there are you have some a priori knowledge about your data that Python does not have that you can exploit it while Python must use a general algorithm. Different algorithms have different pros and cons, and we will briefly discuss these. You can choose the right algorithm for the job because you know more about the data than Python does. Optimising the algorithm you use this way is rarely worthwhile, though, so you are usually better off just using what Python already has. Anyway, onward to the algorithms.
 
