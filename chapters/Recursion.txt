@@ -195,7 +195,7 @@ For infinite recursions, we wouldn't expect something meaningful anyway, but the
 
 You will not run into this if you use iteration instead of recursion. It is certainly possible to write an infinite loop, but you will not run out of stack-space as a result. Loops are also more efficient than recursive calls because the latter needs to handle call frames while the former does not. If you can implement an algorithm using iteration just as easily as you can do with recursion, you should always prefer the looping version. If you do need recursion, but the recursion is deeper than your call stack allows, you have no choice but to use a loop. There are general ways of handling recursion that avoids filling up the call stack (and we will return to this in [Chapter sec:return-to-functions]), but for some recursive functions, it is particularly easy. These are *tail-recursive* functions. We get to those in [@sec:tail-recursion]. First, though, we will consider the relationship between iteration and recursion in more detail.
 
-## Recursion and iteration
+## Recursion and iteration {#sec:recursion-and-iteration}
 
 There is a close correspondence between recursion and iteration. You can always, directly, translate a loop into a recursive function; you cannot necessarily do the opposite. There just are more things you can do with a stack than you can with a loop.^[Obviously, you can implement the stack functionality yourself and then avoid recursive function calls, but this is just an implementation detail. Conceptually, will still be using recursion and not a simple loop.] 
 
