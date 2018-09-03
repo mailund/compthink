@@ -3,12 +3,6 @@ lst = [[x,y] for x in range(4,0,-1) for y in range(1,3)]
 print(lst)
 print(sorted(lst))
 
-names = [
-    ("Jane", "Doe"),
-    ("John", "Deer"),
-    ("John", "Doe"),
-    ("Joe", "Smith")
-]
 
 for x in sorted(names):
     print(x)
@@ -62,7 +56,4 @@ for b in buckets:
 x = y
 print(x)
 
-from operator import itemgetter
-print(sorted(names))
-print(sorted(names, key = itemgetter(1)))
 

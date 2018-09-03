@@ -90,13 +90,13 @@ If you recall, we required of recursive definitions that the recursive cases mus
 
 For binary search, the termination function was `high - low`. This works equally well for the iterative version we have seen earlier as for the recursive function defined above. We didn’t use a termination function for our earlier implementation of linear search; we didn’t need one because we know that a `for`-loop over a finite sequence will terminate. For the recursive case, we cannot make as simple an argument, but of course, the situation is the same. In each recursive call, the index `i` gets closer to the end of `x`. So, we can use as termination function `len(x)-i`.
 
-Some people find recursion a difficult concept, especially when we use recursion for computation. Most people do not have any problem with accepting recursive definitions, but when we solve a problem by solving the exact same problem it feels like a circular definition. “For recursion, see recursion”. It isn’t, however, and the reason is that we never solve a problem by trying to solve exactly the same problem. We solve a problem that is closer to a base case; our termination function decreases with every recursive function call.
+Some people find recursion a challenging concept, primarily when we use recursion for computation. Most people do not have any problem with accepting recursive definitions, but when we solve a problem by solving the exact same problem, it feels like a circular definition. “For recursion, see recursion”. It isn’t, however, and the reason is that we never solve a problem by trying to solve exactly the same problem. We solve a problem that is closer to a base case; our termination function decreases with every recursive function call.
 
-If you still find recursive functions hard to wrap your mind around, you might take comfort in knowing that many early computer scientist did as well. Early programming languages could not define recursive functions. It simply didn’t occur to people that this might be useful. This doesn’t mean that they didn’t solve problems recursively; they just didn’t use recursive functions. Just like we did the linear and the binary search without recursive functions before we reformulated the algorithms as recursive. Recursion is such a powerful technique, however, that all modern languages support it. Some even go so far that they have replaced loops with recursion entirely; they will not let you implement loops at all, only recursive functions.
+If you still find recursive functions hard to wrap your mind around, you might take comfort in knowing that many early computer scientist did as well. Early programming languages could not define recursive functions. It just didn’t occur to people that this might be useful. This doesn’t mean that they didn’t solve problems recursively; they just didn’t use recursive functions. Just like we did the linear and the binary search without recursive functions before we reformulated the algorithms as recursive. Recursion is such a powerful technique, however, that all modern languages support it. Some even go so far that they have replaced loops with recursion entirely; they will not let you implement loops at all, only recursive functions.
 
 ## Recursion stacks
 
-To understand how recursive functions work, we first need to understand a little deeper how function calls work. Recall that we have two different kinds of variables in Python, global and local variables.^[There are a bit more to variables than this, but we do not need to worry about that for now. Global and local variables are all we have seen so far.] Global variables are those we assign to at the outermost level in a Python program while local variables are either function parameters or variables we assign to inside a function. For example, in this program
+To understand how recursive functions work, we first need to understand a little deeper how function calls work. Recall that we have two different kinds of variables in Python, global and local variables.^[There are a bit more to variables than this, but we do not need to worry about that for now. Global and local variables are all we have seen so far.] Global variables are those we assign to at the outermost level in a Python program while local variables are either function parameters or variables we assign to inside a function. For example, in this program:
 
 ```python
 x = 2
@@ -123,11 +123,11 @@ When we call
 factorial(4)
 ```
 
-the local variable, `n` will be set to refer to four. No problem there. But then we call `factorial` with `n - 1` to evaluate `n * factorial(n - 1)`. This makes the local variable refer to three, but we still need it to refer to four when, after the recursive call, we multiply the result of `factorial(n - 1)` by `n`. We need the local variable to refer to both four and three in the recursive case. How is that achieved?
+the local variable, `n` will be set to refer to four. There is no problem there. But then we call `factorial` with `n - 1` to evaluate `n * factorial(n - 1)`. This makes the local variable refer to three, but we still need it to refer to four when, after the recursive call, we multiply the result of `factorial(n - 1)` by `n`. We need the local variable to refer to both four and three in the recursive case. How is that achieved?
 
-This is something early programming languages usually couldn’t handle. In these early languages, local variables were tied to functions—each function had memory locations reserved for their local variables. Those were modified when calling a function and by updating variables inside the function body. If you called the same function twice, you would overwrite the memory locations assigned to the local variables. This isn’t a problem if you do not use recursion, but it clearly is if you do. You cannot use the same memory location to hold both $n=4$ and $n=3$.
+This is something early programming languages usually couldn’t handle. In these early languages, local variables were tied to functions—each function had memory locations reserved for their local variables. Those were modified when calling a function and by updating variables inside the function body. If you called the same function twice, you would overwrite the memory locations assigned to the local variables. This isn’t a problem if you do not use recursion, but it apparently is if you do. You cannot use the same memory location to hold both $n=4$ and $n=3$.
 
-The solution to this problem is very elegant in its simplicity: instead of reserving fixed memory locations for local variables for each function, you reserve memory for the local variables in each function *call*. The memory locations you need for local variables are not hardwired in the program but will be allocated when you call a function. This memory is allocated on a so-called *call stack*, and it works as follows. You have a piece of your computer’s memory set aside for this stack. You keep track of the top of the stack, and the function call you are currently executing has access to the top of the stack, and any global variables, but not the rest of the stack. When you call a function, you reserve memory for the variables used in the function at the top of the stack. The memory set aside in this way is known as a function’s *call frame*, but it isn't that important what we call it; what is important is that we have it.^[The way Python handles global and local variables, and how it handles call frames, is a bit different from what I explain below. Python runs in a so-called *virtual machine*, which is a program that understands Python better than the raw hardware does and that works as an intermediate between the two. The virtual machine runs as actual machine instructions on the CPU and Python runs on the virtual machine. My description of how calls work is almost true, and all programming languages will do something similar to it, but the details can vary. For the details of what Python really does, I refer to [Chater @sec:python-vm].]
+The solution to this problem is beautiful in its simplicity: instead of reserving fixed memory locations for local variables for each function, you reserve memory for the local variables in each function *call*. The memory locations you need for local variables are not hardwired in the program but will be allocated when you call a function. This memory is allocated on a so-called *call stack*, and it works as follows. You have a piece of your computer’s memory set aside for this stack. You keep track of the top of the stack, and the function call you are currently executing has access to the top of the stack, and any global variables, but not the rest of the stack. When you call a function, you reserve memory for the variables used in the function at the top of the stack. The memory set aside in this way is known as a function’s *call frame*, but it isn't that important what we call it; what is essential is that we have it.^[The way Python handles global and local variables, and how it handles call frames, is a bit different from what I explain below. Python runs in a so-called *virtual machine*, which is a program that understands Python better than the raw hardware does and that works as an intermediate between the two. The virtual machine runs as actual machine instructions on the CPU and Python runs on the virtual machine. My description of how calls work is almost correct, and all programming languages will do something similar to it, but the details can vary. For the details of what Python really does, I refer to [Chater @sec:python-vm].]
 
 Consider the call:
 
@@ -145,17 +145,17 @@ When we call recursively, Python will put the information it needs for each func
 
 When we reach $n=1$, we hit a base case and immediately return one as the result. Now, Python needs to do two things. It needs to provide the return value of the function to its caller, and it t needs to continue executing the program from the point where the function call was made. The caller location is found in the call stack, so we can always determine where the program needs to jump to. What about the return value, though?
 
-We haven’t thought about where Python stores result of expressions beforeæ we just assumed that it could remember them somehow. But of course, on a computer, you need to store intermediate results of expressions somewhere. Since results of (local) expressions are local to a function call, the only appropriate place is on the stack.[^python_local_values_details] 
+We hadn't thought about where Python stores result of expressions before; we just assumed that it could remember them somehow. But of course, on a computer, you need to store intermediate results of expressions somewhere. Since results of (local) expressions are local to a function call, the only appropriate place is on the stack.[^python_local_values_details] 
 
-When we return a value from a function, we need to put that value on the stack. We cannot make assumptions about where our function is called from so we cannot use the caller's call frame. Instead, what is commonly done, is to pop the current call frame off the stack, which means we decrease the stack pointer to where it was before the function call, and then put the result of the function call just one position above the new position of the stack pointer. This way, we do not muck about in the caller's call frame, and the caller knows where to get the result. Of course, it needs to get that value somewhere safe before it calls another function because we will overwrite the position with a new call frame if we do another function call. We do not call other functions before we have used the result of the recursive call for `factorial`, but this would not be the case when computing Fibonacci numbers. Here we need two recursive calls the results of which we need to add together. We need to store the result of the first call while executing the second. In general, we might need to store the result of many function calls before we can use them in a local expression. Everything we need to save for later, we need to move to a location in the current call frame before we call another function.
+[^python_local_values_details]: The way Python actually deals with local values, and how it deals with the results of local expressions differ from the explanation I give here. Python does use a stack for this, it actually uses several, but that is beyond the scope of this chapter. It is the topic of [Chapter @sec:python-vm]. Programs that run on the raw hardware on your computer do not just use a stack. It is more efficient to put values in a CPU's registers than put them in memory, and that is what is usually done. Python has a layer between the raw hardware and your programs, the virtual machine. The virtual machine runs on the actual hardware, and it uses registers to hold temporary values and for passing values between functions. Your program, on the other hand, runs on the virtual machine, and this machine uses a different approach. If your Python programs actually ran on the real CPU, the description here wouldn't be far off of what would actually be happening with function calls.
 
-[^python_local_values_details]: The way Python actually deals with local values and the results of local expressions differ from the explanation I give here. Python does use a stack for this, it actually uses several, but that is beyond the scope of this chapter. It is the topic of [Chapter @sec:python-vm]. Programs that run on the raw hardware on your computer do not just use a stack. It is more efficient to put values in a CPU's registers than put them in memory, and that is what is usually done. Python has a layer between the raw hardware and your programs, the virtual machine. The virtual machine runs on the actual hardware and it uses registers to hold temporary values and for passing values between functions. Your program, on the other hand, runs on the virtual machine, and this machine uses a different approach. If your Python programs actually ran on the real CPU, the description here wouldn't be far off of what would actually be happening with function calls.
+When we return a value from a function, we need to put that value on the stack. We cannot make assumptions about where our function is called from so we cannot use the caller's call frame. Instead, what is commonly done, is to pop the current call frame off the stack, which means we decrease the stack pointer to where it was before the function call, and then put the result of the function call just one position above the new position of the stack pointer. To be able to do this, it needs to remember the return position if it overwrites that memory location, or it needs to allocate space on the stack for the return value. Let us just assume that it is able to return and also put the function result-value in its call-frame.
 
-We keep doing the same thing while we return from the recursive calls. We replace the call frame with the result of the call, see [@fig:shrinking-call-stack]. These intermediate results are part of the call frame—they are local to the individual function calls—and they will also be removed from the stack when the function returns.
+Since we write the return value on the call-frame of the function, we do not muck about in the caller's call frame, and the caller knows where to get the result. When we return from a recursion, we pop call frames from the stack, put the return values above the stack (overwriting the call frame), and keep doing this until we leave the recursion, see [@fig:shrinking-call-stack]. 
 
 ![Shrinking the call stack when returning from recursive calls to `factorial`.](figures/shrinking-call-stack){#fig:shrinking-call-stack}
 
-Once we have returned from the last function call, the final result is still on the stack. It will be removed from there when Python uses this result (or simply be removed if we never use the result).
+If the calling function wants to remember the returned value, it needs to move it somewhere else before it can make further function calls. If it only calls a function for its side-effects, it can ignore any value the called function might return, but if it needs to use the result, it must remember it. If it calls another function, the call frame of this function will be written on the stack, overwriting the returned value. We do not call other functions before we have used the result of the recursive call for `factorial`, but we do multiply a number with the result of a call. The simplest way to handle this is to save the result of the recursion and then handle the multiplication as we would handle any temporary result in an expression. With the factorial function, we can make the optimisation where we use the returned value direction. We cannot always do this, however. For example, when computing Fibonacci numbers, we need to make two recursive calls and then add their returned values together. We need somewhere to store the result of the first recursive call so we can add it to the result of the second call. In general, we might need to store the result of many function calls before we can use them in a local expression. Everything we need to save for later, we need to move to a location in the current call frame before we call another function.
 
 The call stack is not only used for recursion. It works the same way with all function calls. Consider this program:
 
@@ -169,14 +169,19 @@ def add_two(x):
 add_two(1)
 ```
 
-[@Fig:call-stack-add-two] shows the call stack when evaluating this program. The call to `add_two` will put a return location and the local variable `x` on the stack. This function calls `add_one` that will put a return location and another `x` on the call stack. The first call to `add_one` is the one that becomes the argument to the second call to `add_one`. This call returns before we do the second call, though, so we do not have call frames for two `add_one` calls at the same time. The result of the first is put on the stack while we call the second. This is different from recursive calls, but the principle is the same.
+[@Fig:call-stack-add-two] shows the call stack when evaluating this program. The call to `add_two` will put a return location and the local variable `x` on the stack. It also allocates space for the temporary value that it gets from the first call to `add_one` so it can remember this for the second call. The `add_two` function then calls `add_one`. This call will put a return location and another `x` on the call stack. Once the call frame is set up, `add_one` will do its calculations, move the stack pointer down to where it was before the call, in effect poping the call frame from the stack, it will put the result of the function call just above the stack pointer, and then return to whence it was called.
 
 ![Call stack when evaluating `add_two(1)`.](figures/call-stack-add-two){#fig:call-stack-add-two}
 
+Now, the `add_two` function needs to call `add_one` once more. Since this call would overwrite the result of the first call, we need to save this value. We do this by moving the value from just above the stack pointer to the memory cell we allocated for this very purpose. We can then set up the call frame for the second call to `add_one`, make this call, and grab the result. This result is also the result of the `add_two` call, but we cannot simply use this result. We need to pop the call frame from the stack, which means we also need to move the `add_one` result down to where the caller of `add_two` expects to see it. 
+
+This is example does not involve recursive calls, but the principle behind all function calls is the same. We might be able to optimise a specific combination of calls. For `add_two` we might manage to avoid moving the return value of the first call to `add_one` but simply putting it where it is needed for the second call; or, we might be able to put the return value from the second call to `add_one` where it is needed when we return from `add_two`. Such optimisation would only work for particular combinations of calls, however, while the operations we did in the example would work for all combinations of functions.
 
 **Exercise:** Draw the call stack for computing the fourth Fibonacci number using the implementation you did in the previous exercise.
 
-All this call stack business can look complicated, but the good news is that you never need to worry about it unless you need to implement recursion yourself. The call stack is the reason why recursive function calls are possible, but you only need to know that they are. Well, you *almost* never have to worry about the call stack. You might run into problems with a call stack if you fill it up. If you do something like this:
+All this call stack business can look complicated, but the good news is that you never need to worry about it unless you implement recursion yourself. The call stack is the reason why recursive function calls are possible, but you only need to know that Python can handle them.
+
+Well, you *almost* never have to worry about the call stack. You might run into problems with a call stack if you fill it up. For example, if you do something like this:
 
 ```python
 def f(x):
@@ -184,21 +189,27 @@ def f(x):
 f(1)
 ```
 
-you will get an error that says “RecursionError: maximum recursion depth exceeded”. This happens because the memory set aside for the call stack is limited and if the recursion gets too deep, there is no more stack available for more stack frames. This doesn’t happen if you use loops instead of recursion, and is another reason, besides efficiency, to prefer loops over recursion. Of course, in this particular example, there is no way to compute a value in finite time. The function never terminates, so it is not a proper recursive function in the first place, but there are cases where you have a perfectly well-defined recursive function that just needs more stack space than you have available. If that is the case, you need to replace the recursion with a loop.
+This example results in an infinite recursion; the function doesn't even have a base case. You will not get an infinite recursion if you execute the code, however, instead you will get an error that says “RecursionError: maximum recursion depth exceeded”. This happens because the memory set aside for the call stack is limited and if the recursion gets too deep, there is no more stack available for more call frames. 
+
+For infinite recursions, we wouldn't expect something meaningful anyway, but there are many cases where there *is* a result of a recursion, but you do not have sufficient stack space. Linear or binary search, if implemented recursively, could run into this problem if they are called on sufficiently many elements.
+
+You will not run into this if you use iteration instead of recursion. It is certainly possible to write an infinite loop, but you will not run out of stack-space as a result. Loops are also more efficient than recursive calls because the latter needs to handle call frames while the former does not. If you can implement an algorithm using iteration just as easily as you can do with recursion, you should always prefer the looping version. If you do need recursion, but the recursion is deeper than your call stack allows, you have no choice but to use a loop. There are general ways of handling recursion that avoids filling up the call stack (and we will return to this in [Chapter sec:return-to-functions]), but for some recursive functions, it is particularly easy. These are *tail-recursive* functions. We get to those in [@sec:tail-recursion]. First, though, we will consider the relationship between iteration and recursion in more detail.
 
 ## Recursion and iteration
 
-There is a close correspondence between recursion and iteration (or loops). You can always directly translate a loop into recursive function. You cannot always do the opposite—translate a recursive function into a loop. The recursion stack is more powerful than simple iterations, so you can do more with a stack than you can with a loop.^[Obviously, you can implement the stack functionality yourself and then avoid recursive function calls, but this is just an implementation detail. You will still be using recursion and not a simple loop.] Some recursions, however, can be directly translated into loops. These are called *tail-recursive*. We will get to these in a moment.
+There is a close correspondence between recursion and iteration. You can always, directly, translate a loop into a recursive function; you cannot necessarily do the opposite. There just are more things you can do with a stack than you can with a loop.^[Obviously, you can implement the stack functionality yourself and then avoid recursive function calls, but this is just an implementation detail. Conceptually, will still be using recursion and not a simple loop.] 
 
-Just because you can implement all loops as recursive function calls doesn’t mean that you should. There is a substantial overhead in calling functions, so a recursive solution to a problem will always be slower than one that relies on loops.^[Programming languages that do not allow loops but only recursive function calls actually translate recursion into loops under the hood whenever possible. Python does not do such optimisations of recursive functions, so you should always prefer loops over recursions when you can.] If you can solve a problem directly using loops, you should do that. Sometimes, however, it is easier to first derive a recursive solution to a problem and then translate it into a loop if possible. Divide and conquer algorithms are easiest to think about as recursive, but some can be translated into loop-versions, also know as iterative algorithms. If lists are the most complex data structure we use in an algorithm, then we can usually solve problems directly using loops, when this is possible, and it doesn’t help us much to first derive recursive solutions. With more complex data structures, however, recursive solutions are often simpler to derive than iterative ones.
+Just because you can implement all loops as recursive function calls doesn’t mean that you should. Besides the problems with exceeding the stack limit, there is a substantial overhead in calling functions, so a recursive solution to a problem will always be slower than one that relies on loops.^[Programming languages that do not allow loops but only recursive function calls actually translate recursion into loops under the hood whenever possible. Python does not do such optimisations of recursive functions, so you should always prefer loops over recursions when you can.] If you can solve a problem directly using loops, you should do that. Sometimes, however, it is easier first to derive a recursive solution to a problem and then translate it into a loop if possible. Divide and conquer algorithms ([Chapter @sec:divide-and-conquer]) are more naturally constructed in terms of recursion, but can still often be implemented using loops.
 
-The purpose of this section is not to convince you that recursion is a better tool than iteration. If we can implement an algorithm using iteration, then that is the better choice. When we cannot, then recursion is the only choice. We see examples of this when we discuss divide and conquer. The purpose of this section is to get you familiarised with recursion, on simple problems, so you are well equipped to handle recursion when we consider more complex problems.
+The purpose of this section is not to convince you that recursion is a better tool than iteration. If we can implement an algorithm using loops, then that is the better choice. When we cannot, then recursion is the only choice. We see examples of this when we discuss divide and conquer algorithms. The purpose of this section is to get you familiarised with the relationship between recursion and iteration. In [@sec:tail-recursion] we consider simple recursive functions that we can translate into loops. In this section, we will translate looping functions into recursive ones. 
 
-We will take some problems we have previously handled using loops and translate them into recursive function solutions. I will handle the first, and leave the rest for you to do as exercises.
+We will take a problem with an iterative solution and translate it into a recursive one. The result, I hope you will agree, is more straightforward than the iterative solution. This is why we usually prefer to develop an algorithm using recursion before we consider iteration. We do the translation in the opposite direction here. We start with loops, which you are already familiar, and show you how these loops can be simplified using recursion. The only reason for this is to get from something familiar, loops, and see how it relates to something new, recursion. As a side-effect, I also hope to convince you that recursive solutions can be much more straightforward than iterative ones.
 
-The case I will implement is merging. Given two sorted lists, `x` and `y`, we want to compute the merge of the two, i.e., a list that contains the same elements as in `x` and `y`, combined, in sorted order.
+The problem we will consider is that of merging two lists. This was an exercise in [Chapter @sec:algorithmic-efficiency]; if you haven't solved it already, give it a go before continuing.
 
-We can implement this using a loop in this way:
+The problem we need to solve is this: given two sorted lists, `x` and `y`, we want to create a list that contains the same elements as in `x` and `y`, combined, in sorted order.
+
+One implementation could look like this:
 
 ```python
 def merge(x, y):
@@ -225,7 +236,7 @@ def merge(x, y):
 			j += 1
 ```
 
-The function doesn’t do anything complicated, but it is rather long, and therefore it can be hard to see at a glance what it is doing. What it does is simple enough. We move through `x` and `y`, using the indices `i` and `j`, and pick the smallest of `x[I]` and `y[j]` and append that to our result. If we have made it to the end of either `x` or `y`, the first two `if`-statements in the loop, we copy the remainder of the other list.
+The function doesn’t do anything complicated, but it is rather long. It can, therefore, be hard to see, at a glance, what it is doing. It is simple enough: We move through `x` and `y`, using the indices `i` and `j`, pick the smallest of `x[i]` and `y[j]`, and append that to our result. If we have made it to the end of either `x` or `y`, the first two `if`-statements in the loop, we copy the remainder of the other list.
 
 A much simpler implementation of the same idea is this:
 
@@ -239,9 +250,11 @@ def merge(x, y):
 		return [y[0]] + merge(x, y[1:])
 ```
 
-Here we can directly see the two base cases and the recursive case—the recursive case is one of two recursive calls, depending on which list has the smallest element, but it is only one recursive call.
+Here we can directly see the two base cases and the recursive case—the recursive case is one of two recursive calls, depending on which list has the smallest element. The most straightforward recursive solution is usually *much* simpler than an iterative solution. It is often also a lot less efficient, even if we ignore the function call overhead.
 
-This version is shorter and simpler, and because of that, we would prefer it over the former version, all else being equal. Unfortunately, all else is not equal. For reasons I have not explained yet, getting everything except the first element of a list, as we do when we call `x[1:]` and `y[1:]`, is an expensive operation. It takes time proportional to the length of the lists we slice the first element off (minus one). There is another implementation fo lists than the one that Python use where this would be a constant time operation, but for Python `list` objects it is not. Therefore, the recursive call takes time $O(n)$, where the lengths of `x` and `y` are in $O(n)$, plus how long it might take to compute the recursive function, and the result is an $O(n^2)$ running time all in all. I won’t go into details about why we get this running time, since we cover that in the section on divide and conquer later. The first `merge` implementation runs in time $O(n)$—if you cannot see why immediately, try to work through the analysis.
+For reasons that I have not explained yet, slicing to get everything except the first element of a list, as we do when we call `x[1:]` and `y[1:]`, is an expensive operation. It takes time proportional to the length of the lists (minus one). There is another implementation of lists than the one Python uses, where this would be a constant time operation, but for Python `list` objects it is not. Therefore, the recursive call takes time $O(n)$, where the lengths of `x` and `y` are in $O(n)$, plus how long it might take to compute the recursive function, and the result is an $O(n^2)$ running time all in all. I won’t go into details about why we get this running time since we cover that in [Chapter @sec:divide-and-conquer]. 
+
+The iterative implementation runs in time $O(n)$—if you cannot see why immediately, try to work through the analysis. The recursive implementation runs in $O(n^2)$. This isn't a great advertisement for recursion.  We generally do not want to trade efficiency for simplicity.
 
 We can get rid of the expensive slicing of the first elements by reintroducing the index variables and get this implementation:
 
@@ -281,9 +294,9 @@ def merge(x, y, i = 0, j = 0, result = []):
 		return merge(x, y, i, j + 1, result)
 ```
 
-This leaves us pretty much back where we started. We now have a recursive solution to the problem, but it is not simpler than the iterative we started with.
+This leaves us pretty much back where we started. We now have a recursive solution to the problem, but it is just as complex as the iterative function we started with.
 
-All is not lost, however. We can reconsider why we couldn’t use the simpler recursive solution. The main problem here was concatenation—we could avoid the slicing simply by using indices. Maybe we can avoid the concatenation in some other way. Indeed we can:
+All is not lost, however. We can reconsider why we couldn’t use the simpler recursive solutions. The main problem here was concatenation—we could avoid the slicing simply by using indices. Maybe we can avoid the concatenation in some other way? Indeed we can:
 
 ```python
 def merge_rec(x, y, i = 0, j = 0):
@@ -302,9 +315,11 @@ def merge(x, y):
 	return list(reversed(merge_rec(x, y)))
 ```
 
-Since prepending one element to a list involves a concatenation operation, which is expensive, we replace it with an append operation, which is cheap. We construct the merged list in the wrong order, so we need to sort it once we are done. I have split this into two functions, one that recursively construct the reversed result and one that reverses. In the basis cases we still slice a list, but since this takes time proportional to the length of the list, it is not slower than the `while`-loops we used earlier to do the same thing. In fact, it is likely to be faster since slicing is a built-in operation in Python and implemented very efficiently.
+Since prepending one element to a list involves a concatenation operation, which is expensive, we replace it with an append operation, which is cheap.[^justification_for_list_complexity] We construct the merged list in the reversed order, so we need to reverse it to get the right order once we are done with the merge. I have split this into two functions, one that recursively constructs the reversed result and one that reverses it to get the result in the right order. In the basis cases we still slice a list, but since this takes time proportional to the length of the list, it is not slower than the `while`-loops we used earlier to do the same thing. In fact, it is likely to be faster since slicing is a built-in operation in Python and implemented very efficiently.
 
-This solution is not quite as simple as the first recursive function, but we can make it almost so by making the append operation a function call:
+[^justification_for_list_complexity]: Why appending is cheap while prepending is expensive comes down to how lists are implemented by Python. We return to this in [@sec:dynamic-arrays]. For now, you just have to take my word for it.
+
+This solution is not quite as simple as the first recursive function, but we can make it almost so by moving the append operation to a function:
 
 ```python
 def app(lst, x):
@@ -320,11 +335,11 @@ def merge_rec(x, y, i = 0, j = 0):
 		return app(merge_rec(x, y, i, j + 1), y[j])
 ```
 
-This solution is simpler than the first we had, almost as simple as the initial recursive one, and it runs in $O(n)$ since we have replaced the expensive operations in the recursive case with constant time operations. It is not as efficient as the first function we wrote. Function calls are expensive, and we use those extensively here, where the first solution didn’t use any function calls beyond the `merge` call needed to merge the two lists. We also need to reverse the result, which adds additional computations. 
+This solution is almost as simple as the first recursive function, and it runs in $O(n)$; we have replaced the expensive operations in the first recursive function with constant time operations in this function. It is not as efficient as the iterative function. Function calls are constant time operations but expensive ones, and we use those extensively here. We also need to reverse the result, which adds additional computations. The iterative solution avoids any function call beyond the call to the `merge` function and directly construct the result list.
 
-In the next section, we will start from a recursive solution and use that to guide us to an iterative solution. We will end up with the same solution as we had before, so we will not get a better or simpler solution. The recursive solution is simple and by starting from that and getting to the iterative one is often an easier approach. It can be hard to design the iterative solution directly, but by starting from a simple recursive solution we can get it almost automatically.
+It is the simplicity of the recursive solution, compared to the iterative version, that makes it easier to construct recursive algorithms. Once we have a recursive solution, we usually then want to replace it with an iterative solution. In the next section, we will start with a recursive solution and use that to guide us to an iterative solution. Usually, we end up with an implementation very similar to what we would get if we set out to implement an iterative solution in the first place, but starting with a recursive solution and then modifying it, step by step, until we have an efficient iterative solution makes the programming task more manageable. As an added benefit, it also makes it easier to test our implementation; we can use the simplest solution to check the more complicated solutions against (see [Chapter @sec:testing] for more details on approaches to testing). As we, stepwise, transform a function to make it more efficient, we can test each rewrite. Since it is easier to get a simple solution correct, and since it is easier to make incrementation changes to a working implementation than it is to construct a function from scratch, implementing efficient solutions using this approach is a good strategy. Building an efficient function by a series of changes from a simple to an efficient one is more often than the most effective way to get a fast and correct solution to a problem; aiming directly for a sophisticated, efficient solution is usually not a practical approach.
 
-Before we get to that, however, you should do some exercises to test that you have understood recursion.
+Before we get to translating recursive functions into iterative ones, however, you should do some exercises to test that you have understood recursion.
 
 **Exercise:** To compute the sum of the elements in a list, we can obviously do this iteratively:
 
@@ -346,7 +361,7 @@ for e in x:
 
 Write a recursive function for finding the smallest element in a list. To avoid copying the list using slices, you will want to have the function take an index parameter as an argument.
 
-**Exercise:** Modify your function so it returns `None` if the list is not empty. The easiest way to do this is probably to include the “smallest element seen so far” as a parameter to the function, with a default value of `None`. To compute the smallest value and still handle `None` you can use this function:
+**Exercise:** Modify your function, so it returns `None` if the list is empty. The easiest way to do this is probably to include the “smallest element seen so far” as a parameter to the function, with a default value of `None`. To compute the smallest value and still handle `None` you can use this function:
 
 ```python
 def my_min(x, y):
@@ -380,15 +395,15 @@ digits[15] = 'F'
 
 We can then reduce the problem to the second-to-last digit by dividing $i$ by $b$. Implement this idea using a recursive function.
 
-## Tail-recursion
+## Tail-recursion {#sec:tail-recursion}
 
-You can always translate an iterative algorithm into a recursive one, but since iterative algorithms are more efficient, you shouldn’t do this. Recursive algorithms are simpler, though, so you will often find yourself in the situation that you have an elegant recursive solution to a problem, and you want to translate it into a more efficient iterative solution. You cannot always translate a recursive function into an iterative one,[^iterative_is_always_possible] but this section is about the cases where you can.
+You can always translate an iterative algorithm into a recursive one, but since iterative algorithms are more efficient, you shouldn’t do this. Recursive algorithms are more straightforward, though, so you will often find yourself in the situation that you have an elegant recursive solution to a problem, and you want to translate it into a more efficient iterative solution. You cannot always translate a recursive function into an iterative one,[^iterative_is_always_possible] but this section is about the cases where you can.
 
-[^iterative_is_always_possible]: In the interest of complete honesty, I am lying here. You can always translate a recursive function into an iterative one. It just requires some tricks we are not ready for here. It usually isn’t a particularly good idea; it is not efficient and you can solve such problems more efficiently by implementing your own stack as a substitute for the recursion stack. It is possible, though. It is just a lot more involved than the cases we consider in this chapter.
+[^iterative_is_always_possible]: In the interest of complete honesty, I am lying here. You can always translate a recursive function into an iterative one. It just requires some tricks we are not ready for here. I will show you how it can be done in [@sec:thunks_and_trampolines]. The general solution, however, usually isn’t a particularly good idea. It is not efficient and more often than not you get a more efficient solution by implementing your own stack as a substitute for the recursion stack. If speed is not an issue, but stack size is,  the general translation from recursion to iteration is more straightforward and therefore the prefered solution.
 
-Functions that can always be translated into loops are so-called *tail recursive* functions. In many programming languages, tail recursive functions are automatically translated into loops—this is called the *tail recursive optimisation*—but Python is not one of them. Not to worry, though, the translation is so simple that you can always do it by hand with very little effort.
+Functions that can always be translated into loops are so-called *tail-recursive* functions. In many programming languages, tail-recursive functions are automatically translated into loops—this is called the *tail recursive optimisation*—but Python is not one of them. Not to worry, though, the translation is so simple that you can always do it by hand with minimal effort.
 
-A function is *tail recursive* when the recursive case is only a recursive call. Consider the factorial function:
+A function is *tail-recursive* when the recursive case only consists of a recursive call. Consider the factorial function:
 
 ```python
 def factorial(n):
@@ -398,7 +413,7 @@ def factorial(n):
 		return n * factorial(n - 1)
 ```
 
-The recursive case involves a recursive call and we then multiply the result of this call to `n`. Because we have to multiply the result of the recursive call with `n`, the function is not tail recursive. We can translate it into a tail recursive function by adding an accumulator to the function:
+The recursive case involves a recursive call but not as the single result of the recursive case. We make a recursive call, and then we multiply the result with `n`. Because we have to multiply the result of the recursive call with `n`, the function is not tail-recursive. We can translate it into a tail-recursive function by adding an accumulator to the function:
 
 ```python
 def factorial(n, acc = 1):
@@ -408,13 +423,15 @@ def factorial(n, acc = 1):
 		return factorial(n - 1, n * acc)
 ```
 
-The accumulator handles the multiplication with `n`. We multiply the accumulator by `n` as we go down the recursion rather than multiply the result of recursive calls by `n`. Functions that only involve a single recursive call in the recursive case can always be translated into tail recursive versions by adding an accumulator.
+The accumulator handles the multiplication with `n`. We multiply the accumulator by `n` as we go down the recursion rather than multiply the result of recursive calls by `n` when we return from the recursion. Functions that only involve a single recursive call in the recursive case can always be translated into tail-recursive versions by adding an accumulator.
 
-**Exercise:** Rewrite your recursive function for computing the sum of a list of numbers so it becomes tail recursive.
+**Exercise:** Rewrite your recursive function for computing the sum of a list of numbers such that it becomes tail-recursive.
 
-**Exercise:** Rewrite your recursive function for finding the smallest element in a list to a version that is tail recursive.
+**Exercise:** Rewrite your recursive function for finding the smallest element in a list to a version that is tail-recursive.
 
-With tail recursive functions, we do not need to do anything with the result of the recursive call. Not doing anything with the result of a recursive call is just another way of saying that a function is tail recursive. The reason that this is important is that, when we do not need to do anything after the recursive call, then we can reuse the call frame for the recursive call. We can simply update the local variables to those we would use in the recursive call frame and go from there; we can replace a recursive call with a simple update of the function argument local variables. When we call a function we assign values to the function arguments. If we have a tail recursive function, we can simply update the arguments we already have and then start executing the function body from the beginning again. If we wrap the function body in one big `while True` loop, we can replace the recursive function call an update to the function arguments and then `continue` the loop. If the recursive case is put at the end of the loop, we do not even need to `continue`; we are at the end of the loop so we return to the beginning right after we update the variables.
+With tail-recursive functions, we do not need to do anything with the result of the recursive call. Not doing anything with the result of a recursive call is just another way of saying that a function is tail-recursive. The reason that this is important is that, when we do not need to do anything after the recursive call, then we can reuse the call frame for the recursive call. We can directly update the local variables to those we would use in the recursive call frame and go from there; we can replace a recursive call with a simple update of the function argument local variables.
+
+When we call a function we assign values to the function arguments. If we have a tail-recursive function, we can directly update the arguments we already have and then start executing the function body from the beginning again. If we wrap the function body in one big `while True` loop, we can replace the recursive function call with an update to the function arguments and then `continue` the loop. If the recursive case is put at the end of the loop, we do not even need to `continue`; we are at the end of the loop, so we return to the beginning right after we update the variables.
 
 For the factorial function, this transformation gives us:
 
@@ -453,11 +470,11 @@ def factorial(n):
 		acc = n * acc
 ```
 
-A parallel assignment, as we did for the first iterative implementation of the factorial function, will usually work. If we never do any operations with side-effects, i.e., whenever we need to update a data structure such as a list, we create a new one instead, then parallel assignment will work. If we actually modify a data structure, we cannot use parallel assignment so we must be careful that we perform the update operations in the same order as they would have been performed in a function call.
+A parallel-assignment, as we did for the first iterative implementation of the factorial function, will usually work. If we never do any operations with side-effects, i.e., whenever we need to update a data structure such as a list, we create a new one instead, then parallel-assignment will work. If we actually modify a data structure, we cannot use parallel assignment so we must be careful that we perform the update operations in the same order as they would have been performed in a function call.
 
-**Exercise:** Do this transformation for your tail recursive summation function.
+**Exercise:** Do this transformation for your tail-recursive summation function.
 
-**Exercise:** Do this transformation for your tail recursive “find minimum” function.
+**Exercise:** Do this transformation for your tail-recursive “find minimum” function.
 
 **Exercise:** Consider our recursive implementation of binary search:
 
@@ -474,9 +491,9 @@ def bsearch(x, e, low = 0, high = len(x)):
 		return bsearch(x, e, low, mid)
 ```
 
-This function is tail recursive, so use the transformation to replace it with a loop. Compare it to the iterative solution we considered before this chapter.
+This function is tail-recursive, so use the transformation to replace it with a loop. Compare it to the iterative solution we considered before this chapter.
 
-To see a more complex case of using an accumulator in a tail-recursive function, and then translate it into an iterative function, we can return to the problem of merging two lists. We left this problem with the recursive implementation below:
+To see a more complex case of using an accumulator in a tail-recursive function, and then translate it into an iterative function, we can return to the problem of merging two lists. We left this problem with this recursive implementation:
 
 ```python
 def app(lst, x):
@@ -495,7 +512,7 @@ def merge(x, y):
 	return list(reversed(merge_rec(x, y)))
 ```
 
-The reason we had to construct the merged list in reverse order, and then reverse it when we are done, was actually because we didn't use an accumulator. Because of this, we had to build the list by combining a recursive call with the front of one of the lists in the recursive case. If we add an accumulator, we can build the merged list in the right order:
+The reason we had to construct the merged list in reverse order, and then reverse it when we are done, was actually because we didn't use an accumulator. If we add an accumulator, we can build the merged list in the right order:
 
 ```python
 def merge(x, y, i = 0, j = 0, acc = None):
@@ -509,9 +526,9 @@ def merge(x, y, i = 0, j = 0, acc = None):
 		return merge(x, y, i, j + 1, app(acc, y[j]))
 ```
 
-The way we handle the default value of the accumulator might look a bit weird, but it is important. If we set the default value of `acc` to an empty list, each call to `merge` that rely on the default parameter will get the *same* list. This means that if you call `merge` twice, the result of the first call will still be in the accumulator, and the new merge will be appended to it. This is not what we want, and it is because of this that we handle the default parameter the way we do.^[A slightly more *Pythonic* way of writing the `if` statement would be to use the `or` operator instead. You could write `ac = acc or []`. Because `or` will return the second argument if the first is false, and because `None` is interpreted as `False` in this context, you will get `[]` when `acc` is `None`. You would also get a new empty list if `acc` is an empty list, because empty lists are also interpreted as `False`, but we never recurse on an empty list, so that is not a problem.]
+The way we handle the default value of the accumulator might look a bit weird, but it is crucial. If we set the default value of `acc` to an empty list, each call to `merge` that rely on the default parameter will get the *same* list. This means that if you call `merge` twice, the result of the first call will still be in the accumulator, and the new merge will be appended to it. This is not what we want, and it is because of this that we handle the default parameter the way we do.^[A slightly more *Pythonic* way of writing the `if` statement would be to use the `or` operator instead. You could write `ac = acc or []`. Because `or` will return the second argument if the first is false, and because `None` is interpreted as `False` in this context, you will get `[]` when `acc` is `None`. You will also get a new empty list if `acc` is an empty list because empty lists are also interpreted as `False`. We never recurse on an empty list, so that is not a problem.]
 
-This function is tail recursive so we can translate it into a looping version. The `app` function simply append its second argument to its first, and it does this before the recursive call (because function arguments are evaluated before a function is called). Because of this, we can get rid of it and simply append instead. We have to be careful to append before we update the indices, though. The rewritten function looks like this:
+This function is tail-recursive so we can translate it into a looping version. The `app` function simply append its second argument to its first, and it does this before the recursive call (because function arguments are evaluated before a function is called). Because of this, we can get rid of it and simply append instead. We have to be careful to append before we update the indices, though. The rewritten function looks like this:
 
 ```python
 def merge(x, y, i = 0, j = 0, acc = None):
@@ -548,3 +565,5 @@ def merge(x, y, i = 0, j = 0, acc = None):
 			acc.append(y[j])
 			j += 1
 ```
+
+If in the first iterative solution, we used the expend method as well, we would have this solution. So, we end up back where we started. Hopefully, we have learned something along the way.

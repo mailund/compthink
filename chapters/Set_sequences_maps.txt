@@ -1,9 +1,11 @@
 # Sets, sequences, and maps
 
-## Sets, sequences, and maps abstract data structures
+## Sets and sequences abstract data structures
 
-## Linked lists {#sec:linked-lists}
+### Linked lists {#sec:linked-lists}
 
-## Doubly linked lists {#sec:doubly-linked-lists}
+### Doubly linked lists {#sec:doubly-linked-lists}
 
-### Selection sort
+#### Selection sort
+
+### Dynamic arrays {#sec:dynamic-arrays} 

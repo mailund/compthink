@@ -11,15 +11,20 @@ CHAPTERS := 000_header.yml \
               Recursion.txt \
               Parsers_and_languages.txt \
               Divide_and_conquer.txt \
+              Return_to_functions.txt \
               Return_to_sorting.txt \
               Stacks.txt \
               Set_sequences_maps.txt \
               Trees_and_graphs.txt \
               Pythons_data_model.txt \
+              Testing.txt \
               Python-vm.txt \
               Conclusions.txt \
               Solutions.txt
 
+
+#CHAPTERS := 000_header.yml \
+#              Recursion.txt \
 
 
 SOURCE_CHAPTERS := $(foreach chapter,$(CHAPTERS),chapters/$(chapter))

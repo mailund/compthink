@@ -9,123 +9,42 @@ Writing complete programs, especially larger applications, require different ski
 
 Even simpler programming tasks such as reading data from input files and formatting data for output files will be considered outside the scope of this book. If you ever need to write a program that can be used from a command line terminal, you will need to write code for input and output, but any introduction to Python programming textbook will teach you how to do this, and in many cases there will be existing software modules to assist you in this. This book, however, is not an introduction to Python programming book. We simply use Python to describe and experiment with algorithms we explore.
 
-## Obtaining Python and Jupyter
+## Obtaining Python
 
-When you write programs in Python, you will usually do this in one or more plain text files using a simple text editor. We will take a slightly different approach and use so-called *Jupyter notebooks* (but check the last section in the chapter if you want to go another way). Jupyter, [http://jupyter.org](http://jupyter.org), is a web interface to a text and code editor. Jupyter is not the ideal choice for large software projects—there you are better off with plain text Python files and perhaps an integrated development environment—but the Jupyter interface is frequently used when people do data analysis using Python. In the Jupyter interface, you can combine text, math, images, and tables with code that analyse your data and display the results of the analysis.
+When you write programs in Python, you will usually do this in one or more plain text files using a simple text editor. 
 
-Jupyter isn't part of a standard Python installation---at least not yet---but the easiest way to install this interface is through a Python distribution that installs it and all the software it depends on. One such distribution is *Anaconda*. To download and install Anaconda, go to [https://www.anaconda.com/download](https://www.anaconda.com/download). There, you can download installation packages for Windows, OSX, and Linux. Download the distribution for your platform. The dialect of Python we will use in this book is Python 3.x (version numbers that start with 3). The differences between Python 2.x and 3.x for the purpose of the algorithms we will explore here are very minor, but you should download the installer for a Python 3.x version to get the version of Python we use here. Once you have downloaded the installer, double-click on it and follow the instructions guiding you through the installation for your platform.
+**FIXME**
 
-The Anaconda installer will install Python, Jupyter, and various Python modules and frameworks for scientific computing, data analysis and visualisation. We only use a tiny fraction of the software that is installed via Anaconda, but everything we do use will be available to you once you have installed Anaconda. If you continue programming in Python after you have read this book, chances are that you will find good use for many of the other modules installed by Anaconda.
+One such distribution is *Anaconda*. To download and install Anaconda, go to [https://www.anaconda.com/download](https://www.anaconda.com/download). There, you can download installation packages for Windows, OSX, and Linux. Download the distribution for your platform. The dialect of Python we will use in this book is Python 3.x (version numbers that start with 3). The differences between Python 2.x and 3.x for the purpose of the algorithms we will explore here are very minor, but you should download the installer for a Python 3.x version to get the version of Python we use here. Once you have downloaded the installer, double-click on it and follow the instructions guiding you through the installation for your platform.
 
-## Starting Jupyter and creating a notebook
+The Anaconda installer will install Python and various Python modules and frameworks for scientific computing, data analysis and visualisation. We only use a tiny fraction of the software that is installed via Anaconda, but everything we do use will be available to you once you have installed Anaconda. If you continue programming in Python after you have read this book, chances are that you will find good use for many of the other modules installed by Anaconda.
 
-Once you have installed Jupyter, you can start the web-server you will interact with when working in Jupyter notebooks. In a terminal, write:
+## Running Python
 
-```sh
-jupyter notebook
-```
+**FIXME**
 
-and hit Enter. The result will be similar to that seen in [@fig:running-jupyter].
 
-![Running Jupyter.](figures/running-jupyter){#fig:running-jupyter}
-
-Starting up Jupyter should also open your web-browser with a window showing the directory in which you started Jupyter. I started the server in an empty directory, and my browser opened up looking like in [@fig:empty-jupyter].
-
-![Jupyter opened in an empty directory.](figures/empty-jupyter){#fig:empty-jupyter}
-
-If you click the *New* button in the upper right corner, you can create a new file in this directory. You have several choices here, but we will always go with a Python 3 Notebook, see [@fig:new-jupyter-notebook].
-
-![Creating a new notebook.](figures/new-jupyter-notebook){#fig:new-jupyter-notebook}
-
-The new notebook you create this way will open up. At the top of the page, you will see that it is named "Untitled", see [@fig:untitled-jupyter-notebook]. You can click on the title and rename the notebook, see [@fig:renaming-jupyter-notebook].
-
-![Untitled new notebook.](figures/untitled-jupyter-notebook){#fig:untitled-jupyter-notebook}
-
-![Renaming the new notebook.](figures/renaming-jupyter-notebook){#fig:renaming-jupyter-notebook}
-
-Below the menu and tool bar in the notebook you have the notebook proper. A notebook consists of one or more "cells". In the new notebook we just created there is a single cell. That is the box with "In [ ]: " in front of a field where you can type. Cells come in different types; you can go to the "Cell" menu and then select "Cell Type" to see the options. In the exercises associated with this book we will only use two types: Markdown and Code. Markdown cells are text cells; we use these to write prose. Markdown is a language for marking up text (the name is a pun on "mark up"), so we can make text italic or bold and we can format text into lists and such. The code cells contain Python code. Markdown cells are just text until you double click on them; when you do, you can edit the text. Code cells have "In [ ]: " in front of them and you can edit code in the grey area inside them. The "In [ ]: " is a prompt and a leftover from the IPython program that Jupyter is a descendant of.
-
-Tradition has it, that the first program you write in any new Programming language is one that prints "hello, world!". Type the following into the code cell in your notebook:
-
-```python
-print("hello, world!")
-```
-
-You can then evaluate it. You can do this by hitting the "play" button in the tool bar, by selecting "Run Cells" in the "Cell" menu, or by pressing Shift-Enter. When you evaluate the cell, the result of the evaluation will be shown below the input part of the cell and a new cell will be created below, see [@fig:hello-world-jupyter-notebook].
-
-!["Hello, world" in a notebook.](figures/hello-world-jupyter-notebook){#fig:hello-world-jupyter-notebook}
-
-When you evaluate the cell, you will notice that "In [ ]: " changes to "In [1]: ". The number here, one, indicates that it is the first cell you evaluated. The cells in a notebook are evaluated when you explicitly choose to evaluate them, and each time a cell is evaluated the number is increased. You can see, from the numbers to the left of the code input, the order in which cells have been evaluated.
-
-This isn't really ideal. You would expect code to be evaluated in the order you read it, so from top and down. This isn't how Jupyter does it, though; you have to explicitly evaluate cells you want evaluated (which is probably a good thing since you don't have to evaluate cells that are not modified and might take a while to run) and you can do this in any order you want (which is probably a bit risky since it doesn't take into account possible dependencies between the cells).
-
-If the dependencies and order in which you evaluate cells start to confuse you, you can restart the notebook and reevaluate all the cells in order. Just go to the "Kernel" menu and select "Restart & Run All".
-
-When you evaluate a cell, any output you print will be shown below the input code. In addition, unless the last expression in a cell evaluate to `None`, a special value in Python that indicate nothingness, the result of the final expression will also be printed. In the "hello, world!", example above, the last (and only) expression was the `print` command, and this command returns `None`, so no value was printed. The "hello, world!" that was printed in the cell was the side effect of printing; it wasn't the *result* of the print expression. To see the difference, try putting just the string `"hello, world!"` in the next cell and evaluate it (see [@fig:hello-world-jupyter-notebook-2]).
-
-!["Hello, world", printing and evaluating.](figures/hello-world-jupyter-notebook-2){#fig:hello-world-jupyter-notebook-2}
-
-The result appear similar to the print cell, but you have "Out[2]: " to the left of the `"hello, world!"` output, and that output is in quotes. The "Out[2]: " tells us that this is the result we get from evaluating the cell (the number is the same as the "In[2]: " number the cell got when we evaluated it). The string `"hello, world!"` is an expression that evaluates to the string itself, and because this string is not `None`, Jupyter displays it.
-
-We will not make much of a distinction between printing values or displaying them by default when they are the result of the last expression in a cell we evaluate, but when you are working with code in a notebook, you might find it helpful to simply evaluate expressions in cells and see what Python thinks the look like.
-
-## Using a Jupyter Notebook
-
-The simplest way you can use Python is as a calculator. You can write arithmetic expressions in a code cell and evaluate it to get the result.
-
-Create a new notebook. This will open a new page with a single cell. Put
+The simplest way you can use Python is as a calculator. 
 
 ```python
 2 + 2
 ```
 
-into that cell and then press Shift-Enter You should get
-
     4
 
-below the cell, and a new cell after that. In that cell, try typing
 
 ```python
 3 * 5
 ```
 
-and press Shift-Enter again. This time you should get
-
     15
 
-below the cell.
 
-If you go back to the first cell and change the expression to
+## Programming in Python
 
-```python
-2 + 4
-```
+**FIXME: Editor**
 
-instead, and press Shift-Enter. Now you should see the output change to 6 and the focus will be on the second cell. If you go back to the first cell again and press Alt-Enter instead, you also get 6 as the answer to the expression, but you will also insert a new cell below the answer. The difference between using Shift-Enter and Alt-Enter is that the former only evaluate a cell while the latter inserts a new cell below the answer.
-
-There are different kinds of cells in a Notebook. The ones you have right now are *code cells*. These are the cells you use to write Python commands in. The other two types are *Markdown* and *Raw NBConvert*. You can change the type of a cell by going to the **Cell** menu, pick the **Cell Type** sub-menu, and then the type you want.
-
-The *Raw NBConvert* type has a weird name, but it is a cell type that just lets you write raw text. You can try to make a new cell and change the type to *Raw NBConvert* and write something in it. If you evaluate the cell, Jupyter will just leave it as it is.
-
-The *Markdown* cell type also lets you write text, as opposed to code, but in this cell type you can get the text formatted. Markdown is a markup language—the name Markdown is a pun based on markup—which means that it is text where a few special characters lets you modify how the text is displayed. For example, if you put `*` before and after a word, that word will be displayed as italic, while if you put `**` before and after a word, that word will be shown in boldface. 
-
-Try creating a Markdown cell and write
-
-	This is *a* **very** important text.
-
-into it and evaluate the cell. The result is just the text you wrote, but with `a` in italic and `very` in boldface.
-
-Markdown has nothing to do with Python, and we will not use it much in this book. It is used in Notebooks because it allows you to document what you are doing interleaved with the code you actually execute when you are solving a problem.
-
-This chapter is focused on the Python programming language, so you don’t need to worry about Markdown for most of it. You can live a happy life as a Python programmer without ever using Markdown, or Jupyter Notebooks, for that matter. Most Python programmers do not use either. If you write programs that people can call on a command line, or if you write software packages that can be reused in multiple projects, you will not use Notebooks. The purpose of Notebooks is to have self-contained documents that describe an analysis and contain the code used in that analysis. Notebooks are very useful for data analysis; if you want to develop reusable software instead, you will not use Notebooks. Notebooks are for data scientists doing data analysis, not so much for programmers developing new software.
-
-I have chosen to use Jupyter in this book under the assumption that most readers will be interested in using programming to solve problems that they run into while working on a scientific problem—where “scientific” should be considered in a very broad sense. Programming is useful for anyone who has to analyse data of any substantial size, in natural sciences, statistics, economics, social sciences—whenever you have problems of a quantitative nature. Most people that program these days use programming to solve problems in their own field. It is no longer the domain of computer scientists alone. If you are a data scientist, that is, you need to manipulate data and compute on it to solve problems in your own domain of work, then using Notebooks is most likely the best approach. So it is a good place to start, if you are new to programming, and I have made all the programming exercises available as Jupyter Notebooks that you can download and use to do the exercises in.
-
-Towards the end of the book, I will briefly cover a few topics for when you want to reuse code in multiple projects, of when you want to distribute your code for others to use. You might never find the need for this, but if you do, it is covered at the end of the book.
-
-Before you start worrying about packaging up software and writing larger programs, though, you need to get familiar with programming, and in the following sections I will give you a quick introduction to how to program in Python. I will only cover the very basics, and leave some programming topics for later chapters.
-
-## Expressions in Python
+### Expressions in Python
 
 We have already seen how we can evaluate simple arithmetic expressions in Python. The arithmetic binary operators `+`, `-`, `*` and `/`, works as you would expect them to, as does the unary `-`. That is,
 
@@ -410,11 +329,7 @@ NameError: name 'b' is not defined
 
 [^assign_to_multiple_variables]: There is a kind of exception to this. You can assign to two variables at once by writing, for example, `a = b = 2`. This will assign two to both `a` and `b`, and it looks like `a` is assigned the result of `b = 2`. This isn’t what happens. The assignment `b = 2` does not evaluate to a value—it is not an expression. You can see this if you try to do something like `a = (b = 2) + 1`. If `b = 2` would assign two to `b` and return `2`, then we would be assigning three to `a`. In some languages, this is what happens. In Python, you will get an error. You can assign the same value to multiple variables with this syntax, but the result of an assignment is not a value.
 
-You create variables by assigning to them, and after that, they will hold the last value you assigned to them. One thing that often cause problems for new users of Jupyter Notebooks is that the last value assigned to a variable depends on the last cell you evaluated. Cells are not evaluated from top to bottom, unless you explicitly ask for that. You can do that by going to the **Cell** menu and choose **Run All**. If you evaluate individual cells, the variables hold the last value you assigned to them. If you haven’t evaluated any cells since the `a = 2` cell you evaluated before, you can go back to the first `2 + a` and evaluate it. This will change its output from three to four. Because `a` now holds the value two—the last you assigned to it—and not the value one that it had the first time you assigned to it.
-
-This issue is not a problem outside of Notebooks. If you make a Python file—we get to those at the end of the book—the problem  of evaluation order is somewhat alleviated. It is not as clear as just from top to bottom, as it will be for now if you evaluate all cells in turn. But it is consistent between each time you evaluate a program. With Notebooks, you have to be careful about evaluating cells that update variables. If you see something unexpected, I suggest you try evaluating all cells to see if that is the issue.
-
-You can assign to as many variables as you want, and variables can have any name that consist of letters, numbers and underscore, except that they cannot start with a number. Everywhere you can put an expression, you can also put a variable. The effect will be the same as if you inserted the expression you assigned to the variable instead of the variable.
+You create variables by assigning to them, and after that, they are names that refer to the objects you assigned to them.You can assign to as many variables as you want, and variables can have any name that consist of letters, numbers and underscore, except that they cannot start with a number. Everywhere you can put an expression, you can also put a variable. The effect will be the same as if you inserted the expression you assigned to the variable instead of the variable.
 
 ```python
 a = 1 + 2
@@ -488,7 +403,3 @@ and you get the same result. Which you prefer is a matter of taste. If you need 
 ## Conditional statements
 
 ## Loops
-
-## A quick guide to Markdown and Literate Programming
-
-## I don’t want to use a fancy Notebook, what can I do?
