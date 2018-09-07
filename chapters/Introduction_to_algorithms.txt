@@ -301,8 +301,6 @@ The last example is a bit more complicated than the previous two, but usually, c
 
 The following exercises test that have understood algorithms and algorithmic design in sufficient detail to reason about termination and correctness and that you have enough experience with Python programming to implement simple sequential (also known as iterative) algorithms.  Here, by sequential, I only mean that the algorithms iterate through one or more loops to achieve their goal.
 
-For the exercises, we need some code for picking random numbers and for validating user input. That code is listed below. You do not need to understand it to do the exercises, but you do need to evaluate this code before the exercises can run.
-
 ```python
 from numpy.random import randint
 
@@ -337,20 +335,30 @@ The following program implements this game for the case where the computer picks
 
 
 ```python
+# This is code for picking a number. You don't need
+# to understand it but can just go to the loop below.
+from numpy.random import randint
+def input_integer(prompt):
+    while True:
+        try:
+            inp = input(prompt)
+            i = int(inp)
+            return i
+        except:
+            print(inp, "is not a valid integer.")
+
 # When picking a random number, we specify the interval
 # [low,high). Since high is not included in the interval, 
 # we need to use 1 to 21 to get a random number in the
 # interval [1,20].
 n = randint(1, 21, size = 1)
-
-# Now, repeat guessing until we get the right number.
-guess = input_integer("Make a guess. ")
+guess = input_integer("Make a guess> ")
 while guess != n:
     if guess > n:
         print("Your guess is too high!")
     else:
         print("Your guess is too low!")
-    guess = input_integer("Make a guess. ")
+    guess = input_integer("Make a guess> ")
 print("You got it!")
 ```
 
@@ -367,6 +375,22 @@ Here are three different strategies you could use to guess the number:
 If you do not lie to the computer when it asks you about its guess compared to the number you are thinking of, this program implements the first strategy:
 
 ```python
+# This is code for picking a choice. You don't need
+# to understand it but can just go to the loop below.
+def input_selection(prompt, options):
+    """Get user input, restrict it to fixed options."""
+    modified_prompt = "{} [{}]: ".format(
+        prompt.strip(), ", ".join(options)
+    )
+    while True:
+        inp = input(modified_prompt)
+        if inp in options:
+            return inp
+        # nope, not a valid answer...
+        print("Invalid choice! Must be in [{}]".format(
+            ", ".join(options)
+        ))
+
 for guess in range(1,21):
     result = input_selection(
         "How is my guess {}?".format(guess),
@@ -396,7 +420,7 @@ One algorithm that solves this problem is known as the *Babylonian method* and i
 
 ![Bounds for where to find $\sqrt{S}$ depending on where $x$ lands.](figures/Babylonian-method-range){#fig:babylonian-method-range}
 
-To see that this is so, consider the case where $x>\sqrt{S}$ and therefore $x^2>S$. This inequality naturally also implies that $S/x^2 < x^2/x^2$, and from this we derive $S=S\frac{x^2}{x^2}>S\frac{S}{x^2}=\left(\frac{S}{x^2}\right)^2$, i.e., $S/x<\sqrt{S}$. The other case is proven similarly.
+To see that this is so, consider the case where $x>\sqrt{S}$ and therefore $x^2>S$. This inequality naturally also implies that $S/x^2 < x^2/x^2$, and from this we derive $S=S\frac{x^2}{x^2}>S\frac{S}{x^2}=\left(\frac{S}{x}\right)^2$, i.e., $S/x<\sqrt{S}$. The other case is proven similarly.
 
 Because of this, if we start out knowing nothing about $\sqrt{S}$, it could be anywhere between $0$ and $S$, so we can make an initial guess of some $x_0$, $0<x_0<S$. If $|S-x|<\epsilon$, then $x_0$ is an acceptable output and we are done. If not, we know that $\sqrt{S}$ lies in the interval $(x/S,x)$ (if $x^2>S$) or in the interval $(x,x/s)$ (if $x^2<S$), and we can make a new guess inside that interval.
 

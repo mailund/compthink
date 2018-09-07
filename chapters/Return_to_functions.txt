@@ -1,5 +1,5 @@
 # A return to functions {#sec:return-to-functions}
 
-## Nested functions and closures
+## Nested functions and closures {#sec:closures}
 
 ## Thunks and trampolines {#sec:thunks_and_trampolines}

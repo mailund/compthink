@@ -12,7 +12,6 @@ Now, without further ado, I present my solutions.
 
 Here are three different strategies you could use to guess the number:
 1. Start with 1. If it isn't the right number, it has to be too low--there are no smaller numbers the right one could be. So if it isn't 1, you guess it is 2. If it isn't, you have once again guessed too low, so now you try 3. You continue by incrementing your guess by one until you get the right answer.
-
 2. Alternatively, you start at 20. If the right number is 20, great, you got it in one guess, but if it is not, your guess must be too high--it cannot possibly be too small. So you try 19 instead, and this time you work your way down until you get the right answer.
 3. Tired of trying all numbers from one end to the other, you can pick this strategy: you start by guessing 10. If this is correct, you are done, if it is too high, you know the real number must be in the interval $[1,9]$, and if the guess is too low, you know the right answer must be in the interval $[11,20]$--so for your next guess, you pick the middle of the interval it must be. With each new guess, you update the interval where the real number can be hidden and pick the middle of the new interval.
 
@@ -95,21 +94,17 @@ In each iteration, we update the interval in which we know $\sqrt{S}$ resides by
 **Exercise:** Implement and test this algorithm.
 
 ```python
-def babylonian_sqrt(S, epsilon):
-    lower_bound = 0
-    upper_bound = S
-    x = upper_bound / 2
-    while (upper_bound - lower_bound) > epsilon:
-        x = (lower_bound + upper_bound) / 2
-        if x**2 > S:
-            lower_bound = S/x
-            upper_bound = x
-        else:
-            lower_bound = x
-            upper_bound = S/x
-    return x
-
-babylonian_sqrt(2, 1e-5)
+lower_bound = 0
+upper_bound = S
+x = upper_bound / 2
+while (upper_bound - lower_bound) > epsilon:
+    x = (lower_bound + upper_bound) / 2
+    if x**2 > S:
+        lower_bound = S/x
+        upper_bound = x
+    else:
+        lower_bound = x
+        upper_bound = S/x
 ```
 
 
