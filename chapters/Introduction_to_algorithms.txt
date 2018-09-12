@@ -408,7 +408,7 @@ for guess in range(1,21):
 When iterating from 20 and down, for the second strategy, you should always get the result `"high"` when you ask about your guess, so you can use a `for` loop and not worry about the actual result form `input_selection`. When you implement strategy number three, however, you need to keep track of a candidate interval with a lower bound, initially 1, and an upper bound, initially 20. When you guess too high, you should lower your upper bound to the value you just guessed minus one (no need to include the guess we know is too high). When you guess to low, you must increase your lower bound to the number you just guessed plus one. In both cases, after updating the interval, you should guess for the middle point in the new range. When you compute the middle value in your interval, you can use 
 
 ```python
-guess = int(upper_bound + lower_bound) / 2)
+guess = (upper_bound + lower_bound) // 2
 ```
 
 
@@ -455,7 +455,7 @@ Lists are representations of ordered sequences of elements. These exercises invo
 
 When we write a number such as 123 we usually mean this to be in base 10, that is, we implicitly understand this to be the number $3 \times 10^0 + 2 \times 10^1 + 1 \times 10^2$. Starting from the right and moving towards the left, each digit represents an increasing power of tens. The number *could* also be in octal, although then we would usually write it like $123_8$. If the number were in octal, each digit would represent a power of eight, and the number should be understood as $3\times 8^0 + 2 \times 8^1 + 3 \times 8^2$.
 
-Binary, octal and hexadecimal numbers--notation where the bases are 2, 8, and 16, respectively--are frequently used in computer science as they capture the numbers you can put in one, three and four bits. The computer works with bits, so it naturally speaks binary. For us huumans, binary is a pain because it requires long sequences of ones and zeros for even relatively small numbers, and it is hard for us to readily see if we have five or six or so zeroes or ones in a row.
+Binary, octal and hexadecimal numbers—notation where the bases are 2, 8, and 16, respectively—are frequently used in computer science as they capture the numbers you can put in one, three and four bits. The computer works with bits, so it naturally speaks binary. For us humans, binary is a pain because it requires long sequences of ones and zeros for even relatively small numbers, and it is hard for us to readily see if we have five or six or so zeroes or ones in a row.
 
 Using octal and hexadecimal is more comfortable for humans than binary, and you can map the digits in octal and hexadecimal to three and four-bit numbers, respectively. Modern computers are based on bytes (and multiples of bytes) where a byte is eight bits. Since a hexadecimal number is four bits, you can write any number that fits into a byte using two hexadecimal digits rather than eight binary digits. Octal numbers are less useful on modern computers, since two octal digits, six bits, are too small for a byte while three octal digits, nine bits, are too larger. Some older systems, however, were based on 12-bits numbers, and there you had four octal numbers. Now, octal numbers are merely used for historical reasons; on modern computers, hexadecimal numbers are better.
 
@@ -482,8 +482,7 @@ digits[15] = 'F'
 To get the last digit in a number, in base $b$, we can take the division rest, the modulus, and map that using the `digits` table:
 
 ```python
-def get_last_digit(i, b):
-    return digits[i % b]
+digits[i % b]
 ```
 
 Try it out.
@@ -543,8 +542,6 @@ x = [12, 45, 32, 65, 78, 23, 35, 45, 57]
 ```
 
 **Exercise:** Design an algorithm that finds the longest sub-sequence `x[i:j]` such that consecutive numbers are increasing, i.e. `x[k] < x[k+1]` for all `k` in `range(i,j)`  (or one of the longest, if there are more than one with the same length).
-
-*Hint:* One way to approach this is to consider the longest sequence seen so far and the longest sequence up to a given index into `x`. From this, you can formalise invariants that should get you through.
 
 ### Compute the powerset of a set
 
