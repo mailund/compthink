@@ -10,4 +10,3 @@ for i in range(1,len(x)):
 		j -= 1		
 
 print(x)
-
