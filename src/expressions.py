@@ -1,6 +1,5 @@
 
 
-
 def evaluate(expr):
 	expr_list = expr.split()
 	val, idx = evaluate_rec(expr_list, 0)

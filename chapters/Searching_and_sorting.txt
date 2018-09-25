@@ -433,7 +433,17 @@ This doesn’t change the running time of the algorithm but reduces the memory u
 
 If $m\in O(n)$, this means we have a linear time sorting algorithm. Since we cannot sort any list of $n$ elements without at least looking at each key, this is an optimal algorithm—you cannot possibly sort $n$ elements in time $\omega(n)$, and we sort them in $\Theta(n)$. This doesn’t contradict that sorting $n$ elements using comparisons takes time $\Omega(n\log n)$, because we do not rely on comparisons. The algorithm only works when our keys are positive integers bounded by $m\in O(n)$. Comparison sorting is more general than that and therefore a harder problem to solve.
 
-**Exercise:** Argue why the inner loop when we collect results only executes $n$ times.
+**Exercise:** Argue why the inner loop in
+
+```python
+result_keys, result_values = [], []
+for key in range(m):
+	for val in buckets[key]:
+		result_keys.append(key)
+		result_values.append(val)
+```
+
+only executes $n$ times.
 
 **Exercise:** Argue why the bucket sort actually sorts the input.
 
@@ -711,9 +721,6 @@ In two’s complement $n$-bit words we can represent the integer range $-2^{n-1}
 In two's complement, positive numbers have 0 at the most significant bit, and negative numbers have 1 at the most significant bit. This looks like a sign bit but isn't exactly. There is only one zero, the bit-pattern with all bits set to zero. If only the most significant bit is set, this is not interpreted as negative zero, but rather the smallest negative number we can represent. 
 
 With four bits, the largest positive number we can represent is 0111, or 7 in decimal. We cannot represent 8; that would put a one-bit in the fourth position, and such a number we would consider negative. We can represent -8, however; it will be the bit-pattern 1000. The positive number 8 does require four bits to represent, and it would be since this is 1000. The negation of this is 0111, and if we add one to it, we get 1000, which is -8 in two’s complement. We end up with the same bit pattern as the unsigned value for the positive number, but we interpret the bit pattern differently.
-
-
-**Exercise:** Show that with this representation, if you take the numbers $-n,-n+1,\ldots,-1,0$ and sort them as binary numbers, you get a reversed sort of the negative numbers. This is why, if we do radix sort of signed integers by extracting $k$-bit sub-keys and sort this as unsigned integers, the negative numbers get sorted in reverse order. Because negative numbers will have the most significant bit set to one, while positive numbers will have it set to zero, the negative numbers will end up at the end of such a sorted list.
 
 What makes two’s complement particularly smart is that we can do arithmetic with both positive and negative numbers using only rules for positive numbers. For example, to compute $a-b$ we can add the two’s complement representation of $a$ and $-b$ in binary modulo $2^n$, where $n$ is the number of bits we have. Modulo $2^n$ in binary means using the $n$ least significant bits, so any over-flow of bits are simply ignored.
 
