@@ -41,11 +41,11 @@ PANDOC_PDF_OPTS := $(PANDOC_OPTS_ALL) \
                     --variable links-as-notes \
                     --variable secnumdepth=section \
                     --toc-depth=2 \
-                    --template=templates/latex-template.tex
+                    --template=templates/7x10.tex
 
 all: book.pdf wc
 
-book.pdf: $(SOURCE_CHAPTERS) Makefile templates/latex-template.tex
+book.pdf: $(SOURCE_CHAPTERS) Makefile templates/7x10.tex
 	$(PANDOC) $(PANDOC_PDF_OPTS) $(SOURCE_CHAPTERS) -o $@
 
 wc: $(SOURCE_CHAPTERS)
