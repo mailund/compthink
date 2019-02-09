@@ -22,6 +22,8 @@ CHAPTERS := 000_header.yml \
               Conclusions.txt \
               Solutions.txt
 
+CHAPTERS := 000_header.yml \
+              Functions.txt \
 
 #CHAPTERS := 000_header.yml \
 #              Recursion.txt \

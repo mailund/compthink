@@ -184,10 +184,9 @@ In each iteration, we locate the index of the smallest element in the range $[i,
 Implemented in Python, the algorithm looks as follows:
 
 ```python
-infinity = float("inf")
-for i in range(len(x) - 1):
+for i in range(len(x)):
 	# find index of smallest elm in x[i:]
-	min_idx, min_val = 0, infinity
+	min_idx, min_val = i, x[i]
 	for j in range(i, len(x)):
 		if x[j] < min_val:
 			min_idx, min_val = j, x[j]
@@ -623,9 +622,9 @@ For providing a handle into a search function, of the two approaches, providing 
 We can easily implement sorting algorithms that use a `key_fun` function. Selection sort will look like this:
 
 ```python
-infinity = float("inf")
 for i in range(len(x)):
-    min_idx, min_val, min_key = 0, None, infinity
+	  # find index of smallest elm in x[i:]
+	  min_idx, min_val, min_key = i, None, x[i]
     for j in range(i, len(x)):
         if key_fun(x[j]) < min_key:
             min_idx, min_val, min_key = j, x[j], key_fun(x[j])        
