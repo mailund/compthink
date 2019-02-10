@@ -1,0 +1,57 @@
+# Dynamic programming
+
+In this chapter we return to recursion. We have already seen how recursion is a powerful tool for both programming and algorithmic design, i.e., divide and conquer. But you will not be surprised to learn that not all recursive programs are efficient.
+
+Consider the factorial function and the Fibonacci  numbers from [Chapter @sec:recursion]. We implemented the factorial function (without tail-recursion) this way:
+
+```python
+def factorial(n):
+	if n == 1:
+		return 1
+	else:
+		return n * factorial(n - 1)
+```
+
+We can implement a function that computes the $n$’th Fibonacci number, $F(n)$, like this:
+
+```python
+def fib(n):
+    if n <= 1:
+        return 1
+    else:
+        return fib(n - 1) + fib(n - 2)
+```
+
+They might look very similar, but if we consider the running time for computing $n!$ versus $F(n)$, we will see a *huge* difference.
+
+**FIXME: show graph of running time**
+
+To compute $n!$ we need to compute $(n-1)!$, and to compute $(n-1)!$ we need to compute $(n-2)!$ and so forth. In each function call we make *one* recursive call. So, to compute $n!$ we need a linear number of recursive calls.
+
+Consider now $F(n)$. To compute $F(n)$ we need to make two recursive calls, $F(n-1)$ and $F(n-2)$. Then, to compute $F(n-1)$ we also need two recursive calls, $F(n-2)$ and $F(n-3)$ and we also need to make two recursive calls to compute $F(n-2)$: $F(n-3)$ and $F(n-4)$. In each call to $F(n)$, except when $n$ is zero or one, we need to make two recursive calls.
+
+ In [Chapter @sec:divide-and-conquer] we saw several divide and conquer algorithms that also branched into two sub-problems at each level, but those sub-problems were half the size of the original problem. For $F(n)$, the two recursive calls are roughly the same size as $F(n)$.
+ 
+ To get from $n$ to a base case, we need  to evaluate one expression with recursion depth of $n-1$ and one with recursion depth $n-2$. Ignoring that we hit a base case earlier when we compute $F(n-2)$ compared to when we compute $F(n-1)$, we are not far off if we say that evaluating $F(n)$ requires two evaluations of $F(n-1)$, which requires two evaluations of $F(n-2)$, and so forth. At each recursive level, we have twice as many computations to make. So, with this approximation, the running time is around $2^n$. 
+ 
+ **FIXME: illustration of this**
+ 
+ If we take a non-recursive approach, we can compute $F(n)$ in linear time:
+ 
+ ```python
+ def fib(n):
+    if n <= 1:
+        return 1
+    fibn1, fibn = 1, 1
+    for i in range(1,n):
+        fibn1, fibn = fibn, fibn + fibn1
+    return fibn
+```
+ 
+The Python code looks different from the recursive definition of Fibonacci numbers, but you can convince yourself that it computes the same number.
+
+**Exercise:** Convince yourself of this.
+
+The reason that we can compute a number that, on the face of it, looks like it requires on the order of $2^n$ computations, is that the recursive calls compute the same values over and over again.
+
+**FIXME: CONTINUE HERE**

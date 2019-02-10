@@ -1,4 +1,4 @@
-# Recursion
+# Recursion {#sec:recursion}
 
 In this chapter, we consider an immensely powerful technique for solving problems: *recursion*. Recursion involves recognising that a problem really consists of the same kind of problem, just on a smaller scale. For example, to sort $n$ elements, we can first find the smallest, then sort all the others and put them after the smallest. This is, in its essence, what selection sort does, we just didn't explain it in these terms. When we do describe the algorithm like this, the recursive part is that we sort all but the smallest object as part of sorting all the items. To sort $n$ elements, we need to sort $n-1$. This is what recursion is.
 

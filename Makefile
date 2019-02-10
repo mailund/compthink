@@ -13,6 +13,7 @@ CHAPTERS := 000_header.yml \
               Divide_and_conquer.txt \
               Return_to_functions.txt \
               Return_to_sorting.txt \
+              Dynamic_programming.txt \
               Stacks.txt \
               Set_sequences_maps.txt \
               Trees_and_graphs.txt \
@@ -22,11 +23,12 @@ CHAPTERS := 000_header.yml \
               Conclusions.txt \
               Solutions.txt
 
-CHAPTERS := 000_header.yml \
-              Functions.txt \
-
 #CHAPTERS := 000_header.yml \
-#              Recursion.txt \
+#              Functions.txt \
+
+CHAPTERS := 000_header.yml \
+              Recursion.txt \
+              Dynamic_programming.txt \
 
 
 SOURCE_CHAPTERS := $(foreach chapter,$(CHAPTERS),chapters/$(chapter))
@@ -40,6 +42,7 @@ PANDOC_OPTS_ALL :=  --standalone --toc -f markdown+smart \
 
 PANDOC_PDF_OPTS := $(PANDOC_OPTS_ALL) \
                     --default-image-extension=pdf \
+                    --highlight-style monochrome \
                     --variable links-as-notes \
                     --variable secnumdepth=section \
                     --toc-depth=2 \
