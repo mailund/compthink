@@ -1,64 +1,37 @@
 
 
-# Full
-CHAPTERS := 000_header.yml \
-		      Introduction_to_computation.txt \
-		      Introducing_Python.txt \
-              Introduction_to_algorithms.txt \
-              Algorithmic_complexity.txt \
-              Searching_and_sorting.txt \
-              Functions.txt \
-              Recursion.txt \
-              Parsers_and_languages.txt \
-              Divide_and_conquer.txt \
-              Return_to_functions.txt \
-              Return_to_sorting.txt \
-              Dynamic_programming.txt \
-              Stacks.txt \
-              Set_sequences_maps.txt \
-              Trees_and_graphs.txt \
-              Pythons_data_model.txt \
-              Testing.txt \
-              Python-vm.txt \
-              Conclusions.txt \
-              Solutions.txt
-
-#CHAPTERS := 000_header.yml \
-#              Functions.txt \
-
-CHAPTERS := 000_header.yml \
-              Recursion.txt \
-              Dynamic_programming.txt \
-
-
-SOURCE_CHAPTERS := $(foreach chapter,$(CHAPTERS),chapters/$(chapter))
-
 PANDOC := pandoc
 
-PANDOC_OPTS_ALL :=  --standalone --toc -f markdown+smart \
-                    --top-level-division=chapter \
-                    --filter pandoc-crossref \
-                    --filter pandoc-citeproc
+# --filter ulysses-figure-labels \
 
-PANDOC_PDF_OPTS := $(PANDOC_OPTS_ALL) \
+PANDOC_OPTS :=      --standalone --toc -f markdown+smart \
+                    --top-level-division=chapter \
+										--filter py2-ulysses-figure-labels \
+										--filter pandoc-crossref \
+                    --filter pandoc-citeproc \
                     --default-image-extension=pdf \
                     --highlight-style monochrome \
                     --variable links-as-notes \
                     --variable secnumdepth=section \
                     --toc-depth=2 \
-                    --template=templates/7x10.tex
+                    --template=templates/7x10.tex \
+										--resource-path=book
 
-all: book.pdf wc
+all: book.pdf
 
-book.pdf: $(SOURCE_CHAPTERS) Makefile templates/7x10.tex
-	$(PANDOC) $(PANDOC_PDF_OPTS) $(SOURCE_CHAPTERS) -o $@
+#test.md: book/index.md 000_header.yml Makefile templates/7x10.tex
+#	$(PANDOC) --filter ulysses-figure-labels 000_header.yml book/index.md -o $@
 
-wc: $(SOURCE_CHAPTERS)
-	wc -w $(SOURCE_CHAPTERS)
+#book1.pdf: test.md 000_header.yml Makefile templates/7x10.tex
+#		$(PANDOC) $(PANDOC_OPTS) 000_header.yml test.md -o $@
 
-refs: $(SOURCE_CHAPTERS)
-	grep -ho '{#.*:.*}' chapters/*.txt
-	egrep -ho '\[@.*:*?\]' chapters/*.txt
+book.pdf: book/index.md 000_header.yml Makefile templates/7x10.tex
+	$(PANDOC) $(PANDOC_OPTS) 000_header.yml book/index.md -o $@
+
+
+refs: book/index.md
+	grep -ho '{#.*:.*}' book/index.md
+	egrep -ho '\[@.*:*?\]' book/index.md
 
 clean:
-	rm book.pdf book.epub
+	rm book.pdf

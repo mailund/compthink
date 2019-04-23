@@ -1,1 +1,0 @@
-# Python’s data model {#sec:data-model}

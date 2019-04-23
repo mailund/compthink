@@ -1,0 +1,569 @@
+# Introduction to algorithms
+
+We briefly discussed what we mean by *algorithms* in the introduction, but perhaps it bears repeating; algorithms are recipes for solving a specific computational problem. They describe the steps you (or rather your computer) must take to get from input to output and should guarantee you that if you follow the instructions exactly, you will 1) finish after a finite number of steps and 2) your output will be a solution to the problem they should solve, given the input you had.
+
+If you think I’m being pedantic with 1), consider this program:
+
+```python
+x = 0
+while True:
+    x += 1
+```
+
+It computes the largest possible integer—or rather, it would if it ever finished computing. It runs forever, increasing `x` by one in each iteration of the loop, but, of course, it will never finish. Theoretically, at least, eventually the computer executing the program will break down and stop running, but if the computer never breaks, it will keep running this program forever. This is not an algorithm because it takes an infinite number of steps to finish.
+
+When we design an algorithm, the first goal is to make sure that we actually develop a proper *algorithm*. That means that steps we describe in solving a problem must be finite and actually solve the problem. We say that an algorithm *terminates* if it finishes computing in a finite number of steps (and it isn’t a proper algorithm if it doesn’t). If it also computes the right answer, we say that it is *correct*. When we design an algorithm, we must ensure both properties, which usually means proving them mathematically. With experience, you can get a little lax in formally proving this for simple algorithms, but as soon as your algorithm gets sufficiently complicated, you will revert to formal proofs, and as a beginner, it pays to do this for simple algorithms as well.
+
+We could describe this as the algorithm for checking an algorithm:
+
+```
+Check if it terminates.
+If so, check if it is correct.
+```
+
+This, funny enough, is not an algorithm, even if I have seen it described as such a few places. Of course, there aren’t sufficient details to see how we would execute either step, but the first step cannot be solved by any algorithms at all. It is beyond this book to show you why, but there are problems that cannot be solved on any computer ever constructed, in the past or in the future, and checking if a given algorithm, however you choose to encode it as input to the computer, will terminate on any specific input is one such problem. It is known as the [*halting problem*](https://en.wikipedia.org/wiki/Halting_problem), since we also use the term *halt* for *terminates* when we consider more fundamental aspects of computation.
+
+It is impossible to write a computer program—or generally design an algorithm—that can check these two properties of a suggested algorithm, but nevertheless, it is what you must do to show that your proposed solution to a problem is actually an algorithm. We cannot put up a formula for doing this, for very fundamental reasons, but some general techniques might help you with proving the properties. These techniques are useful when you already have proposed an algorithm, but they can often also guide you in coming up with this proposal in the first place. The first part of this chapter focuses on these techniques and how they can guide you in designing an algorithm, prove that it terminates, and prove that it is correct.
+
+Once we have an actual algorithm, we know how to solve the computational problem at hand. You can compute a solution to your problem in a finite number of steps. That number, however, can be enormous. In practice, there is little difference between a program that never finishes and one that will finish in a billion years. Knowing we can solve a problem in a finite number of steps is good, but we usually need more than that. We want to solve the problem in a reasonable time, where “reasonable” can depend on the problem at hand.
+
+We have ways of reasoning about the computational complexity of both problems and algorithms that abstract away details about the actual software and hardware the algorithm will be implemented in and run on. Those techniques are the topic for [Chapter @sec:algorithmic-efficiency]. These techniques let us compare different algorithms and decide which is best independently on how different low-level operations will be carried out on any particular computer and also give us some rough ideas about whether an algorithm will run in reasonable time on any computer system you have available.
+
+When we compare algorithms this way, we will say we compare their *efficiency*, and we generally go for efficient algorithms over inefficient algorithms, naturally, at least as long as we can implement either with roughly the same effort. We use algorithmic efficiency to determine how fast a given problem can be solved by a given algorithm.
+
+We can also compare problems this way, and when we do, we say that we compare the problems’ *complexity*. Some problems are intrinsically harder to solve than others. The halting problem, determining if a given algorithm will ever terminate on given input, is *undecidable*, meaning that no algorithm can solve it in general. That is a tough problem indeed. Other problems are known to be solveable but, as far as we know, any solution will take an unacceptably long time to do it. We call such problems *intractable*, and unfortunately, many of the problems we are interested in, in various disciplines, are in this category. Very many optimisation problems fall into this category. I did say “as far as we know” because for many of these problems we do not *know* if it is impossible to derive efficient solutions, and this is one of the most significant open questions in theoretical computer science, known as the [*P vs. NP problem*](https://en.wikipedia.org/wiki/P_versus_NP_problem).
+
+Figuring out how difficult different problems is a discipline of theoretical computer science known as *complexity theory*, and the topic is beyond this book. For this book, it is sufficient to know that it is possible to show that some problems need a certain number of steps to be solved. Where it is relevant, I will mention those bounds.
+
+For designing algorithms, we do not necessarily care so much about a problem’s complexity except for two reasons: we do not want to spend time attempting to find an efficient solution to a problem that does not have any efficient solutions. If we have a problem that is known to be intractable, we cannot solve it efficiently—or if we can, we have just solved the N vs. NP problem and should bask in the glory and fame rather than worry about the problem that led us there in the first place. If the problem is intractable as specified, we should try to rethink the problem instead. Figure out if a different problem would be equally interesting to solve. Surprisingly often, rephrasing a computational problem solves the underlying scientific problem equally well as the original phrasing, but changes the problem from being intractable to tractable. If we cannot do this, we can try to come up with algorithms that approximate a solution—they might not be the optimal solutions but can perhaps guarantee that they are within a certain fraction of optimal.
+
+The other case where we care about complexity is when we have a problem that is tractable, i.e., we know a lower bound of how fast it is possible to solve the problem, and it is not too terrible, and we want to design an algorithm that solves the problem within that bound. When we reason about algorithmic efficiency, we usually derive upper bounds for how fast (or slow) they will run, while when we reason about problem complexity, we derive lower bounds for how long all algorithms must run, at the very least, to solve the problem. If we can make these two ends meet, we have an optimal algorithm. We cannot make an even faster algorithm than what we already have. Not measured the way we measure efficiency and complexity, at least. In practice, theoretical running times can be misleading for actual running times, and often, a theoretically faster algorithm, but a more complex one can be slower on typical input than a more straightforward but theoretically slower one. At the end of the day, the efficiency of programs are measured by how long they run on actual data, so some experimentation is needed when you start implementing algorithms.
+
+Before we worry about algorithmic complexity and efficiency, however, we need to learn how to construct algorithms.
+
+## Designing algorithms
+
+We will explore the tricks for developing algorithms through an example. Consider this problem: You are in city $A$ and want to know if it is possible to get to city $B$ and to answer this question, you have a map available. The problem is a toy example of a real problem. No matter which pair of cities you can think of, you can get from one to the other. There are no city or set of cities that are entirely cut off from the rest of the world. But we could ask the question if it is possible to *drive* from city $A$ to city $B$—which isn’t possible for all pairs of cities in the world—and then we would have the same problem. Or we could ask if it is possible to get from the city $A$ to the city $B$ in less than three hours—in which case we have a slightly harder problem, but still a similar one. Or, we could even ask, what is the shortest route from $A$ to $B$—if we could solve that problem we could use it to solve all the others. Later, in [Chapter @sec:trees-and-graphs], we will see an efficient algorithm for solving the shortest route problem, but for now, we will only consider the first question: is it possible to get from $A$ to $B$?
+
+Consider the map in [@fig:simplified-map]. This is a simplification of a real map of roads between cities. We do not care about the actual landscape the roads pass through, only how cities are connected. So, in this map, we abstract cities to be nodes in a network, and we connect two cities by a line if there is a road between them. It is a simplification of a real map, but a simplification that might be familiar to you from subway maps, where the actual geography is usually not visualised, but the connection between stations is.
+
+![Simplified map we can use to determine if we can get from $A$ to $B$.](figures/simplified-map){#fig:simplified-map}
+
+We simplify the setup a little further by representing all cities as numbers instead of naming them. The cities with names $A$ and $B$ happens to be 0 and 13. The problem of is then  “is it possible to get from the city with index 0 to the city with index 13?”
+
+From the figure, you can probably immediately tell that city number 0 and city number 13 are connected (and by several routes), but this partly because the map is straightforward, containing few cities and partly because it is laid out in a way that makes it easy for your brain to detect the connections. With thousands or millions of connected towns and cities, it would not be so easy to see if two particular cities are connected. It would not be trivial for you to answer the question either if you got the information in the form that a computer would most likely get it. Our brains are very good at handling visual input, and you can intuitively answer the question on this small map. You probably cannot tell *how* you solve the problem; you just know the answer. You can train computers to “see” in some ways, but it is not the most straightforward approach to telling them about the connectedness of cities. Most likely, if we took that approach, they would run into the same limitations as our brains—they could answer the question for small and well laid out graphs but could not handle large graphs.
+
+The input we will give the computer is a list of the direct connections:
+
+```python
+roads = [
+	(0, 1), (0, 2), (0, 3),
+	(1, 4), (1, 5),
+	(2, 5), (2, 6),
+	(3, 6), (3, 7),
+	(4, 8),
+	(5, 9),
+	(6, 9),
+	(7, 10),
+	(8, 11),
+	(8, 12),
+	(9, 13),
+	(10, 13)
+]
+```
+
+The roads are represented as pairs of cities. In this example, the first city in a pair has an index that is smaller than the second city in the pair, but we do not mean to imply any order to the pair; if there is a road from $i$ to $j$, there is also a road from $j$ to $i$.
+
+From this list of pairs of cities, we want to design an algorithm that determines if the city at index 13 can be reached from the city at index 0.
+
+### A reductionist approach to designing algorithms
+
+The first and perhaps the most important lesson about designing algorithms is this: if you cannot see an immediate solution to your problem, try to break the problem into subproblems and see if you can solve these. This is generally a good recipe for solving any problems in life—and, incidentally, what recipes do. It might seem like an insurmountable task to cook a large dinner, but a dinner can be split into different dishes, and each dish is prepared in a number of smaller steps, and each of the smaller steps are manageable. When I write a book, I can’t attack the writing as a single task. I break the book into chapters, then chapters into sections, and sections into paragraphs and paragraphs into sentences.
+
+There must be some system to the madness of breaking down a problem into smaller steps. We should ensure that the smaller steps are easier to solve than it is to solve the full problem, and we should ensure that if we complete all the steps of the larger problem, we will have successfully solved the full problem. These two requirements are, not coincidentally, similar to the conditions we had for a recipe being an algorithm. When we break a problem into smaller steps, such that the smaller steps are more manageable, we are making a kind of progress, and this progress should lead us to termination; when we know that the steps, when all are taken, solves the original problem, we have a correct algorithm.
+
+In our original problem, we have the question of whether city 0 is connected to city 13, which we cannot immediately answer. What we can answer is whether two cities are neighbours—we merely run through the list of roads and check if there is one between the two cities. If we could reduce the first problem to the second, we would have a solution to our original problem.
+
+We won’t do precisely that, but instead do something that at first glance might look more complicated, but turns out to be easier to derive an algorithm for. We will work on a collection of sets; the sets contain cities we know are connected. The "collection", here, is a set, so we have a set of sets of cities. Before we analyse the roads, we only know that each city is connected to itself, so we start with a singleton set, one per city containing just that city. We then iterate through all the roads. Each road tells us about one connection between two cities. If the cities are already known to be connected, this doesn't tell us anything new, but if the two cities are in different sets, what we have is a new connection between all the cities in one set to all the cities in the other. All the cities in both sets must, therefore, be connected, so we merge the two sets. When we have seen all the roads, the sets we are left with are the sets of connected cities; if there is a connection from one city to another (and vice versa), then they two cities are in the same set, if there is not, they will be in separate sets. To solve our original problem, to determine whether city $A$ (number 0) is connected to city $B$ (number 13), we can now directly determine if 0 is in the same set as 13.
+
+ We will iterate through all the roads, and then we will separate cities into disjoint sets such that two cities are in the same set if and only if they are connected through any of the roads we have seen so far. If, when we have seen all the roads, index 0 and index 13 are in the same set, then we know there is a route from $A$ to $B$.
+
+An outline of the algorithm could look like this:
+
+1. Start with a set of singleton sets $S = \{ \{i\} \}$ for all cities $i$.
+2. for each road $(p,q)$ let $s_p$ and $s_q$ be the sets that that $p$ and $q$ belong to, respectively. Update $S$ to be $S - s_p - s_q + s_p \cup s_q$ where $- s_p - s_q$ means removing the sets that $p$ and $q$ belongs to and $+ s_p \cup s_q$ means adding the union of these two sets.
+3. Once all roads have been processed, check if $s_0 = s_{13}$.
+
+### Assertions and invariants
+
+Once we have an algorithm sketched out at the overall level, it is time to flesh out exactly what each step can expect from the preceding steps and what it must guarantee for those steps that come after it. Such requirements and promises are usually called *assertions*; the claims we make for what should be true *before* a step are called *pre-conditions*, and the claims that should be true *after* a step are called *post-conditions*. Pre- and post-conditions should match up so that the post-conditions of one step implies the pre-conditions of the following step; they need not be the same conditions, but the post-conditions of one step cannot be weaker than the pre-conditions of the next.
+
+To ensure that the algorithm works according to plan, we need each step to guarantee its post-conditions, which then allows each step to then assume that its pre-conditions are met. If the final post-condition says that the problem is solved, and the pre-condition is true for all input would need to apply the algorithm on, then we know that we have a correct algorithm.
+
+The essential property we want satisfied while we run our example algorithm is this: if the city $i$ and the city $j$ are connected through any of the roads we have seen so far, then $s_i=s_j$. There are other properties that we will leave implicit, such as $S$ being a set of disjoint sets of cities where all cities are represented. That is important as well, but we won’t make it an explicit condition in this example. We will instead focus on properties for how we represent sets and ensure that this representation guarantees that two cities are in the same set if they can be reached through the roads seen so far.
+
+There are many different ways to implement sets and many ways to implement their union. We will use a list. We represent our set $S$ as a list that holds a value for each city, $i$. This value is our representation of a set. If you can pick one element in a set as a representative of the set, and do so consistently, so the same set is always represented by the same value, then you can use that element to represent the set. For our sets, we will pick the city with the highest index. We will require the following: `S[i]` contains the largest index of a city, reachable from $i$, via the roads seen so far. Call this property $I(S, R)$ where $S$ is the set of sets and $R$ is the set of the roads I have seen so far. I use $I$ because I want it as an invariant, i.e., I want it always to be true. I won’t manage that * precisely*, but it will be true most of the time.
+
+Now, with this property about the set $S$, I will annotate the algorithm like this:
+
+1. Start with a set of singleton sets `S[i] = i` for all cities $i$.
+2. $\langle\, I(S, \emptyset) \,\rangle$
+3. For each new road $r=(p,q)$, let $R$ denote the roads we have seen so far.
+
+    3.1. $\langle\, I(S, R) \,\rangle$
+
+    3.2. Set $S$ to $S - s_p - s_q + s_p \cup s_q$ 
+
+    3.3. $\langle\, I(S, R\cup\{(p,q)\}) \,\rangle$
+
+4. $\langle\, I(S, R) \,\rangle$ where $R$ is the set of all our roads.
+5. Once all roads have been processed, check if `S[0] == S[13]`.
+
+For the initialisation in line 1 you can iterate through the cities and append their indices to a list, or you can create the right list succinctly like this:
+
+```python
+N = 14 # number of cities
+S = list(range(N))
+```
+
+The statements wrapped in angle-brackets ($\langle - \rangle$) are the assertions we make about the state of the algorithm. They are not part of the algorithm as such. We never consider them something the algorithm has to do, although we sometimes write code that checks if they are satisfied when debugging an algorithm. They help us guide the design of the algorithm and later they will help us prove correctness.
+
+Actually, we can prove correctness right now if we just assume that the steps between the assertions will satisfy them. The condition in line 2—a post-condition for the initialisation in line 1 but a pre-condition for the loop—ensures that we have the right set when we haven’t seen any nodes. The conditions in line 3.1 and 3.3 guarantees us that we update the set correctly for each new road we see, so we always know if two cities are connected via the roads seen so far. Finally, we know from line 4 that when we exit the loop, our set $S$ is a partition of cities that exactly matches which are reachable from each other, and thus, using the set we can answer the question of whether we can get from city 0 to city 13 in line 5.
+
+The conditions in lines 3.1 and 3.3 are the same except for 3.3 having processed one more road than 3.1. Often, we will lump such two conditions together and call it a *loop invariant*. We want loop invariants always to be true just before we execute a loop body and still to be true, in an updated form, when we finish running the loop body. If we focus on the loop, where the real work will be done, we have a pre-condition (for the loop) at line 2 and a post-condition at line 4. In between, we have the loop-invariant, lines 3.1 and 3.3. To get the algorithm to work correctly, we need to guarantee the following: 
+
+ * Before we enter the loop the pre-condition must be true and it must also imply that the loop-invariant is satisfied.
+ * As long as the loop invariant is satisfied before we execute the body of the loop, it must also be satisfied after we have completed the body.
+ * If the loop invariant is true when we exit the loop, then this must imply the post-condition for the loop.
+
+That the pre-condition guarantees the loop invariant before we process the first road, and that the loop invariant after we have processed the last road guarantees the post-condition, are almost trivial to see in this particular algorithm. Before the first road is processed, we have $R=\emptyset$ making conditions in lines 2 and 3.1 the same. After the last road, $(p,q)$, is processed, $R\cup\{(p,q)\}$ will be the set of all roads, making the condition on line 3.3 the same as the post-condition for the loop on line 4. If the step in line 3.2 updates $S$ correctly, by merging the sets on either side of the road $(p,q)$, then the loop invariant is satisfied after we have processed each road. Some details are missing in step 3.2, though, so we need to get those sorted out.
+
+To get the final piece of the problem into place, we consider the property $I(S,R)$ in more detail. It states that $S[i]$ should contain the highest index for cities that are connected to $i$. This means that, if $s_i$ is the set that contains $i$, then for all $j\in s_i$, $S[j]=S[i]$, because *all* cities in set $s_i$ points to the largest index in the set. This means that we can use the list `S` both to check if two sets are equal, but also to get all elements in a set. The set $s_i$ is represented by some index $k$ where `S[i] == k`. All other elements in the set are those $j$ with `S[j] == k`.
+
+When we want to merge the sets $s_p$ and $s_q$ when processing road $(p,q)$ we can first check if the sets are different in the first place. If `S[p] == S[q]`, the sets are already the same, and we do not need to do anything. If not, we need to first find the representative element for the union of the two. That will be `max(S[p],S[q])`. We then need to update all elements in $s_p$ and $s_q$ to point to this element.
+
+We can implement the loop like this:
+
+```python
+for p, q in roads:
+	rep_p = S[p]
+	rep_q = S[q]
+
+	if rep_p == rep_q:
+		continue # p and q are already connected
+
+	new_rep = max(rep_p, rep_q)
+	for i in range(N):
+		if S[i] == rep_p or S[i] == rep_q:
+			S[i] = new_rep
+```
+
+If we run this algorithm and print the content of `S` at each step, we will get this:
+
+```python
+# Initial state
+S = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+# Entering loop...
+S = [1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+S = [2, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+S = [3, 3, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+S = [4, 4, 4, 4, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+S = [5, 5, 5, 5, 5, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+S = [5, 5, 5, 5, 5, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+S = [6, 6, 6, 6, 6, 6, 6, 7, 8, 9, 10, 11, 12, 13]
+S = [6, 6, 6, 6, 6, 6, 6, 7, 8, 9, 10, 11, 12, 13]
+S = [7, 7, 7, 7, 7, 7, 7, 7, 8, 9, 10, 11, 12, 13]
+S = [8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 10, 11, 12, 13]
+S = [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 11, 12, 13]
+S = [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 11, 12, 13]
+S = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 12, 13]
+S = [11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 12, 13]
+S = [12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 13]
+S = [13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13]
+S = [13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13]
+# After loop
+S = [13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13]
+```
+  
+You can check yourself that the states during the algorithm satisfy the invariants. Just because the algorithm does the right thing on this example, however, doesn’t guarantee that it will work on all input. We need to prove that if the loop invariant is satisfied before executing the loop body, which is this code
+
+```python
+	rep_p = S[p]
+	rep_q = S[q]
+
+	if rep_p == rep_q:
+		continue # p and q are already connected
+
+	new_rep = max(rep_p, rep_q)
+	for i in range(N):
+		if S[i] == rep_p or S[i] == rep_q:
+			S[i] = new_rep
+```
+
+the loop invariant will also be satisfied after the body is executed, but with one more road processed. For this algorithm, proving that the loop invariant is satisfied is relatively simple. We know that the invariant is satisfied if the set of sets, $S$, is updated correctly, which means that all elements in $s_p$ and all elements in $s_q$ should now be in $s_p\cup s_q$, i.e., for all $i\in s_p$ and all $i\in s_q$, `S[i] = k` where $k$ is the representative for the set $s_p\cup s_q$. The loop (inside the outer-loop body) identifies all the cities we need to update and does the update. So we are good.
+
+Breaking down the steps we need to take to solve a problem, and then asserting what should hold true before and after any step, is a potent approach both for designing algorithms and proving their correctness. It is not necessarily easy, however. It might look simple when following the steps taken when I have written them down, but I had to work at getting just the right invariants in this example, and I already knew how the algorithm would work. When you don’t know what the final algorithm will look like, it gets more difficult. As with everything else in life, though, it gets easier with practice, so do not skip the exercises later in this chapter. In many of the algorithms, you need to come up with invariants to prove correctness, and in a few of the exercises, you also need to derive an algorithm from scratch.
+
+### Measuring progress
+
+When we loop, we do not necessarily know in advance how many steps we need for any given problem. When you use a `for`-loop, you iterate over a number of elements in a sequence, and the length of that sequence often depends on the input.
+
+Whenever we need an unknown number of steps to solve a problem, we have the issue of termination. To have a proper algorithm, we need to ensure that we only need a finite number of steps on any valid input. To ensure this, we want each step to take us closer to the final solution. If we can, somehow, associate a measure of progress towards the ultimate solution to each step, in such a way that we will always reach the solution and not merely move asymptotically towards it, then we can prove that our algorithm will eventually terminate.
+
+We usually do not worry about capturing the progress we make towards our goal outside of a loop. Computations we make outside of a loop are only ever done once, so there is no concern about them preventing termination. We usually do not worry about `for`-loops either, since in most cases they iterate over each element in a finite sequence. It is possible to create infinite sequences in Python, but we will not consider such constructions in this book, so all `for`-loops we see are guaranteed to terminate. We might not know exactly how many times a loop body will be executed, but we know that it is finite as long as the sequence we iterate over is finite.
+
+The real issue is when we have `while`-loops. With those, we keep iterating until the loop condition evaluates to `False`, so we need to ensure that this will eventually happen.
+
+Consider this problem: given two numbers, `n` and `m`, we want to compute how many times `m` divides `n` and what the remainder is. We can readily do this in Python using the (integer) division and modulus operator
+
+```python
+n = 42
+m = 11
+print(n // m, n % m)
+```
+
+but assume, for the sake of the example, that we did not have those operators. A simple approach to solving the problem would then be to repeatedly remove `m` from `n` until we are left with a number less than `m`. In Python, this could look like this:
+
+```python
+a = n ; p = 0
+while a >= m:
+	a -= m
+	p += 1
+print(p, a)
+```
+
+After running this algorithm, `p` will be `n // m` and `a` will be `n % m`. I will leave it to the reader to come up with a loop invariant that can be used to prove the correctness of this and focus on how we demonstrate that the computation terminates.
+
+To ensure that the loop terminates, we must prove that eventually `a >= m` will be false, i.e., that eventually `a` will be less than `m`. It should be obvious that this happens with this simple algorithm, since we decrease `a` in each iteration and we never increase it, but to formalise this reasoning we can say that we associate with the loop a *termination* function, $t$, that measures how close we are to the point where the loop condition is false. Thinking in terms of such a function will help us when the loops are more complicated than this one.
+
+Such a termination function should have the following properties:
+
+1. The termination function maps the algorithm’s state to a number.
+2. In each iteration, it is decreasing.
+3. The loop condition is `False` when the termination function is at or below zero.
+
+For the first point, we need to know what we mean when we say “ the algorithm’s state”. This is just the value of all the variables we use in the algorithm. We want the termination function to be a map the current value of the variable to a number that measures how far we are from completion. We don’t need to use all the variables, but if it depends on none of them, then the value it gives us will never change, and we cannot ensure the other two points. In our simple algorithm, we have a loop condition that depends only on `a` and `m`; our termination function will also only depend on these. We define it to be
+
+$$t(a,m) = a - m$$
+
+Here, the termination function only depends on the variables used in the loop condition, but this need not always be the case. The condition variables might not capture all the information in the algorithm that is needed to measure progress. Then we have to make it depend on more variables.
+
+The second and third conditions to the termination function should be more straightforward to interpret. If we can show that $t(a,m)$ decreases in each iteration and that $t(a,m)\le 0$ implies that the loop condition is `False`, then we are guaranteed termination.[^asymptotic_convergence]
+
+[^asymptotic_convergence]: Here we are implicitly also assuming that the function doesn’t converge asymptotically towards zero. That is, it is not sufficient to require that $t$ always decreases if it can get arbitrarily close to zero but never reach zero. There are cases where we use algorithms to approximate a value to within a given acceptable error. In such cases, we need to require that it converge to a negative number. For example, if we have an algorithm that approximates a number, $x$, by a computed value $\hat{x}$, to within an error $\epsilon$, i.e., it computes a value $\hat{x}$ such that $|x-\hat{x}|<\epsilon$, then we can use a termination function that is $t(\hat{x})=|x-\hat{x}|-\epsilon$. If $\hat{x}$ moves asymptotically towards $x$, then $|x-\hat{x}|$ converges to zero but might not necessarily reach zero. It will, however, if we set up the algorithm correctly, get within a distance less than $\epsilon$ at some point, and at that point, the termination function will be negative.
+
+For our example algorithm, conditions two and three are easy to prove. In each iteration, we decrease `a` while `m` never changes, so the termination function must decrease by the same amount that `a` is decreased by. This guarantees the second condition. For the third condition, we simply observe that when $t(a,m)=m-a \le 0$, the condition `a >= m` must be `False`.
+
+Let us consider another, equally simple, example. Say we want to print out the bits that the binary representation of a number is. We can attack this problem in two different ways. We can use arithmetic where we can get the least significant bit by taking modulus two and then shift the remaining bits down by dividing by two.
+
+```python
+reverse_bits = []
+while n > 0:
+	reverse_bits.append(n % 2)
+	n //= 2
+print(reverse_bits[::-1])
+```
+
+The loop-condition is `n > 0`, so a natural choice for the termination function is $t(n) = n$. Let us check if that works. Obviously, the function maps the algorithmic state to a number, the value of the variable `n`. This variable is decreased in each iteration when we set `n` to half its current value. When `n` is eventually at zero, the loop-condition is false. So this would be a termination function that proves that this algorithm terminates.
+
+As a final example, where the termination function doesn’t only depend on the variables in the loop condition, we can consider finding the roots of a function, i.e., values where it is zero. We consider a simple polynomial
+
+$$p(x) = x^3 - 3 x^2 + 1$$
+
+This polynomial is positive at $x=0$, where $p(0)=1$, and negative at $x=1$, where $p(1) = -1$, so from basic calculus we know that somewhere between zero there is an $x$ such that $p(x)=0$. To find that point,^[This polynomial has three real roots, but only one between zero and one, so the one we are looking for is $x\approx 0.65720$.] we will keep reducing the interval we search in until the midpoint of the interval is within $\epsilon$ of $0$, i.e. we look for an $x$ where $|p(x)|<\epsilon$.
+
+The algorithm looks like this:
+
+```python
+a = 0 ; b = 1
+x = (a + b) / 2
+epsilon = 0.01
+
+val = x ** 3 - 3 * x ** 2 + 1
+while abs(val) > epsilon:
+	if val > 0:
+		a = x
+	else:
+		b = x
+	x = (a + b) / 2
+	val = x ** 3 - 3 * x ** 2 + 1
+```
+
+In the algorithm, we set `x` to the midpoint between `a` and `b`, two variables that define our interval and that starts out as 0 and 1 respectively. We then get the value of the polynomial in that midpoint and check if it is positive or negative. We know it should be positive to the left of the root and negative to the right of the root, so if our value is not sufficiently close to zero, we move one of the interval endpoints to the right or left depending on the value the function takes at the midpoint.
+
+To construct a termination function for this algorithm, we need a little bit of calculus. We need to know that as $x$ tends toward the root we are looking for, $r$, the polynomial will tend towards zero (from negative or positive numbers, depending on whether we approach from the left or right), i.e. $p(x)\to 0$ as $x\to r$. This tells us that if we keep decreasing the size of the interval $[a,b]$, $x$ will tend to $r$ and $p(x)$ will tend to zero. We don’t know how close $x$ needs to be to $r$ before $p(x)<\epsilon$, but we do know that such a number exist, and we can call it $\delta$.
+
+That gives us the termination function we are after: $t(a,b)=b-a-\delta$. Clearly, this is a mapping from algorithmic states to a number, even if it is not a mapping of the variables that appear in the loop-condition. It decreases in each iteration because we cut the size of the interval in half when we replace an endpoint with a midpoint. Once $|x-r|<\delta$ the termination function will be negative, but at the same time $|p(x)|<\epsilon$ by definition of $\delta$, and the loop-condition will be `False`.
+
+The last example is a bit more complicated than the previous two, but usually, coming up with a termination function is not that complicated, and the situation is more like the first two examples than the last. There is even less reason to despair because in most cases, you don’t *need* to come up with a termination function. Anytime you use a `for`-loop over a finite sequence, you can simply use the number of remaining elements for your termination function, and that works for all `for`-loops over finite sequences. 
+
+## Exercises for sequential algorithms
+
+The following exercises test that have understood algorithms and algorithmic design in sufficient detail to reason about termination and correctness and that you have enough experience with Python programming to implement simple sequential (also known as iterative) algorithms.  Here, by sequential, I only mean that the algorithms iterate through one or more loops to achieve their goal.
+
+```python
+from numpy.random import randint
+
+def input_integer(prompt):
+    while True:
+        try:
+            inp = input(prompt)
+            i = int(inp)
+            return i
+        except:
+            print(inp, "is not a valid integer.")
+
+def input_selection(prompt, options):
+    modified_prompt = "{} [{}]: ".format(
+        prompt.strip(), ", ".join(options)
+    )
+    while True:
+        inp = input(modified_prompt)
+        if inp in options:
+            return inp
+        else:
+            print("Invalid choice! Must be in [{}]".format(
+                ", ".join(options)
+            ))
+```
+
+### Below or above
+
+Here's a game you can play with a friend: one of you think of a number between 1 and 20, both 1 and 20 included. The other has to figure out what that number is. He or she can guess at the number, and after guessing will be told if the guess is correct,  too high, or is too low. Unless the guess is correct, the guesser must try again until the guess *is* correct.
+
+The following program implements this game for the case where the computer picks the number, and you have to guess it. Play with the computer as long as you like.
+
+
+```python
+# This is code for picking a number. You don't need
+# to understand it but can just go to the loop below.
+from numpy.random import randint
+def input_integer(prompt):
+    while True:
+        try:
+            inp = input(prompt)
+            i = int(inp)
+            return i
+        except:
+            print(inp, "is not a valid integer.")
+
+# When picking a random number, we specify the interval
+# [low,high). Since high is not included in the interval, 
+# we need to use 1 to 21 to get a random number in the
+# interval [1,20].
+n = randint(1, 21, size = 1)
+guess = input_integer("Make a guess> ")
+while guess != n:
+    if guess > n:
+        print("Your guess is too high!")
+    else:
+        print("Your guess is too low!")
+    guess = input_integer("Make a guess> ")
+print("You got it!")
+```
+
+Here are three different strategies you could use to guess the number:
+
+1. Start with one. If it isn't the right number, it has to be too low--there are no smaller numbers the right one could be. So if it isn't one, you guess it is two. If it isn't, you have once again guessed too low, so now you try three. You continue by incrementing your guess by one until you get the right answer.
+2. Alternatively, you start at 20. If the correct number is 20, great, you got it in one guess, but if it is not, your guess must be too high---it cannot possibly be too small. So you try 19 instead, and this time you work your way down until you get the right answer.
+3. Tired of trying all numbers from one end to the other, you can pick this strategy: you start by guessing 10. If this is correct, you are done, if it is too high, you know the real number must be in the interval $[1,9]$, and if the guess is too low, you know the right answer must be in the interval $[11,20]$---so for your next guess, you pick the middle of the interval it must be. With each new guess, you update the range where the real number can hide and choose the middle of the previous range.
+
+**Exercise:** Prove that all three strategies terminate and with the correct answer, i.e. they are algorithms for solving this problem.
+
+**Exercise:** Would you judge all three approaches to be equally efficient in finding the right number? If not, how would you order the three strategies such that the method most likely to get the correct number first is ranked highest, and the algorithm most likely to get the right number last is rated lowest. Justify your answer.
+
+If you do not lie to the computer when it asks you about its guess compared to the number you are thinking of, this program implements the first strategy:
+
+```python
+# This is code for picking a choice. You don't need
+# to understand it but can just go to the loop below.
+def input_selection(prompt, options):
+    """Get user input, restrict it to fixed options."""
+    modified_prompt = "{} [{}]: ".format(
+        prompt.strip(), ", ".join(options)
+    )
+    while True:
+        inp = input(modified_prompt)
+        if inp in options:
+            return inp
+        # nope, not a valid answer...
+        print("Invalid choice! Must be in [{}]".format(
+            ", ".join(options)
+        ))
+
+for guess in range(1,21):
+    result = input_selection(
+        "How is my guess {}?".format(guess),
+        ["low", "hit", "high"]
+    )
+    if result == "hit":
+        print("Wuhuu!")
+        break
+    else:
+        print("I must have been too low, right?", result)
+```
+
+**Exercise:** Implement the other two strategies and test them.
+
+When iterating from 20 and down, for the second strategy, you should always get the result `"high"` when you ask about your guess, so you can use a `for` loop and not worry about the actual result form `input_selection`. When you implement strategy number three, however, you need to keep track of a candidate interval with a lower bound, initially 1, and an upper bound, initially 20. When you guess too high, you should lower your upper bound to the value you just guessed minus one (no need to include the guess we know is too high). When you guess to low, you must increase your lower bound to the number you just guessed plus one. In both cases, after updating the interval, you should guess for the middle point in the new range. When you compute the middle value in your interval, you can use 
+
+```python
+guess = (upper_bound + lower_bound) // 2
+```
+
+
+### Finding square roots
+
+Given a positive number $S > 0$, we want to compute its positive square root, $\sqrt{S}$. We don't need our answer to be perfectly accurate. Using floating point numbers with a finite number of bits to represent the uncountable set of real numbers prevents this anyway. However, we want to be able to put an upper bound on the error we get, $\epsilon$, such that we are guaranteed that for our result, $\hat{S}$, we have $|S-\hat{S}|<\epsilon$.
+
+One algorithm that solves this problem is known as the *Babylonian method* and is based on two observations. The first is this: for any $x>0$, if $x>\sqrt{S}$ then $S/x<\sqrt{S}$ and if $S/x>\sqrt{S}$ then $x<\sqrt{S}$, i.e., if we guess at a value for the square root of $S$ and the guess is too high, we have a lower bound on what it *could* be, and if the guess is too low, we have an upper bound on what it could be, see [@fig:babylonian-method-range].
+
+![Bounds for where to find $\sqrt{S}$ depending on where $x$ lands.](figures/Babylonian-method-range){#fig:babylonian-method-range}
+
+To see that this is so, consider the case where $x>\sqrt{S}$ and therefore $x^2>S$. This inequality naturally also implies that $S/x^2 < x^2/x^2$, and from this we derive $S=S\frac{x^2}{x^2}>S\frac{S}{x^2}=\left(\frac{S}{x}\right)^2$, i.e., $S/x<\sqrt{S}$. The other case is proven similarly.
+
+Because of this, if we start out knowing nothing about $\sqrt{S}$, it could be anywhere between $0$ and $S$, so we can make an initial guess of some $x_0$, $0<x_0<S$. If $|S-x|<\epsilon$, then $x_0$ is an acceptable output and we are done. If not, we know that $\sqrt{S}$ lies in the interval $(x/S,x)$ (if $x^2>S$) or in the interval $(x,x/s)$ (if $x^2<S$), and we can make a new guess inside that interval.
+
+The Babylonian method for finding square roots follows this idea and work as follows:
+
+1. First, make a guess for $x_0$, e.g. $x_0=S/2$. Any number in $(0,S)$ will do.
+
+2. Now, repeat the following, where we denote the guess we have at iteration $i$ by $x_i$.
+
+    1. If $|S/x_i-x_i|<\epsilon$ report $x_i$.
+    2. Otherwise, update $x_{i+1}=\frac{1}{2}\left(x_i+S/x_i\right)$.
+    
+
+The test $|S/x_i-x_i|<\epsilon$ is different than the requirement we made about the error we would accept, which was $|\sqrt{S}-x_i|<\epsilon$, but since we don't know $\sqrt{S}$ we cannot test that directly. We know, however, that $\sqrt{S}$ lies in the interval $(S/x,x)$ or the interval $(x,S/x)$, so if we make this interval smaller than $\epsilon$, we have reached at least the accuracy we want.
+
+The update $x_{i+1}=\frac{1}{2}\left(x_i+S/x_i\right)$ picks the next guess to be the average of $x_i$ and $S/x_i$, which is also the midpoint in the interval $(S/x,x)$ (for $x>S/x$) or the interval $(x,S/x)$ (for $x<S/x$), so inside the interval we know must contain $\sqrt{S}$.
+
+**Exercise:** From this description alone you can argue that *if* the method terminates, it will report a correct answer. Prove that the algorithm is correct.
+
+In each iteration, we update the interval in which we know $\sqrt{S}$ resides by cutting the previous interval in half.
+
+**Exercise:** Use this to prove that the algorithm terminates.
+
+**Exercise:** Implement and test this algorithm.
+
+
+## Exercises on lists
+
+Lists are representations of ordered sequences of elements. These exercises involve algorithms where we have to examine or manipulate lists to solve a problem.
+
+### Changing numerical base
+
+When we write a number such as 123 we usually mean this to be in base 10, that is, we implicitly understand this to be the number $3 \times 10^0 + 2 \times 10^1 + 1 \times 10^2$. Starting from the right and moving towards the left, each digit represents an increasing power of tens. The number *could* also be in octal, although then we would usually write it like $123_8$. If the number were in octal, each digit would represent a power of eight, and the number should be understood as $3\times 8^0 + 2 \times 8^1 + 3 \times 8^2$.
+
+Binary, octal and hexadecimal numbers—notation where the bases are 2, 8, and 16, respectively—are frequently used in computer science as they capture the numbers you can put in one, three and four bits. The computer works with bits, so it naturally speaks binary. For us humans, binary is a pain because it requires long sequences of ones and zeros for even relatively small numbers, and it is hard for us to readily see if we have five or six or so zeroes or ones in a row.
+
+Using octal and hexadecimal is more comfortable for humans than binary, and you can map the digits in octal and hexadecimal to three and four-bit numbers, respectively. Modern computers are based on bytes (and multiples of bytes) where a byte is eight bits. Since a hexadecimal number is four bits, you can write any number that fits into a byte using two hexadecimal digits rather than eight binary digits. Octal numbers are less useful on modern computers, since two octal digits, six bits, are too small for a byte while three octal digits, nine bits, are too larger. Some older systems, however, were based on 12-bits numbers, and there you had four octal numbers. Now, octal numbers are merely used for historical reasons; on modern computers, hexadecimal numbers are better.
+
+Leaving computer science, base 12, called duodecimal, has been proposed as a better choice than base 10 for doing arithmetic because 12 has more factors than 10 and this system would be simpler to do multiplication and division in. It is probably unlikely that this idea gets traction, but if it did, we would have to get used to converting old decimal numbers into duodecimal.
+
+In this exercise, we do not want to do arithmetic in different bases but want to write a function that prints an integer in different bases.
+
+When the base is higher than 10, we need a way to represent the digits from 10 and up. There are proposed special symbols for these, and these can be found in Unicode, but we will use letters, as is typically done for hexadecimal. We won't go above base 16 so we can use this table to map a number to a digit up to that base:
+
+```python
+digits = {}
+
+for i in range(0,10):
+    digits[i] = str(i)
+
+digits[10] = 'A'
+digits[11] = 'B'
+digits[12] = 'C'
+digits[13] = 'D'
+digits[14] = 'E'
+digits[15] = 'F'
+```
+
+To get the last digit in a number, in base $b$, we can take the division rest, the modulus, and map that using the `digits` table:
+
+```python
+digits[i % b]
+```
+
+Try it out.
+
+You can extract the base $b$ representation of a number by building a list of digits starting with the smallest. You can use `digits[i % b]` to get the last digit and remember that in a list. Then we need to move on to the next digit. Now, if the number we are processing is $n = b^0 \times a_0 + b^1\times a_1 + b^2 \times a_2 + \cdots + b^m a_m$, then $a_0$ is the remainder in a division by $b$ and the digit we just extracted. Additionally, if $//$ denotes integer division, $n//b=b^0\times a_1 + b^1 \times a_2 + \cdots b^{m-1}a_m$. So, we can get the next digit by first dividing $n$ by $b$ and then extract the smallest digit.
+
+If you iteratively extract the lowest digit and put it in a list and then reduce the number by dividing it by $b$, you should eventually have a list with all the digits, although in reverse order. If your list is named `lst`, you can reverse it using this expression `lst[::-1]`. The expression says that we want `lst` from the beginning to the end—the default values of a range when we do not provide anything—in steps of minus one.
+
+**Exercise:** Flesh out an algorithm, based on the observations above, that can print any integer in any base $b\le 16$. Show that your method terminates and outputs the correct string of digits.
+
+
+### The Sieve of Eratosthenes
+
+> *Sift the Two's and Sift the Three's,*
+>
+> *The Sieve of Eratosthenes.*
+>
+> *When the multiples sublime,*
+>
+> *The numbers that remain are Prime.*
+
+
+The [Sieve of Eratosthenes](https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes) is an early algorithm for computing all prime numbers less than some upper bound $n$. It works as follows: we start with a set of candidates for numbers that could be primes, and since we do not a priori know which numbers will be primes we start with all the natural numbers from two and up to $n$.
+
+```python
+candidates = list(range(2, n + 1))
+```
+
+We are going to figure out which are primes by elimination and put the primes in another list that is initially empty.
+
+```python
+primes = []
+```
+
+The trick now is to remove from the candidates the numbers we know are not primes. We will require the following loop invariants:
+
+1. All numbers in `primes` are prime.
+2. No number in `candidates` can be divided by a number in `primes`.
+3. The smallest number in `candidates` is a prime.
+
+**Exercise:** Prove that the invariants are true with the initial lists defined as above.
+
+We will now loop as long as there are candidates left. In the loop, we take the smallest number in the `candidates` list, which by the invariant must be a prime. Call it $p$. We then remove all candidates that are divisible by $p$ and then add $p$ to `primes`.
+
+**Exercise:** Prove that the invariants are satisfied after these steps whenever they are satisfied before the steps.
+
+**Exercise:** Prove that this algorithm terminates and is correct, i.e., that `primes` once the algorithm terminates contain all primes less than or equal to $n$. Correctness does not follow directly from the invariants so you might have to extend them.
+
+**Exercise:** Implement and test this algorithm.
+
+### Longest increasing substring
+
+Assume you have a list of numbers, for example
+
+```python
+x = [12, 45, 32, 65, 78, 23, 35, 45, 57]
+```
+
+**Exercise:** Design an algorithm that finds the longest sub-sequence `x[i:j]` such that consecutive numbers are increasing, i.e. `x[k] < x[k+1]` for all `k` in `range(i,j)`  (or one of the longest, if there are more than one with the same length).
+
+### Compute the powerset of a set
+
+The *powerset* $P(S)$ of a set $S$ is the set that contains all possible subsets of $S$. For example, if $S=\{a,b,c\}$, then 
+
+$$P(S) = \{\emptyset,\{a\}, \{b\}, \{c\}, \{a,b\}, \{a,c\}, \{b,c\}, \{a,b,c\}\}$$
+
+**Exercise:** Assume that $S$ is represented as a list. Design an algorithm that prints out all possible subsets of $S$. Prove that it terminates and is correct.
+
+*Hint:* You can solve this problem by combining the numerical base algorithm with an observation about the binary representation of a number and a subset of $S$. We can represent any subset of $S$ by the indices into the list representation of $S$. Given the indices, just pick out the elements at those indices. One way to represent a list of indices is as a binary sequence. The indices of the bits that are 1 should be included, the indices where the bits are 0 should not. If you can generate all the binary vectors of length `k=len(S)`, then you have implicitly generated all subsets of $S$. You can get all these bit vectors by getting all the numbers from zero to $2^k$ and extracting the binary representation.
+
+### Longest increasing subsequence
+
+Notice that this problem has a different name than "longest increasing *substring*"; it is a slightly different problem. Assume, again, that you have a list of numbers. We want to find the longest sub-sequence of increasing numbers, but this time we are not looking for consecutive indices `i:j`, but a sequence of indices $i_0,i_1,\ldots,i_m$ such that $i_k<i_{k+1}$ and $x[i_k] < x[i_{k+1}]$.
+
+**Exercise** Design an algorithm for computing the longest (or a longest) such sequence of indices $i_0,i_1,\ldots,i_m$.
+
+*Hint:* This problem is harder than the previous one, but you can brute force it by generating *all* subsequences and checking if the invariant is satisfied. This is a *very* inefficient approach, but we need to learn a little more about algorithms before we will see a more efficient solution.
+
+### Merging
+
+Assume you have two sorted lists, `x` and `y`, and you want to combine them into a new sequence, `z`, that contains all the elements from `x` and all the elements from `y`, in sorted order. You can create `z` by *merging* `x` and `y` as follows: have an index, `i`, into `x` and another index, `j`, into `y`—both initially zero—and compare `x[i]` to `y[j]`. If `x[i] < y[j]`, then append `x[i]` to `z` and increment `i` by one. Otherwise, append `y[j]` to `z` and increment `j`. If either `i` reaches the length of `x` or `j` reaches the end of `y`, simply copy the remainder of the other list to `z`.
+
+**Exercise:** Argue why this approach creates the correct `z` list and why it terminates.
+

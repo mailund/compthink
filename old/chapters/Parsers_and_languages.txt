@@ -1,0 +1,431 @@
+
+# Parsing
+
+We now leave algorithms for a chapter and look at another fundamental problem: parsing. That is the process of taking a flat text format, describing for example some data or a program, and translate it into data that your program can use. Parsing does not necessarily involve recursion, but it often does.
+
+## Parsing expressions
+
+We will use a simple example and take a string that represent an arithmetic expression we will parse that expression, and we will compute the result of the expression.
+
+You are familiar with arithmetic expressions such as $(2\cdot 3)+1$. This notation is known as *infix notation* because the operators you apply are written between expressions. So you write that you want to multiply $2$ to $3$ as $2\cdot 3$. We have rules that says that $2\cdot 3\cdot 4$ should interpreted as $(2\cdot 3)\cdot 4$ but we can simplify expressions slightly by requiring parentheses whenever we have more than two operators. We will see how we can parse and evaluate expressions in this format shortly, but first we will deal with a slightly simpler for of expressions. 
+
+Infix notation is only one way to write expressions. It is the one you are most likely used to, and you might not have seen the others, but some calculators support one of the variants, postfix notation, so you might have. The alternatives are *prefix notation* and *postfix notation*, and both are actually easier to work with on a computer than infix notation.
+
+In prefix notation, also know as *Polish notation*, you always write the operator before the operands. The expression $(2\cdot3)+1$ would be written $+ \cdot 2 3 1$. If you think of the operators as functions, this would be `add(multiply(2, 3), 1)` so the notation is not entirely unfamiliar to you. This notation has the benefit that you never need to use parentheses. When you have an operator you first evaluate its left operand and then its right and then finally you apply the operator to the results of this. If the left or right expressions involve other expressions there is implicitly parentheses. So while $(2\cdot 3)+1$ is written `+ * 2 3 1`, the expressions $2\cdot(3 + 1)$ is written `* 2 + 3 1`. No parentheses are needed.
+
+*Postfix notation* or *reverse Polish notation* is very similar to prefix notation. You simply put the operator behind the operands instead of before them. Older calculators used this notation and some programming languages use it. The expression $(2\cdot 3)+1$ would be written `2 3 * 1 +` and $2\cdot(3+1)$ would be written `2 3 1 + *`.
+
+Prefix notation is very simple to parse, so we will consider that first, before we look at parsing infix notation expressions. Postfix notation expressions are not much harder to deal with, but the most straightforward approach to handle them is using a *stack*, so we return to that in [Chapter @sec:stacks].
+
+### Parsing prefix-expressions
+
+Our goal in this section is to write a function for evaluating prefix notation expressions. We will assume, in the following, that our input is a string with the expression and all expressions are valid, i.e. an expression is either a number or an operator followed by two expressions. We can write this as
+
+```
+EXPRESSION := NUMBER | OP EXPRESSION EXPRESSION
+NUMBER := int | `~` int
+OP := `+` | `-` | `*` | `/`
+```
+
+This is another example of recursion, a *recursive notation*, because `EXPRESSION` is defined in terms of itself. The grammar of programming languages is usually described in some variation of this notation. You should read the lowercase `int` as meaning a concrete number (we only handle integers here but you could also handle floating point numbers). The quoted operators as those exact strings, and all uppercase names something we define in the grammar. We call the uppercase names *non-terminals* and the others *terminals* or *tokens*. Thus, `NUMBER` is different from `int` although both are numbers; the former is a non-terminal and something we need the grammar to work out, while the latter is a token that we can get directly from the input sequence.
+
+In this notation, `|` means "or", so `NUMBER | OP EXPRESSION EXPRESSION` means either a number or `OP EXPRESSION EXPRESSION`. When you see several names after each other that do not have `|` between them, this means that we should see those components one after another in an expression. So `OP EXPRESSION EXPRESSION` means an operator followed by two expressions. As you can see, I have not included integer division, `//`, in the set of operators. I leave that as an exercise to you.
+
+The grammar rule 
+
+```
+NUMBER := `~` number | number
+```
+
+handles negative and positive numbers, respectively. It uses a special symbol, `~`, for unary minus so we do not confuse it with binary subtraction. This makes it easier to deal with negative numbers since we cannot confuse them with subtraction.
+
+As I said, we assume that all expressions are valid, that is, they follow this grammar. In general, this is not something you can assume when your input is a string. The code that evaluates an expression is also responsible for checking that it is valid. I also leave that as an exercise.
+
+To evaluate a string, the easiest is to first split the string into tokens, i.e. the terminals in the grammar. For this expression, that simply means splitting the string at all the whitespaces, something we can do with the `split` method. This gives us a list of the tokens, and now it is just a question of running through that. For this to work, we will require whitespace between operators and their operand. This means that we will not allow strings such as `"+2 3"` but require instead `"+ 2 3:`. We consider `~` an operator, just a unary operator rather than a binary, which means that we must write `"~ 2"` for minus two and not `"~2"`. We relax these constraints in a little bit by preprocessing the input string, but these restrictions make it easier to handle expressions, so we require them for now.
+
+
+We can run through the tokens and evaluate expressions with a recursive function. Our main function is therefore
+
+```python
+def evaluate(expr):
+	expr_list = expr.split()
+	val, idx = evaluate_rec(expr_list, 0)
+	return val
+```
+
+where `evaluate_rec` is the recursive function. This function will handle the next terminal or non-terminal in the list. When calling recursively, we need to know where a new expression starts. We can do that by slicing the list or by having an index into the list. I have chosen the latter. We start at index zero, so that is what I pass to `evaluate_rec` inside `evaluate`. The length of the operands to an operator can be arbitrarily long, if the operands are expressions. This means that we need recursive calls to tell us where the next expression is when we need to evaluate two operands. Again, this can be done with slicing or indices. We use indices, so we will require that the `evaluate_rec` function returns both a value and an index. In `evaluate` we just throw away the index—if you write code that checks that an expression is valid, you will want to make sure that the final index is the end of the list.
+
+Ok, for the recursive call we need to check if the first token is an operator or a number. We will just check if it one of the operators; if not, we know it is a number because we assume that the input is always a valid expression. If it is an operator, we need to make two recursive calls to get the operands. The index we have in a recursive call points to the expression we need to evaluate. If we have an operator, the first operand starts at one index past that. We don't know how much of the list goes into that operand, but the recursive call will give us the index for the next token after the operand. We can use that in another recursive call, that gives us the index after the second operand. We need to evaluate the operation specified by the operator and return that and the index of the next token, which is one past this expression, and that was what we got back from the recursive call evaluating the second operand.
+
+If we have is number rather than an operator, the case is simpler. We must translate that string-representation of the number into an actual number and return that. The index we return should be the index of the next token, so we need to return one index past the number.
+
+```python
+def evaluate_rec(expr, i):
+	if expr[i] == '+':
+		a, i = evaluate_rec(expr, i + 1)
+		b, i = evaluate_rec(expr, i)
+		return a + b, i
+	elif expr[i] == '-':
+		a, i = evaluate_rec(expr, i + 1)
+		b, i = evaluate_rec(expr, i)
+		return a - b, i
+	elif expr[i] == '*':
+		a, i = evaluate_rec(expr, i + 1)
+		b, i = evaluate_rec(expr, i)
+		return a * b, i
+	elif expr[i] == '/':
+		a, i = evaluate_rec(expr, i + 1)
+		b, i = evaluate_rec(expr, i)
+		return a / b, i
+	else:
+		return evaluate_number(expr, i)
+
+def evaluate_number(expr, i):
+	if expr[i] == '~':
+		return - int(expr[i + 1]), i + 2
+	else:
+		return int(expr[i]), i + 1
+```
+
+This code will evaluate valid expressions, but we repeat the same code for recursive calls in all the operators. Repeating code is something we want to avoid, because it makes it harder to modify if we need that in the future. If we need to modify it one place we probably need to modify it everywhere, and if we have many copies, we might miss one. It is much better to have the code only once. We know that we can avoid duplication of code using functions, and we can of course do that here as well. We can make the actual evaluation of an expression a function we call and then parameterise the code using this function. This means changing the `if` blocks to
+
+```python
+		op = operator_table[expr[i]]
+		a, i = evaluate_rec(expr, i + 1)
+		b, i = evaluate_rec(expr, i)
+		return op(a, b), i
+```
+
+where `operator_table` is a table (a `dict`) that gives us the right function for any of the operators. Now, we can write a function for each of the operators, but as it turns out, those are already defined in the module `operator`. Our simplified evaluation code will look like this:
+
+```python
+import operator
+operator_table = {
+	'+': operator.add,
+	'-': operator.sub,
+	'*': operator.mul,
+	'/': operator.truediv, # The '/' operator. 
+	                       # The '//' operator is floordiv
+}
+
+def evaluate_rec(expr, i):
+	if expr[i] in ('+', '-', '*', '/'):
+		op = operator_table[expr[i]]
+		a, i = evaluate_rec(expr, i + 1)
+		b, i = evaluate_rec(expr, i)
+		return op(a, b), i
+	else:
+		return evaluate_number(expr, i)
+```
+
+The code is much simpler and avoids duplication, but at the cost of the perhaps conceptually harder concept of having a table of functions. Having tables of functions can be a very powerful trick, however, so it is well worth your time to get familiar with it.
+
+**Exercise:** Add integer division, the operator `//`, to the evaluation code.
+
+**Exercise:** The evaluation code above assumes that all numbers are integers. Change that such that all numbers are floating point.
+
+**Exercise:** Add error-handling code to the evaluator. Such code needs to check that the next token is either a number or an operator. You can check that something is a number by trying to translate it into one (using functions `int` or `float`). If it isn't a number, you get an exception. If something isn't a number, it should be an operator. If it isn't one of the operators you know, you should raise an exception.
+
+We have one more issue to deal with before we consider the prefix expression evaluation done. We required that the input string had spaces around all operators because this made it easier to split the string into tokens. We an guarantee this by simply putting spaces around all operators before we parse the string:
+
+```python
+def tokenise(expr):
+	for op in ("+", "-", "*", "/", "~"):
+		expr = expr.replace(op, " " + op + " ")
+	return expr.split()
+```
+
+The `replace` function modifies a string by replacing substrings that matches the first argument with the string that is the second argument. It is a bit of a hack, but it will work for this problem. There are more general solutions to “tokenising”, and we will return to this in [@sec:building-a-tokeniser].
+
+
+### Parsing infix notation expressions
+
+**FIXME: updated tokenizer**
+
+```python
+def tokenise(expr):
+	for op in ("(", ")", "+", "-", "*", "/", "~"):
+		expr = expr.replace(op, " " + op + " ")
+	return expr.split()
+```
+
+
+**FIXME**
+
+Instead of writing a function to evaluate postfix notation expressions, we will now implement one that evaluates infix notation expressions. To make it easier to do so, we require that parentheses are always explicitly written, so we do not allow expressions such as `1 + 2 + 3`. You have to write this as `(1 + 2) + 3`. Likewise, we do not allow `2 * 3 + 1` and you have to write it as `(2 * 3) + 1`. We return to handling precedence a little later, but we are not ready for it quite yet. Dealing with precedence and default evaluate order is harder than dealing with expressions that use explicit parentheses, so at our first attempt at parsing expressions we restrict ourselves to such expressions. We will also require that all expressions with an operator, i.e. expressions that are not simply a number, will have parentheses around them, and no expression that is just a number will have parentheses. This means that we will not accept a string such as `"2 + 2"` but require `"(2 + 2)"` because we need parentheses around the addition. We will not accept `"((2) + 2)"` because we do not allow parentheses around a single number. The grammar for our restricted infix notation will be
+
+```
+EXPRESSION := number | '(' EXPRESSION OP EXPRESSION ')'
+OP := `+` | `-` | `*` | `/`
+```
+
+The reason for all the restrictions to the notation is that we can always see which case we need to parse before we parse it.  If the first token is `(` we need two recursive calls and then move past the second `)`; if the next token is not `(`, we should have a number. We didn't need these restrictions in the prefix notation, because with that notation we can always determine which non-terminal we need to parse by looking at the next token. All the restrictions are there to make the same true for infix notation; we can always determine, from the next token, which case we are in. Parentheses tell us we have an operator; the lack of them tells us we have a number. With operators, we first extract the result of evaluating the first operand, then we get the operator, and finally we get the result of the second operand. We compute the result of the operation the same way as before.
+
+**FIXME**
+
+```python
+def evaluate(expr):
+	expr_list = tokenise(expr)
+	val, idx = evaluate_rec(expr_list, 0)
+	return val
+
+def evaluate_rec(expr, i):
+	if expr[i] == '(':
+		a, i = evaluate_rec(expr, i + 1)
+		op = operator_table[expr[i]]
+		b, i = evaluate_rec(expr, i + 1)
+		return op(a, b), i + 1 # + 1 to get past the ')'
+	else:
+		return int(expr[i]), i + 1
+```
+
+Knowing which case we are in from reading the next token is obviously a great help. It is why we can always evaluate prefix notation expressions, but also why we need to put all these restrictions on the infix notation.
+
+Since Python can handle infix expressions without all these restrictions, it should be obvious that this is possible. There are actually many different ways to write parsers, and the restrictions necessary to put on the grammar they can parse differs greatly. One technique is intimately tied to recursion and is, perhaps not so inventive, called *recursive descent*.
+
+In a recursive descent parser, you can handle grammas where you do not need to recurse on the left. This means that you never have a non-terminal that has itself as the left-most component. So the
+
+```
+EXPRESSION := EXPRESSION OP EXPRESSION | number
+```
+
+rule, where `EXPRESSION` is on the left of the rule for `EXPRESSION`, is not allowed. A recursive descent parser has a function for each non-terminal and for each rule, you call the appropriate non-terminal functions to parse it. The reason for the restrictions to the grammar is obvious: if a function to parse an `EXPRESSION` involves a call to the function that parses and `EXPRESSION` you get an infinite regression.
+
+You can often re-write a grammar to obey the "no left-recursion" rule. For arithmetic expressions, for example, we can use the grammar
+
+```
+EXP  := OPEXP | LEXP
+OPEX := LEXP op EXP
+LEXP := PEXP | number
+PEXP := '(' EXP ')'
+```
+
+Here, `EXP` is an expression, `OPEX` is an expression with an operator, `LEXP` is an expression that can occur to the left of an operator, or by itself, and `PEXP` is an expression in parentheses.
+
+Notice that in the grammar, it is impossible for an `EXP` to appear to the left of any rule derived from `EXP`. It is not enough that `EXP` does not appear on the left of a rule explicitly part of `EXP`'s rules. You cannot, through other rules, end up with a left-recursion. That would also lead to infinite recursion.
+
+Following the rule of having one function per non-terminal we can implement a recursive descent parser for this grammar as this:
+
+```python
+class ParseError(Exception):
+	pass
+
+def evaluate_exp(expr, i):
+	try:
+		return evaluate_opex(expr, i)
+	except:
+		return evaluate_lexp(expr, i)
+
+def evaluate_opex(expr, i):
+	lhs, i = evaluate_lexp(expr, i)
+	op = operator_table[expr[i]] ; i += 1
+	rhs, i = evaluate_exp(expr, i)
+	return op(lhs, rhs), i
+
+def evaluate_lexp(expr, i):
+	try:
+		return evaluate_pexp(expr, i)
+	except:
+		return int(expr[i]), i + 1
+
+def evaluate_pexp(expr, i):
+	if expr[i] != '(':
+		raise ParseError
+	val, i = evaluate_exp(expr, i + 1)
+	if expr[i] != ')':
+		raise ParseError
+	return val, i + 1
+
+def evaluate(expr):
+	try:
+		expr_list = tokenise(expr)
+		val, idx = evaluate_exp(expr_list, 0)
+		return val
+	except:
+		raise ParseError
+```
+
+In this parser, I have defined an exception that indicates that the parser fails when trying to apply some rule. We only explicitly raise it when we attempt to parse an expression in parentheses, but both the `evaluate_opex` and `evaluate_lexp` can also raise exceptions, the first if the `op` is not a key in  the `operator_table` table and the second if the number token cannot be converted to `int`. All expressions can raise an exception if they try to move past the last index in `expr`. I catch all exceptions that makes it to the `evaluate` function and translate them into a `ParseError`, just to give the parser a simpler interface. In a real parse, we would want this exception to carry some information about why the parser failed. I leave that as an exercise.
+
+**Exercise:** Modify the `ParseError` exception so it is informative about the reason the parser fails.
+
+All the functions implicitly or explicitly invoke exceptions to indicate when attempting to parse a rule fails. This is part of how a recursive descent parser works. You attempt all the rules for a non-terminal in turn, and pick the first that you can parse. If a rule cannot be parsed, and this can happy deep in a recursion that attempts this, then you must backtrack and try the next rule. You can use returned values to indicate that a rule fails, for example returning `None` to indicate this, but exceptions let you backtrack directly to the list of rules you are trying to match.
+
+By not allowing left-recursions, you avoid infinite recursion. It has another consequence: expressions with infix operators are evaluated right-to-left. If you parse the expression `2 + 3 + 4`, the parser will try to follow the rules
+
+```
+EXP  [2 + 3 + 4]            ->
+OPEX [2 + 3 + 4]            ->
+LEXP [2] `+` EXP [3 + 4]    ->
+PEXP [2] `+` EXP [3 + 4]    -> FAILS, backtrack to LEXP
+2 `+` EXP [3 + 4]           ->
+2 `+` OPEX [3 + 4]          ->
+2 `+` LEXP [3] `+` EXP [4]  ->
+2 `+` PEXP [3] `+` EXP [4]  -> FAILS, backtrack to LEXP
+2 `+` 3 `+` EXP [4]         -> 
+2 `+` 3 `+` OPEX [4]        -> 
+2 `+` 3 `+` LEXP [4] ...    -> FAILS, backtrack to EXP
+2 `+` 3 `+` LEXP [4]        -> 
+2 `+` 3 `+` PEXP [4]        -> FAILS, backtrack to 
+2 `+` 3 `+` 4               -> evaluates 3 + 4
+2 `+` 7                     -> evaluates 2 + 7
+9
+```
+
+It is a simple expression, but a complex series of recursive calls. That is usually how recursive descent parsers work. What I want you to notice is that we evaluate `3 + 4` before we add two. This is the consequence or avoiding left-recursions and allowing right-recursions. Expressions are evaluated right-to-left.
+
+There is another crucial aspect of recursive descent parsers. When you attempt a sequence of rules, you need to take a greedy approach if you want to parser an entire expression. If one derivation can be the prefix of another, you need to attempt the longest first. If you do not, then you will only parse a prefix of the (sub-)expression you are trying to parse.
+
+If, for instance, we flipped the order of the two cases for `EXP`, so it read
+
+```
+EXP := LEXP | OPEX
+```
+
+we would have the same rules, but when parsing `2 + 4` we would do 
+
+```
+EXP [2 + 4]  ->
+LEXP [2 + 4] ->
+PEXP [2 + 4] -> FAIL, backtrack to LEXP
+2 (+ 4)      -> 2
+```
+
+We would conclude that the result of the expression is only the first number, because that is what we would parse. The order in which we attempt to apply rules matter for the correctness of the parser.
+
+**Exercise:** In the parser above, if there are tokens after a complete expression, the `evaluate` function will return the value of the expression but not notice that we have more tokens following it. It will happily evaluate `evaluate('(2+2)5')` and give you four. You can check if there are tokens left in the `evaluate` function and if there is, raise `ParseError`. Extend the function to do this.
+
+The grammar we used to parse expressions had a lot of non-terminals; perhaps we went a bit overboard with that. There is nothing wrong with writing a simpler grammar, as long as you still do not allow left-recursions. We could just as easily have used this grammar, which is closer to the original one:
+
+```
+EXP  := LEXP op EXP | LEXP
+LEXP := '(' EXP ')' | number
+```
+
+With this grammar, you just need to do a bit more work in the recursive functions. This time around, you need to look ahead in the `expr` list to figure out which choice to make in both the `EXP` and the `LEXP` case. In the `EXP` case you always need to start with parsing an `LEXP` but after that, you can check if there is a symbol following the left-expression, and if it is an operator. If so, you need to parse the right-hand side of the operator expression to finish the `EXP`; if there isn't an operator to the right of the left-expression, you can just return that:
+
+```python
+def evaluate_exp(expr, i):
+	lhs, i = evaluate_lexp(expr, i)
+	if i < len(expr) and expr[i] in operator_table:
+		op = operator_table[expr[i]]
+		rhs, i = evaluate_exp(expr, i + 1)
+		return op(lhs, rhs), i
+	else:
+		return lhs, i
+```
+
+To test whether we have an operator, I have used the `operator_table`. The expression `expr[i] in operator_table` is true if `expr[i]` is a key in `operator_table`, i.e. if it is an operator. Here you might object that we should raise a `ParseException` if the next token is not an operator since that is what we expect, but that isn’t quite correct. The next token could be `')'` and we handle that in the `LEXP` parser, but not until we are done with parsing the sub-expression from that rule. If you feel uncomfortable that we now might finish parsing before the end of the tokens, you are right. We can deal with that in the `evaluate` function:
+
+```python
+def evaluate(expr):
+	try:
+		expr_list = tokenise(expr)
+		val, idx = evaluate_exp(expr_list, 0)
+		if idx != len(expr_list):
+			raise ParseError
+		return val
+	except:
+		raise ParseError
+```
+
+The case for the left-expression is similar to the expression parser. You can look at the next symbol, if it is a start-parenthesis you need to parse an expression and return that, with the index put at the index after the closing parenthesis. If it is not an expression in parentheses, it should be a number, and that is what we return.
+
+```python 
+def evaluate_lexp(expr, i):
+	if expr[i] == '(':
+		res, i = evaluate_exp(expr, i + 1)
+		if expr[i] != ')':
+			raise ParseError
+		return res, i + 1
+	else:
+		return int(expr[i]), i + 1
+```
+
+Using such look-ahead's to check what the next token in the expression is helps us avoid some exceptions and backtracking. With the parser here, we will only raise an exception if we have an invalid expression, i.e., one where an opening parenthesis is not followed by a closing parenthesis or when we expect a number and find something else. We can avoid this backtracking because we never need to look more than one token ahead to determine what the next grammar rule must be. More generally, we might need to look some $k$ tokens ahead, and when doing so we can avoid backtracking. If there is such a constant $k$ that, if we only look $k$ tokens ahead we can determine the grammar rule to follow, we have a *predictive parser*. Not all grammars guarantee that we only need to look $k$ tokens ahead, so more generally we need to allow some backtracking. It all depends on the grammar we use to define what valid expressions are.
+
+#### Associativity
+
+Getting back to parsing arithmetic expression, you might now think that all is good and well. We can parse all expressions, so all should be well. We cannot handle the precedence rules that would evaluate `5 - 2 * 2` as $5-(2\times 2)$ rather than $(5-2)\times 2$, but we know this and explicitly put aside this issues for later. There is more to arithmetic expressions than precedence, however; there is also *associativity*, which determines if we evaluate expressions left-to-right or right-to-left. An operator, $\circ$, is *left-associative* if $a\circ b\circ c$ is interpreted as $(a\circ b)\circ c$, *right-associative* if it is interpreted as $a\circ(b\circ c)$ and simply *associative* if it doesn’t matter because $(a\circ b)\circ c = a\circ(b\circ c)$.
+
+Addition and multiplication are associative, $(a+b)+c=a+(b+c)$ and $(a\times b)\times c = a\times (b\times c)$. Subtraction and division are not associative but left-associative, $a-b-c$ is interpreted as $(a-b)-c$ and $a/b/c$ is interpreted as $(a/b)/c$. When we have operators at the same level of precedence, we need them to have the same associativity as well. Otherwise we wouldn’t know how to interpret an expression such as $a\star b\circ c$. The operator $\star$ might be left-associative, $a\star b\star c = (a\star b)\star c$, while the operator $\circ$ is right-associative, $a\circ b\circ c = a\circ(b\circ c)$. What does that tell us about $a\star b\circ c$? Not that much. If both operators are left-associative we would interpret $a\star b\circ c$ as $(a\star b)\circ c$ and $a\circ b\star c$ as $(a\circ b)\star c$; if both operators are right-associative, we would interpret $a\star b\circ c$ as $a\star(b\circ c)$ and $a\circ b\star c$ as $a\circ(b\star c)$. Because of this, we usually consider addition and multiplication left-associative, so they can have the same precedence as subtraction and division, respectively. This means that we interpret $a-b+c$ as $(a-b)+c$, for example.
+
+Getting back to our parser, how does it deal with the expression `a - b + c`? We always recurse on the right, so it would parse the expression as $a - (b + c)$—this is wrong!
+
+**FIXME: problem that expressions *need* to be left-recursive for `n - n + n` to be `((n - n) + n) = n` rather than `(n-(n+n)) = -n`.**
+
+
+
+```
+EXP   := BINOP op EXP | BINOP
+BINOP := TERM op TERM | TERM
+TERM  := '(' EXP ')' | number
+```
+
+```python
+def evaluate_exp(expr, i):
+	lhs, i = evaluate_binop(expr, i)
+	if i < len(expr) and expr[i] in operator_table:
+		op = operator_table[expr[i]]
+		rhs, i = evaluate_exp(expr, i + 1)
+		return op(lhs, rhs), i
+	else:
+		return lhs, i
+
+def evaluate_binop(expr, i):
+	lhs, i = evaluate_term(expr, i)
+	if i < len(expr) and expr[i] in operator_table:
+		op = operator_table[expr[i]]
+		rhs, i = evaluate_term(expr, i + 1)
+		return op(lhs, rhs), i
+	else:
+		return lhs, i
+
+def evaluate_term(expr, i):
+	if expr[i] == '(':
+		val, i = evaluate_exp(expr, i + 1)
+		if expr[i] != ')':
+			raise ParseError
+		return val, i + 1
+	else:
+		return int(expr[i]), i + 1
+```
+
+#### Precedence 
+
+**FIXME**
+
+### Parsing postfix notation expressions?
+
+**FIXME: update this section**
+
+Having seen a recursive descent parser for infix-notation expressions, we can revisit the other two expression notations. The grammars for them would be
+
+```
+EXP := OP EXP EXP | number
+```
+
+for prefix-notation and 
+
+```
+EXP := EXP EXP OP | number
+```
+
+for postfix-notation.
+
+The prefix-notation parser we wrote was actually a recursive descent parser, just a particularly simple one. Based on the first token we could determine which of the two cases for `EXP` we had, and when it was an operator we would parse the two operands recursively.
+
+The postfix-notation expressions are left-recursive, and there isn't really any way to avoid this.  If we tried to recursively evaluate the first operand, we would recurse with exactly the same arguments as we were trying to parse the first expression on, so we would enter an infinite recursion.
+
+We *could* include both a start and an end index to where we would parse. If so, could try to evaluate an expression from index $i$ to index $j$. To parse an expression in the interval $[i,j]$, we would find some $k$, $i<k<j$ and recurse on the interval $i$ to $k$ for the first operand and $k$ to $j-1$ for the second operand (and $j$ for the operator)$. For this to work, however, we would have to be able to determine what the right $k$ is, and we don't know how to do this.
+
+This does not mean that we cannot parse postfix-notation expressions. It isn't actually particularly hard to do so, as we shall see in [Chapter @sec:stacks]. It just isn't easy for a recursive descent parser unless you let it work on intervals of the input tokens and require that it is able to guess where to split expressions into left and right operands.
+
+To wrap up the example, we have seen that we can take a string, split it into a sequence of tokens, and then write a parser that interprets this string of tokens as an expression that the parse can evaluate. Parsing and evaluating expressions is also what Python does, the type of expressions are just a lot more complex.
+
+We also saw that we can write grammars to define what expressions look like, and if we put the restriction on a grammar that it mustn't left-recurse, we can write recursive descent parsers to handle expressions from the grammar.
+
+#FIXME
+
+Grammars and the kind of restrictions we put on them is a fundamental topic in computer science, that we turn to now.
+

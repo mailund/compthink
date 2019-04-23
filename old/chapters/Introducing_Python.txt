@@ -1,0 +1,407 @@
+
+# Introducing Python programming
+
+Many textbooks on algorithms will present the algorithms in so-called *pseudo code*, something that looks like it is written in a real programming language while it is in fact written in an approximation to such a language but with the abstractions and programming constructs chosen to make the algorithm look as simple as necessary. Since the goal of this is to present the essentials of an algorithm and not distract the reader with unnecessary language artefacts, this is a sensible approach. It does, however, occasionally hide too many details from the reader, and since the pseudo code cannot actually be run by a computer, it is not possible to experiment with it to test different approaches to how an algorithm could be implemented in practice. In this book, we will not use pseudo code but present all algorithms in the Python programming language. Python is a very high-level language, and in many ways Python implementations of common algorithms look very similar to pseudo code versions of them, but with Python you get a working implementation.
+
+Python is a complete general purpose programming language with many advanced features and it scales well to constructing very large software systems. At the same time, it has a very gentle learning curve and lets you implement small programs with very little programming overhead. It is perfect for our purpose in this book. By knowing just a small subset of the language you will be able to implement the algorithms we cover in the book and you will be able to experiment with them, and should you decide to make more of a career out of programming, then you can easily pick up the more advanced features of Python and use this language for larger projects as well.
+
+Writing complete programs, especially larger applications, require different skills than the computational thinking this book is about. It takes a different skill set to be able to engineer software so it is scalable and maintainable than the skills that are needed to build efficient algorithms. Those software engineering skills are beyond the topic of this book, but if you find it interesting there are many excellent textbooks on the marked.
+
+Even simpler programming tasks such as reading data from input files and formatting data for output files will be considered outside the scope of this book. If you ever need to write a program that can be used from a command line terminal, you will need to write code for input and output, but any introduction to Python programming textbook will teach you how to do this, and in many cases there will be existing software modules to assist you in this. This book, however, is not an introduction to Python programming book. We simply use Python to describe and experiment with algorithms we explore.
+
+## Obtaining Python
+
+When you write programs in Python, you will usually do this in one or more plain-text files using a text editor. 
+
+**FIXME**
+
+One such distribution is *Anaconda*. To download and install Anaconda, go to [https://www.anaconda.com/download](https://www.anaconda.com/download). There, you can download installation packages for Windows, OSX, and Linux. Download the distribution for your platform. The dialect of Python we will use in this book is Python 3.x (version numbers that start with 3). The differences between Python 2.x and 3.x, for the purpose of the algorithms we will explore here are very minor, and all the algorithms in this book work equally well in either version. There are differences in the built in functions, though, so you should download the installer for a Python 3.x to get exactly the behaviour as described here.
+
+Once you have downloaded the installer, double-click on it and follow the instructions guiding you through the installation for your platform.
+
+The Anaconda installer will install Python and various Python modules and frameworks for scientific computing, data analysis and visualisation. We only use a tiny fraction of the software that is installed via Anaconda, but everything we do use will be available to you once you have installed Anaconda. If you continue programming in Python after you have read this book, chances are that you will find good use for many of the other modules installed by Anaconda.
+
+## Running Python
+
+**FIXME**
+
+
+The simplest way you can use Python is as a calculator. 
+
+```python
+2 + 2
+```
+
+    4
+
+
+```python
+3 * 5
+```
+
+    15
+
+
+## Programming in Python
+
+**FIXME: Editor**
+
+### Expressions in Python
+
+We have already seen how we can evaluate simple arithmetic expressions in Python. The arithmetic binary operators `+`, `-`, `*` and `/`, works as you would expect them to, as does the unary `-`. That is,
+
+```python
+-4
+```
+
+is minus four, 
+
+```python
+2 * 2 + 3
+```
+
+is seven. Notice that we interpret `2 * 2 + 3` as you are familiar with in mathematical notation. First we multiply two by two and then you add three. This is not because we evaluate the expression left-to-right, in which case
+
+```python
+3 + 2 * 2
+```
+
+would mean $(3 + 2) * 2$ and would be 10. It is because multiplication “binds tighter” or “has larger precedence” than addition. This is also what you are familiar with. In mathematical notation, you would expect $3 + 2\cdot 2$ to be seven and not ten. Multiplication and division binds tighter than addition and subtraction.
+
+When precedence is taken into account, the evaluation does proceed from left to right. For example, 
+
+```python 
+1 / 2 / 2
+```
+
+is interpret as $(1/2)/2=1/4$ and not $1/(2/2)=1$. To get the latter interpretation you will need to add parentheses:
+
+```python
+1 / (2 / 2)
+```
+
+You can always use parentheses to change the default evaluation order. Or just to make explicit what you intend, even if it is already the default. Writing `(2 * 2) + 3`, while it is the default for `2 * 2 + 3`, doesn’t make the expression any harder to read, after all.
+
+There are more operations that addition, subtraction, multiplication, and divisions. For example, raising a number to a power. If you want to compute two to the power of four, $2^4=16$, you can use the `**` operator: `2**4`. This operator has higher precedence than multiplication and division, so `2 * 2**4` is $2\cdot 2^4=32$ and not $(2\cdot 2)^4=256$. This operator is not evaluated left-to-right but right-to-left, also in accordance with typical mathematical notation. This means that `2**3**4` is interpreted as $2^{3^4}\approx 2.4\times 10^{24}$ and not $(2^3)^4=4086$. If you want to compute the latter, you must write `(2**3)**4`. The notation is the same as it would be in mathematics, but if you find it hard to remember, you can always use parentheses even when not strictly necessary to avoid any surprises.
+
+Python actually has two different division operators. When you use `/` you get the division you are used to in mathematics. However, it is often useful to guarantee that if you divide two numbers you get the integer result of the division. Remember that for division, $n/m$, you get an integer if $m$ divides $n$. You can write $n=a\cdot m + b$ where $a$ is the integer number of times that $m$ divides $n$ and $b<m$ is the remainder. To get the integer part of the division, $a$ in this example, you will use the `//` operator. So while `5 / 2` will give you 2.5, `5 // 2` will give you 2. To get the remainder, you use the modulus operator, `%`. Since $5=2\cdot 2 + 1$, we would expect `5 % 2` to be one, and indeed it is. If you evaluate
+
+```python
+(5 // 2) * 2 + (5 % 2)
+```
+
+the $a\cdot m + b$ form of this division, you get five, as expected. Another way to put this is that `5 // 2` is five divided by two, rounded down, or $\lfloor 5/2 \rfloor$.
+
+**Exercises:** Evaluate the following expressions in Python. Check that they give you the expected result. If not, check if you can change that by inserting parentheses.
+
+1. $2\cdot 4 + 2$
+2. $2^4 - 4^2$
+3. $2\cdot(1+2+3)$
+4. $5/2$
+5. $\lfloor 5/2\rfloor$
+6. $\frac{2}{1+2+3}$
+7. $(1 + 2 + 3)^{1 + 2 + 3}$
+7. $\frac{1+2+3}{2}$
+
+### Logical (or boolean) expressions
+
+There are other kinds of expressions, some of which you might be less familiar with. One such kind is logical, also known as boolean, expressions. Those are expressions that has a true or false result rather than a numerical result. In Python, true and false are written `True` and `False`. Notice that these are capitalised. It is not `true` and `false` but `True` and `False`.
+
+You are familiar with the most common logical expressions: $a=b$, $a\neq b$, $a<b$, $a\leq b$, $a>b$, $a\geq b$, which in Python are written as, in the same order: `a == b`, `a != b`, `a < b`, `a <= b`, `a > b`, `a >= b`. Notice that equality is written with two equality signs. If you write `a = b` instead of `a == b` you are not comparing `a` and `b`, but rather assigning `b` to `a`, as we shall see below. If both `a` and `b` are numbers, you will get an error if you use a single equality sign. When we start using variables, you will not get any error, but you will not be comparing two values.
+
+You can string these comparisons together, so if you want to say that `b` is between `a` and `c`, you can write `a < b < c`. You don’t need to write such comparisons low-to-high, as above, or high-to-low as in `c > b > a`, but use any sequence of comparisons, e.g. `a > b < c` to say that `b` should be less than both `a` and `c`, without making any claims about the order of `a` and `c`.
+
+I mentioned above that something like `2 = 1 + 1` would be an error—to compare two versus one plus one you need to write `2 == 1 + 1`. Try evaluating the first of these expressions in a Notebook cell and see the result. You should get an error message that says
+
+```pythong
+SyntaxError: can't assign to literal
+```
+
+There are many ways that you can get an error in Python, when you are doing something Python doesn’t understand, and a `SyntaxError` is what you get when you write an expression that Python cannot interpret as a valid expression. When you get an error, Python will tell you what it is that it doesn’t understand, but unfortunately it isn’t always easy to see what the error is from the message you get. Since we haven’t covered assignments yet—we will shortly—this might be one of those cases. With experience, it gets easier to understand the error messages.
+
+Other logical operators you will be familiar with if you are familiar with basic logic, but might not be otherwise. The logical operators that Python supports are logical-not ($\neg$), logical-and ($\land$), and logical-or ($\lor$). Python does not support operator logical-xor.
+
+Logical-and of two expressions, written as `and` in Python, is `True` if and only if both expressions are true. For example,
+
+```python
+2 == 1 + 1 and 3 == 2 + 1
+```
+
+evaluates to `True`, while
+
+```python
+2 == 1 + 1 and 3 == 2
+```
+
+and 
+
+```python
+2 == 1 and 3 == 2 + 1
+```
+
+will be `False`.
+
+In these expressions you can see that we mix arithmetic and logical operators. When you do this, the arithmetic operators bind tighter than the logical ones, and the comparisons bind tighter than `and` (as well as logical-or and logical-xor), so
+
+```python
+2 == 1 + 1 and 3 == 2 + 1
+```
+
+means 
+
+```python
+(2 == (1 + 1)) and (3 == (2 + 1))
+```
+
+and not, for example,
+
+```python
+((2 == 1) + 1) and ((3 == 2) + 1)
+```
+
+As with arithmetic operators, you can use parentheses to change the default order the operators are evaluated in. The expressions above are all valid Python expressions, they just mean different things. If you wonder how you can possibly add 1 to the comparison `2 == 1` above, you are right to wonder. Usually, it doesn’t make sense to add a logical value to a number. In many programming languages, however, you are allowed to, and then `False` is interpreted as zero and `True` as one. So, while
+
+```python
+2 == 1 + 1
+```
+
+is `True`, 
+
+```python
+(2 == 1 + 1) + 1
+```
+
+is one because `(2 == 1 + 1)` evaluates to `True` that, when we add one to it, is interpreted as one. Likewise, 
+
+```python
+(2 == 1) + 1
+```
+
+will be one, since `(2 == 1)` is `False`, which is interpreted as zero.
+
+Logical-or, written `a or b`, is true if either or both `a` and `b` are `True`. So all of the expressions below evaluate to `True`
+
+```python
+2 == 1 + 1 or 3 == 1 + 2
+2 == 1 or 3 == 1 + 2
+2 == 1 + 1 or 3 == 1
+```
+
+but 
+
+```python
+2 == 1 or 3 == 1
+```
+
+will be `False` since both `2 == 1` and `3 == 1` are `False`.
+
+Logical-exclusive-or, or logical-xor, is true if either, but not both, expressions are `True`. Python does have an xor operator, `^`, but it doesn’t work as logical-xor. If you give it operands that are numbers, you will get numbers back. For example, if you write 
+
+```python
+3 ^ 1
+```
+
+your result will the result 2—I will explain why in the next section. For the xor-operator to behave like the logical operator, you need to make sure that both its operands are boolean values. You can do this by wrapping expressions in parentheses. If you do this, then expression two and three below will be `True` while one and four will be `False`.
+
+```python
+(2 == 1 + 1) ^ (3 == 1 + 2)
+(2 == 1) ^ (3 == 1 + 2)
+(2 == 1 + 1) ^ (3 == 1)
+(2 == 1) ^ (3 == 1)
+```
+
+The first expression is false because both inputs to the operator are true—and xor is only true if one of them is. The fourth expression is false because both operands are false.
+
+### Bit-wise expressions
+
+All data on a computer are ultimately represented as binary, zeros and ones. We call a single such value a *bit*, and any number or logical value, obviously, has to be stored as a sequence of bits. A logical value can be represented by a single bit while numbers must be represented by more bits. Python doesn’t *actually* use a single bit for `True` and `False`—it is less efficient to do so on a modern computer, but you need to worry about that. You very rarely need to worry about the binary representation of data in general. If you have two numbers, though, they will have binary representations, and you can interpret them as sequences of bits and manipulate those bits. We will see a few uses of this later in the book, but it is not essential to understand bit manipulations for the majority of the book, so you can safely skip this section and later sections where we manipulate numbers at the bit level.
+
+If you are interested in bit-wise operators, however, all you need to know is that we have the same operators as the logical ones, they just operate on individual bits in your numbers.
+
+The binary representation of numbers are the base-two representation. For example, the decimal numbers below have the corresponding binary representations:
+
+* $0_{10} = 00_2$
+* $1_{10} = 01_2$
+* $2_{10} = 10_2$
+* $3_{10} = 11_2$
+
+For the binary numbers I have used a leading zero when the numbers are smaller than two. This is because, when we manipulate bits, we want to include all the bits in a number. A number is never represented by just two bits. The minimal number of bits used in an integer depends on your computer, but Python can use an arbitrary number of bits to represent integers of arbitrary size. I use two bits above just for the example. You can get the binary representation of any integer,[^binary_floating_point] `a`, by writing `bin(a)`, but it will not give you leading zeros. You can try to translate the four integers above into binary using
+
+[^binary_floating_point]: A computer cannot represent real numbers in general, since these often require an infinite number of decimals or bits. Instead, it approximates these using what is known as *floating point* numbers. It essentially maps real numbers into a finite set of numbers. If you write `1.5` in Python, you have a floating point number. You cannot use `bin(1.5)` to get the binary representation of the floating point number. We usually do not manipulate the bits in a floating point number, so this is not a limitation you should worry about.
+
+```python
+bin(0)
+bin(1)
+bin(2)
+bin(3)
+```
+
+The results of these are strings—see next section if you wonder what those are—and they all start with `0b`. You will notice that the results are put in single-quotes, `'0b0'`, `'0b1'`, `'0b10'` and `'0b11'`. This means they are strings.
+
+You cannot prefix a decimal number by zero. Python considers it an error if you try to represent eighth as `08`. You can, of course, write zero with a leading zero, and you can write any number of zeros then, but otherwise it is an error. This is because a convention in some programming languages is that a leading zero means that the number you are writing is octal, i.e., base eight. Python also did that in older versions. In octal, the number $10_8$ is $8_{10}$, not ten. You don’t want to write a number in octal by mistake, so Python doesn’t allow you to do that. In earlier versions of Python, writing `010` would be a valid input that means eight. It would be different from `10`, but you would not get any warning that you might have input the wrong number. Python doesn’t implicitly make numbers octal like this any more, so you get an error instead. If you want to input a number in octal, you should prefix it with `0o`, so you can write `0o10` to mean eight. Python also lets you input numbers in hexadecimal, i.e., base 16. For that, you should use the prefix `0x`, so `0x10` is 16.
+
+The prefix `0b` states that the following number is in binary. You can also translate a binary number into a decimal number in Python by prefixing the number with `0b`. If you do this, though, you should not put the number in quotes. If you evaluate
+
+```python
+0b00
+0b01
+0b10
+0b11
+```
+
+you get the numbers zero to three.
+
+Now, the bit-wise operators work like the logical operators, they just do so bit-wise. The bit-wise and of `0b10` and `0b11` will be `0b10`—the first bit is 1 in both numbers, so that becomes 1 in the result; the second bit is only 1 in the second number, so the second bit in the output will be zero. You do not use `and` and `or` for bit-wise operators.
+
+The bit-wise *and* operator is written `&`. Try evaluating
+
+```python
+bin(0b10 & 0b11)
+```
+
+You will see that the result is the string `'0b10'`. It is only a string because of `bin`, if you only evaluate `0b10 & 0b11` you get 2, which is the same as `0b10`.
+
+The bit-wise *or* operator is written `|`. If you write
+
+```python
+bin(0b10 | 0b11)
+```
+
+you get `'0b11'`. Both bits are one because `1 | 1 == 1` and `0 | 1 == 1`.
+
+I mentioned the exclusive-or, written `^`, above. We already saw how it works on logical expressions, but it is actually a bit-wise operator. If you write
+
+```python
+3 ^ 1
+```
+
+you are actually evaluating the bit-wise xor 
+
+```python
+0b11 ^ 0b01
+```
+
+which is `0b10 == 3`.
+
+If you use the logical operators on numbers you get numbers back, but they behave differently. An `and` operator will return zero if the first operand is zero and otherwise return the second operand. An `or` operator will return the first operand if non-zero and otherwise the second.
+
+**Exercise:** Why do you think the logical operators work this way on numbers?
+
+## Statements and variables
+
+With the operators we have seen so far, we can use Python as a calculator. We can write expressions, have Python evaluate them, and get the result. From what we have seen so far, though, Python is not quite as good as a modern calculator; a modern calculator can save results that you can use in future calculations. Of course, Python can do the same.
+
+You can store the value of a computation in a variable like this:
+
+```python
+a = 1 + 2
+```
+
+Notice that here we use a single `=`. With a single `=` you do an assignment. After evaluating this statement, `a` will hold the value 3, so you can then do
+
+```python
+a + 3
+```
+
+to get six. I called this a *statement* rather than an expression. In general, I will call a computation that evaluates to a value an *expression*. Any command you give Python to make it do some computation I call *statements*. Expressions are statements since they involve some computation—even if the expression is a constant, like `12`, I consider this a piece of computation. An assignment, like the one ` = 1 + 2` above, does not evaluate to a value but puts the value of the expression `1 + 2` into the variable `a`.
+
+You can assign to `a` as many time as you want. You are not defining a constant; `a` will contain the last value you assigned to it. So if you write
+
+```python
+a = 1
+2 + a
+```
+
+and then
+
+```python 
+a = 2
+2 + a
+```
+
+you will first get 3 and then 4. If you write all the lines in the same Notebook cell, though, you will only get 4 below it. What gives? Well, the result you get in your Notebook below a cell you evaluate is the result of the *last* expression you evaluate. That would be `2 + a` (where we have assigned `a = 2`). You don’t get the value of `2 + a` when `a` was one. We see in the next section how we can get more output than the last expression. But first, we learn more about variables.
+
+If you split the four lines above into four separate cells, you can evaluate each of them. You will see that you do not get any output for the assignments, but you get `3` after the first `2 + a` and `4` after the second `2 + a`. This, of course, is because `a` is one and two, respectively, when we evaluate `2 + a`.
+
+The reason you do not get any output from the assignment cells is that assignment is not an expression. The assignment `a = 1` sets the value of `a` to be one, but it doesn’t return a value. You cannot use an assignment as part of an expression.[^assign_to_multiple_variables] Before you assign a value to a variable, it doesn’t exist. The variable `a` exists now because we have assigned to it. We haven’t assigned to the variable `b`, so if you try to use `b` in an expression, you will get an error.
+
+```python
+NameError: name 'b' is not defined
+```
+
+[^assign_to_multiple_variables]: There is a kind of exception to this. You can assign to two variables at once by writing, for example, `a = b = 2`. This will assign two to both `a` and `b`, and it looks like `a` is assigned the result of `b = 2`. This isn’t what happens. The assignment `b = 2` does not evaluate to a value—it is not an expression. You can see this if you try to do something like `a = (b = 2) + 1`. If `b = 2` would assign two to `b` and return `2`, then we would be assigning three to `a`. In some languages, this is what happens. In Python, you will get an error. You can assign the same value to multiple variables with this syntax, but the result of an assignment is not a value.
+
+You create variables by assigning to them, and after that, they are names that refer to the objects you assigned to them.You can assign to as many variables as you want, and variables can have any name that consist of letters, numbers and underscore, except that they cannot start with a number. Everywhere you can put an expression, you can also put a variable. The effect will be the same as if you inserted the expression you assigned to the variable instead of the variable.
+
+```python
+a = 1 + 2
+3 * a
+```
+
+gives you the same as
+
+```python
+3 * (1 + 2)
+```
+
+Using a variable instead of an expression does affect the evaluation order; it behaves as if you had put parentheses around the expression the variable holds.
+
+The last thing I will say about assigning to variables is something called *parallel assignment*. If you have variables
+
+```python
+a = 2
+b = 3
+```
+
+and what to flip them so they hold each other’s values, so `a` is three and `b` is two, and you want to do this in a general way that doesn’t require that those values are two and three, you might do this:
+
+```python
+c = b
+b = a
+a = c
+```
+
+You need the extra variable to hold the value of `b` after we assign the value of `a` to `b`. Otherwise we have lost it when we want to assign it to `a`. Parallel assignment allows you to assign multiple values to multiple variables such that all the expressions on the right-hand side are evaluated before any of the variables are changed. You would flip `a` and `b` like this:
+
+```python
+a, b = b, a
+```
+
+You write a parallel assignment by putting commas between the variables you want to assign to and between the expressions you want to assign to them. You need as many expressions as you have variables.
+
+You don’t need to flip the values of variables to do a parallel assignment. You can use it whenever you want to assign to more than one variable. In most case, though, you can assign to one variable at a time, so you can write
+
+```python
+a = 1
+b = 2
+a + b
+```
+
+or
+
+```python
+a, b = 1, 2
+a + b
+```
+
+and you get the same result. Which you prefer is a matter of taste. If you need to evaluate expressions that depend on several variables and then assign to some of those as well, you likely need to use a parallel assignment.
+
+
+**FIXME: here**
+
+
+## Printing and formatting output
+
+
+## Working with strings
+
+```python
+
+```
+
+## Sequences and lists
+
+
+## Conditional statements
+
+## Loops

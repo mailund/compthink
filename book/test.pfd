@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Thomas Mailund" />
+  <title>Computational Thinking</title>
+  <style>
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style>
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { font-weight: bold; } /* Alert */
+code span.an { font-style: italic; } /* Annotation */
+code span.cf { font-weight: bold; } /* ControlFlow */
+code span.co { font-style: italic; } /* Comment */
+code span.cv { font-style: italic; } /* CommentVar */
+code span.do { font-style: italic; } /* Documentation */
+code span.dt { text-decoration: underline; } /* DataType */
+code span.er { font-weight: bold; } /* Error */
+code span.in { font-style: italic; } /* Information */
+code span.kw { font-weight: bold; } /* Keyword */
+code span.pp { font-weight: bold; } /* Preprocessor */
+code span.wa { font-style: italic; } /* Warning */
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Computational Thinking</h1>
+<p class="subtitle">A gentle introduction to algorithms and algorithmic programming with Python</p>
+<p class="author">Thomas Mailund</p>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#sec:recursion">Recursion</a><ul>
+<li><a href="#definitions-of-recursion">Definitions of recursion</a></li>
+<li><a href="#recursive-functions">Recursive functions</a></li>
+<li><a href="#recursion-stacks">Recursion stacks</a></li>
+<li><a href="#sec:recursion-and-iteration">Recursion and iteration</a></li>
+<li><a href="#sec:tail-recursion">Tail-calls</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="sec:recursion">Recursion</h1>
+<p>In this chapter, we consider an immensely powerful technique for solving problems: <em>recursion</em>. Recursion involves recognising that a problem really consists of the same kind of problem, just on a smaller scale. For example, to sort <span class="math inline"><em>n</em></span> elements, we can first find the smallest, then sort all the others and put them after the smallest. This is, in its essence, what selection sort does, we just didn’t explain it in these terms. When we do describe the algorithm like this, the recursive part is that we sort all but the smallest object as part of sorting all the items. To sort <span class="math inline"><em>n</em></span> elements, we need to sort <span class="math inline"><em>n</em> − 1</span>. This is what recursion is.</p>
+<p>Recursion is both a way to write functions and a way to design algorithms. When used to develop new algorithms, it is also called <em>divide and conquer</em>, and we return to this in Chapter <strong>¿sec:divide-and-conquer?</strong>. In this chapter, we will focus on recursive functions.</p>
+<h2 id="definitions-of-recursion">Definitions of recursion</h2>
+<p>Recursion means defining something in terms of itself, and you have no-doubt seen recursive definitions before, even if they were not called that. A classical example is the factorial of a number <span class="math inline"><em>n</em>!</span>. The factorial is usually defined as this:</p>
+<p><br /><span class="math display">$$n! = \begin{cases}
+ 1 &amp; n=1 \\
+ n\times(n-1)! &amp; \text{otherwise}
+\end{cases}$$</span><br /></p>
+<p>The <em>Fibonacci</em> numbers can be defined as this:</p>
+<p><br /><span class="math display">$$
+F(n) = \begin{cases}
+0 &amp; n = 0 \\
+1 &amp; n = 1 \\
+F(n-1) + F(n-2) &amp; \text{otherwise}
+\end{cases}
+$$</span><br /></p>
+<p>The pattern we see for these definitions is that we define the value for a number, <span class="math inline"><em>n</em></span>, as either a fixed constant or some expression that involves the function we are defining itself, applied to some smaller number. The cases where we can get a result immediately from the definition are called <em>base cases</em>. For factorial, the base case is <span class="math inline"><em>n</em> = 1</span> where we directly get the value 1. For Fibonacci numbers, the base cases are <span class="math inline"><em>n</em> = 0</span> and <span class="math inline"><em>n</em> = 1</span>, where we get the values 0 or 1 right away. The other cases are called the <em>recursive cases</em>.</p>
+<p>One way of defining natural numbers is also recursive. A number <span class="math inline"><em>n</em></span> is a natural number if it is zero or if <span class="math inline"><em>n</em> − 1</span> is a natural number.</p>
+<p>For a recursive definition to be well-defined, the recursive cases must bring us closer to base cases, so we do not have an infinite regression that never brings us to termination. And when I say termination here, it is not unlike the issue with the termination of algorithms; it is the same problem, just in a different disguise. We cannot take an arbitrary recursive function and an input and determine if the function will evaluate to a function or go infinitely deep in recursions. Just as we cannot take a general program and its input and decide if it halts. They are two sides of the same coin. We must take some care in defining recursive functions to avoid this, just as we must take care to ensure that our algorithms terminate. In the case of recursions, we have a natural termination function—how far a function call is from a base case. If we can show that each recursive call brings us closer to a base case, then we are in the clear.</p>
+<p>Because recursion is self-referential—it solves a smaller instance of the problem it is solving—comic definition of recursion is this:</p>
+<blockquote>
+<p>Recursion, <em>see Recursion.</em></p>
+</blockquote>
+<p>The more useful definition of recursion is definitions where we have one or more base cases and one or more formulae that covers all other cases with references to the definition itself.</p>
+<p>Strictly speaking, this would be a definition of <em>recursive definitions</em>, but it works equally well when we consider computational problems. We have a recursive algorithm when we have some base cases that we can handle directly, and some rules for solving all other cases by resolving the same problem on smaller parts of the input.</p>
+<h2 id="recursive-functions">Recursive functions</h2>
+<p>We used recursion several times in Chapter <strong>¿sec:searching-and-sorting?</strong> even though we never called it that. Consider the linear search algorithm. When we search through a list <code>x</code>, if we have reached the end of the list without finding the element we are searching for, we are done and can report that the object is not in the list. Otherwise, we look at the first item in the list, and if that is the item that we are looking for we are done and can report that we found it. These two cases are the base cases. Otherwise, we do a linear search in the remainder of the list. That is the recursive case.</p>
+<p>We can make the recursive nature of linear search more explicit by defining a <em>recursive function:</em></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">def</span> linear_search(x, e, i <span class="op">=</span> <span class="dv">0</span>):</a>
+<a class="sourceLine" id="cb1-2" title="2">    <span class="cf">if</span> i <span class="op">==</span> <span class="bu">len</span>(x):</a>
+<a class="sourceLine" id="cb1-3" title="3">        <span class="cf">return</span> <span class="va">False</span></a>
+<a class="sourceLine" id="cb1-4" title="4">    <span class="cf">if</span> e <span class="op">==</span> x[i]:</a>
+<a class="sourceLine" id="cb1-5" title="5">        <span class="cf">return</span> <span class="va">True</span></a>
+<a class="sourceLine" id="cb1-6" title="6">    <span class="cf">else</span>:</a>
+<a class="sourceLine" id="cb1-7" title="7">        <span class="cf">return</span> linear_search(x, e, i <span class="op">+</span> <span class="dv">1</span>)</a></code></pre></div>
+<p>This does exactly what we described above. There are two base cases and one recursive case. For the function, the recursive case is handled by the function calling itself.</p>
+<p>This version of linear search is, unmistakably, much more complicated than the one we had before, and I do not recommend that you use it instead of iterating through <code>x</code>. You should, however, be able to convince yourself that it does the same thing.</p>
+<p>The only difference between a recursive definition and a recursive function in Python is that the former defines something while the latter actually computes something. There is no other difference. For example, we can write a function for computing—as opposed to defining—the factorial of a number like this:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">def</span> factorial(n):</a>
+<a class="sourceLine" id="cb2-2" title="2">    <span class="cf">if</span> n <span class="op">==</span> <span class="dv">1</span>:</a>
+<a class="sourceLine" id="cb2-3" title="3">        <span class="cf">return</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb2-4" title="4">    <span class="cf">else</span>:</a>
+<a class="sourceLine" id="cb2-5" title="5">        <span class="cf">return</span> n <span class="op">*</span> factorial(n <span class="op">-</span> <span class="dv">1</span>)</a></code></pre></div>
+<p><strong>Exercise:</strong> Implement a recursive function that computes the <span class="math inline"><em>n</em></span>’th Fibonacci number.</p>
+<p>Binary search is another example of a recursive algorithm. In this algorithm, we either have an empty interval to search in, in which case we can report <code>False</code>. Or, we have the object we are searching for right in the middle of the range we need to explore, in which case we can report <code>True</code>. If all else fails, we have the recursive case, we continue our search in either the lower or, the higher half of the range.</p>
+<p>Again, we can be more explicit in defining this as a recursive computation by implementing it as a recursive function:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">def</span> bsearch(x, e, low <span class="op">=</span> <span class="dv">0</span>, high <span class="op">=</span> <span class="bu">len</span>(x)):</a>
+<a class="sourceLine" id="cb3-2" title="2">    <span class="cf">if</span> low <span class="op">&gt;=</span> high:</a>
+<a class="sourceLine" id="cb3-3" title="3">        <span class="cf">return</span> <span class="va">False</span></a>
+<a class="sourceLine" id="cb3-4" title="4">    mid <span class="op">=</span> (low <span class="op">+</span> high) <span class="op">//</span> <span class="dv">2</span></a>
+<a class="sourceLine" id="cb3-5" title="5">    <span class="cf">if</span> x[mid] <span class="op">==</span> e:</a>
+<a class="sourceLine" id="cb3-6" title="6">        <span class="cf">return</span> <span class="va">True</span></a>
+<a class="sourceLine" id="cb3-7" title="7">    <span class="cf">elif</span> x[mid] <span class="op">&lt;</span> e:</a>
+<a class="sourceLine" id="cb3-8" title="8">        <span class="cf">return</span> bsearch(x, e, mid <span class="op">+</span> <span class="dv">1</span>, high)</a>
+<a class="sourceLine" id="cb3-9" title="9">    <span class="cf">else</span>:</a>
+<a class="sourceLine" id="cb3-10" title="10">        <span class="cf">return</span> bsearch(x, e, low, mid)</a></code></pre></div>
+<p>You should convince yourself that this, indeed, does the same as the binary search we have seen earlier.</p>
+<p>If you recall, we required of recursive definitions that the recursive cases must move us closer to base cases and observed that this was related to termination. If each recursive call moves us closer to a base case—whatever that means—then the computation will eventually terminate. If not, then there is no such guarantee. You should think about recursive functions as more general termination functions and prove that they reach a base case for all input.</p>
+<p>For binary search, the termination function was <code>high - low</code>. This works equally well for the iterative version we have seen earlier as for the recursive function defined above. We didn’t use a termination function for our earlier implementation of linear search; we didn’t need one because we know that a <code>for</code>-loop over a finite sequence will terminate. For the recursive case, we cannot make as simple an argument, but of course, the situation is the same. In each recursive call, the index <code>i</code> gets closer to the end of <code>x</code>. So, we can use as termination function <code>len(x)-i</code>.</p>
+<p>Some people find recursion a challenging concept, primarily when we use recursion for computation. Most people do not have any problem with accepting recursive definitions, but when we solve a problem by solving the exact same problem, it feels like a circular definition. “For recursion, see recursion”. It isn’t, however, and the reason is that we never solve a problem by trying to solve exactly the same problem. We solve a problem that is closer to a base case; our termination function decreases with every recursive function call.</p>
+<p>If you still find recursive functions hard to wrap your mind around, you might take comfort in knowing that many early computer scientist did as well. Early programming languages could not define recursive functions. It just didn’t occur to people that this might be useful. This doesn’t mean that they didn’t solve problems recursively; they just didn’t use recursive functions. Just like we did the linear and the binary search without recursive functions before we reformulated the algorithms as recursive. Recursion is such a powerful technique, however, that all modern languages support it. Some even go so far that they have replaced loops with recursion entirely; they will not let you implement loops at all, only recursive functions.</p>
+<h2 id="recursion-stacks">Recursion stacks</h2>
+<p>To understand how recursive functions work, we first need to understand a little deeper how function calls work. Recall that we have two different kinds of variables in Python, global and local variables. There are a bit more to variables than this, but we do not need to worry about that for now. Global and local variables are all we have seen so far. Global variables are those we assign to at the outermost level in a Python program while local variables are either function parameters or variables we assign to inside a function. For example, in this program:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb4-1" title="1">x <span class="op">=</span> <span class="dv">2</span></a>
+<a class="sourceLine" id="cb4-2" title="2"><span class="kw">def</span> add_one(x):</a>
+<a class="sourceLine" id="cb4-3" title="3">    <span class="cf">return</span> x <span class="op">+</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb4-4" title="4">add_one(<span class="dv">2</span> <span class="op">*</span> x)</a></code></pre></div>
+<p>We have two global variables, <code>x</code> and <code>add_one</code>. The <code>x</code> variable is one we have defined by assigning two to it. The <code>add_one</code> variable is the result of a function definition. Inside the <code>add_one</code> function we have another variable named <code>x</code>, we have created it by making a function parameter. This variable is distinct from the global variable <code>x</code>; they have the same name but can refer to two different objects. Inside <code>add_one</code>, <code>x</code> is a local variable; outside of <code>add_one</code>, <code>x</code> is a global variable. When we call <code>add_one(2 * x)</code> we first look up what the variable <code>add_one</code> refers to and finds the function. Before we can call the function, we must evaluate the expression that will be its argument, that is, we must evaluate <code>2 * x</code>. Since we call <code>add_one</code> at the outermost level, the global scope, <code>x</code> is the global variable. It refers to the value two, so <code>2 * x</code> is four. We then call <code>add_one</code> the parameter, which is the local variable <code>x</code>, will then refer to four. This does not change the global variable, that variable still refers to two. When we return <code>x + 1</code>, we use the local variable, which refers to four, so we return five.</p>
+<p>You should be comfortable with the difference between global and local variables by now, but what happens when a function calls itself, as we did with the factorial function.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb5-1" title="1"><span class="kw">def</span> factorial(n):</a>
+<a class="sourceLine" id="cb5-2" title="2">    <span class="cf">if</span> n <span class="op">==</span> <span class="dv">1</span>:</a>
+<a class="sourceLine" id="cb5-3" title="3">        <span class="cf">return</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb5-4" title="4">    <span class="cf">else</span>:</a>
+<a class="sourceLine" id="cb5-5" title="5">        <span class="cf">return</span> n <span class="op">*</span> factorial(n <span class="op">-</span> <span class="dv">1</span>)</a></code></pre></div>
+<p>When we call</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb6-1" title="1">factorial(<span class="dv">4</span>)</a></code></pre></div>
+<p>the local variable, <code>n</code> will be set to refer to four. There is no problem there. But then we call <code>factorial</code> with <code>n - 1</code> to evaluate <code>n * factorial(n - 1)</code>. This makes the local variable refer to three, but we still need it to refer to four when, after the recursive call, we multiply the result of <code>factorial(n - 1)</code> by <code>n</code>. We need the local variable to refer to both four and three in the recursive case. How is that achieved?</p>
+<p>This is something early programming languages usually couldn’t handle. In these early languages, local variables were tied to functions—each function had memory locations reserved for their local variables. Those were modified when calling a function and by updating variables inside the function body. If you called the same function twice, you would overwrite the memory locations assigned to the local variables. This isn’t a problem if you do not use recursion, but it apparently is if you do. You cannot use the same memory location to hold both <span class="math inline"><em>n</em> = 4</span> and <span class="math inline"><em>n</em> = 3</span>.</p>
+<p>The solution to this problem is beautiful in its simplicity: instead of reserving fixed memory locations for local variables for each function, you reserve memory for the local variables in each function <em>call</em>. The memory locations you need for local variables are not hardwired in the program but will be allocated when you call a function. This memory is allocated on a so-called <em>call stack</em>, and it works as follows. You have a piece of your computer’s memory set aside for this stack. You keep track of the top of the stack, and the function call you are currently executing has access to the top of the stack, and any global variables, but not the rest of the stack. When you call a function, you reserve memory for the variables used in the function at the top of the stack. The memory set aside in this way is known as a function’s <em>call frame</em>, but it isn’t that important what we call it; what is essential is that we have it.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
+<p>Consider the call:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb7-1" title="1">factorial(<span class="dv">4</span>)</a></code></pre></div>
+<p>If we make this call at the outermost level, the call stack is empty. When we make the function call, Python puts two things on the call stack and increases the call stack pointer to point to the top of the stack. The function will know where to get to the local variables relative to the top of the stack. Not the direct memory addresses that hold them but where they can be found below the stack pointer. Knowing the absolute memory addresses is what early programming languages would do, and it fails if we need to have more instances of function calls at the same time. Knowing the offset below the stack pointer instead resolves this problem.</p>
+<p>When we return from a function call, we also need to know where to return to. A function can be called from different places in your program, and we need some way of knowing where a function was called from so we can return to that location in the program. We cannot use a fixed memory location to hold this information any more than we can use fixed locations for local variables, so we need put this information on the stack as well.</p>
+<p>When we call recursively, Python will put the information it needs for each function call—local variables and the return location—onto the stack and grow it as needed, see fig. 1.</p>
+<figure>
+<embed src="figures/growing-call-stack.pdf" id="fig:growing-call-stack" /><figcaption>Figure 1: Growing the call stack in recursive calls to <code>factorial</code>.</figcaption>
+</figure>
+<p>When we reach <span class="math inline"><em>n</em> = 1</span>, we hit a base case and immediately return one as the result. Now, Python needs to do two things. It needs to provide the return value of the function to its caller, and it t needs to continue executing the program from the point where the function call was made. The caller location is found in the call stack, so we can always determine where the program needs to jump to. What about the return value, though?</p>
+<p>We hadn’t thought about where Python stores result of expressions before; we just assumed that it could remember them somehow. But of course, on a computer, you need to store intermediate results of expressions somewhere. Since results of (local) expressions are local to a function call, the only appropriate place is on the stack.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<p>When we return a value from a function, we need to put that value on the stack. We cannot make assumptions about where our function is called from so we cannot use the caller’s call frame. Instead, what is commonly done, is to pop the current call frame off the stack, which means we decrease the stack pointer to where it was before the function call, and then put the result of the function call just one position above the new position of the stack pointer. To be able to do this, it needs to remember the return position if it overwrites that memory location, or it needs to allocate space on the stack for the return value. Let us just assume that it is able to return and also put the function result-value in its call-frame.</p>
+<p>Since we write the return value on the call-frame of the function, we do not muck about in the caller’s call frame, and the caller knows where to get the result. When we return from a recursion, we pop call frames from the stack, put the return values above the stack (overwriting the call frame), and keep doing this until we leave the recursion, see fig. 2.</p>
+<figure>
+<embed src="figures/shrinking-call-stack.pdf" id="fig:shrinking-call-stack" /><figcaption>Figure 2: Shrinking the call stack when returning from recursive calls to <code>factorial</code>.</figcaption>
+</figure>
+<p>If the calling function wants to remember the returned value, it needs to move it somewhere else before it can make further function calls. If it only calls a function for its side-effects, it can ignore any value the called function might return, but if it needs to use the result, it must remember it. If it calls another function, the call frame of this function will be written on the stack, overwriting the returned value. We do not call other functions before we have used the result of the recursive call for <code>factorial</code>, but we do multiply a number with the result of a call. The simplest way to handle this is to save the result of the recursion and then handle the multiplication as we would handle any temporary result in an expression. With the factorial function, we can make the optimisation where we use the returned value direction. We cannot always do this, however. For example, when computing Fibonacci numbers, we need to make two recursive calls and then add their returned values together. We need somewhere to store the result of the first recursive call so we can add it to the result of the second call. In general, we might need to store the result of many function calls before we can use them in a local expression. Everything we need to save for later, we need to move to a location in the current call frame before we call another function.</p>
+<p>The call stack is not only used for recursion. It works the same way with all function calls. Consider this program:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb8-1" title="1"><span class="kw">def</span> add_one(x):</a>
+<a class="sourceLine" id="cb8-2" title="2">    <span class="cf">return</span> x <span class="op">+</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb8-3" title="3"></a>
+<a class="sourceLine" id="cb8-4" title="4"><span class="kw">def</span> add_two(x):</a>
+<a class="sourceLine" id="cb8-5" title="5">    <span class="cf">return</span> add_one(add_one(x))</a>
+<a class="sourceLine" id="cb8-6" title="6"></a>
+<a class="sourceLine" id="cb8-7" title="7">add_two(<span class="dv">1</span>)</a></code></pre></div>
+<p>Fig. 3 shows the call stack when evaluating this program. The call to <code>add_two</code> will put a return location and the local variable <code>x</code> on the stack. It also allocates space for the temporary value that it gets from the first call to <code>add_one</code> so it can remember this for the second call. The <code>add_two</code> function then calls <code>add_one</code>. This call will put a return location and another <code>x</code> on the call stack. Once the call frame is set up, <code>add_one</code> will do its calculations, move the stack pointer down to where it was before the call, in effect pop’ing the call frame from the stack, it will put the result of the function call just above the stack pointer, and then return to whence it was called.</p>
+<figure>
+<embed src="figures/call-stack-add-two.pdf" id="fig:call-stack-add-two" /><figcaption>Figure 3: Call stack when evaluating <code>add_two(1)</code>.</figcaption>
+</figure>
+<p>Now, the <code>add_two</code> function needs to call <code>add_one</code> once more. Since this call would overwrite the result of the first call, we need to save this value. We do this by moving the value from just above the stack pointer to the memory cell we allocated for this very purpose. We can then set up the call frame for the second call to <code>add_one</code>, make this call, and grab the result. This result is also the result of the <code>add_two</code> call, but we cannot simply use this result. We need to pop the call frame from the stack, which means we also need to move the <code>add_one</code> result down to where the caller of <code>add_two</code> expects to see it.</p>
+<p>This is example does not involve recursive calls, but the principle behind all function calls is the same. We might be able to optimise a specific combination of calls. For <code>add_two</code> we might manage to avoid moving the return value of the first call to <code>add_one</code> but simply putting it where it is needed for the second call; or, we might be able to put the return value from the second call to <code>add_one</code> where it is needed when we return from <code>add_two</code>. Such optimisation would only work for particular combinations of calls, however, while the operations we did in the example would work for all combinations of functions.</p>
+<p><strong>Exercise:</strong> Draw the call stack for computing the fourth Fibonacci number using the implementation you did in the previous exercise.</p>
+<p>All this call stack business can look complicated, but the good news is that you never need to worry about it unless you implement recursion yourself. The call stack is the reason why recursive function calls are possible, but you only need to know that Python can handle them.</p>
+<p>Well, you <em>almost</em> never have to worry about the call stack. You might run into problems with a call stack if you fill it up. For example, if you do something like this:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb9-1" title="1"><span class="kw">def</span> f(x):</a>
+<a class="sourceLine" id="cb9-2" title="2">    <span class="cf">return</span> f(x <span class="op">+</span> <span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb9-3" title="3">f(<span class="dv">1</span>)</a></code></pre></div>
+<p>This example results in an infinite recursion; the function doesn’t even have a base case. You will not get an infinite recursion if you execute the code, however, instead you will get an error that says “RecursionError: maximum recursion depth exceeded”. This happens because the memory set aside for the call stack is limited and if the recursion gets too deep, there is no more stack available for more call frames.</p>
+<p>For infinite recursions, we wouldn’t expect something meaningful anyway, but there are many cases where there <em>is</em> a result of a recursion, but you do not have sufficient stack space. Linear or binary search, if implemented recursively, could run into this problem if they are called on sufficiently many elements.</p>
+<p>You will not run into this if you use iteration instead of recursion. It is certainly possible to write an infinite loop, but you will not run out of stack-space as a result. Loops are also more efficient than recursive calls because the latter needs to handle call frames while the former does not. If you can implement an algorithm using iteration just as easily as you can do with recursion, you should always prefer the looping version. If you do need recursion, but the recursion is deeper than your call stack allows, you have no choice but to use a loop. There are general ways of handling recursion that avoids filling up the call stack (and we will return to this in [Chapter sec:return-to-functions]), but for some recursive functions, it is particularly easy. These are <em>tail-recursive</em> functions. We get to those in sec. 1.5. First, though, we will consider the relationship between iteration and recursion in more detail.</p>
+<h2 id="sec:recursion-and-iteration">Recursion and iteration</h2>
+<p>There is a close correspondence between recursion and iteration. You can always, directly, translate a loop into a recursive function; you cannot necessarily do the opposite. There just are more things you can do with a stack than you can with a loop. Obviously, you can implement the stack functionality yourself and then avoid recursive function calls, but this is just an implementation detail. Conceptually, will still be using recursion and not a simple loop.</p>
+<p>Just because you can implement all loops as recursive function calls doesn’t mean that you should. Besides the problems with exceeding the stack limit, there is a substantial overhead in calling functions, so a recursive solution to a problem will always be slower than one that relies on loops. Programming languages that do not allow loops but only recursive function calls actually translate recursion into loops under the hood whenever possible. Python does not do such optimisations of recursive functions, so you should always prefer loops over recursions when you can. If you can solve a problem directly using loops, you should do that. Sometimes, however, it is easier first to derive a recursive solution to a problem and then translate it into a loop if possible. Divide and conquer algorithms (Chapter <strong>¿sec:divide-and-conquer?</strong>) are more naturally constructed in terms of recursion, but can still often be implemented using loops.</p>
+<p>The purpose of this section is not to convince you that recursion is a better tool than iteration. If we can implement an algorithm using loops, then that is the better choice. When we cannot, then recursion is the only choice. We see examples of this when we discuss divide and conquer algorithms. The purpose of this section is to get you familiarised with the relationship between recursion and iteration. In sec. 1.5 we consider simple recursive functions that we can translate into loops. In this section, we will translate looping functions into recursive ones.</p>
+<p>We will take a problem with an iterative solution and translate it into a recursive one. The result, I hope you will agree, is more straightforward than the iterative solution. This is why we usually prefer to develop an algorithm using recursion before we consider iteration. We do the translation in the opposite direction here. We start with loops, which you are already familiar, and show you how these loops can be simplified using recursion. The only reason for this is to get from something familiar, loops, and see how it relates to something new, recursion. As a side-effect, I also hope to convince you that recursive solutions can be much more straightforward than iterative ones.</p>
+<p>The problem we will consider is that of merging two lists. This was an exercise in Chapter <strong>¿sec:algorithmic-efficiency?</strong>; if you haven’t solved it already, give it a go before continuing.</p>
+<p>The problem we need to solve is this: given two sorted lists, <code>x</code> and <code>y</code>, we want to create a list that contains the same elements as in <code>x</code> and <code>y</code>, combined, in sorted order.</p>
+<p>One implementation could look like this:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb10-1" title="1"><span class="kw">def</span> merge(x, y):</a>
+<a class="sourceLine" id="cb10-2" title="2">    result <span class="op">=</span> []</a>
+<a class="sourceLine" id="cb10-3" title="3">    i, j <span class="op">=</span> <span class="dv">0</span>, <span class="dv">0</span></a>
+<a class="sourceLine" id="cb10-4" title="4">    <span class="cf">while</span> <span class="va">True</span>:</a>
+<a class="sourceLine" id="cb10-5" title="5">        <span class="cf">if</span> i <span class="op">==</span> <span class="bu">len</span>(x):</a>
+<a class="sourceLine" id="cb10-6" title="6">            <span class="co"># no more elements in x</span></a>
+<a class="sourceLine" id="cb10-7" title="7">            <span class="cf">while</span> j <span class="op">&lt;</span> <span class="bu">len</span>(y):</a>
+<a class="sourceLine" id="cb10-8" title="8">                result.append(y[j])</a>
+<a class="sourceLine" id="cb10-9" title="9">                j <span class="op">+=</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb10-10" title="10">            <span class="cf">return</span> result</a>
+<a class="sourceLine" id="cb10-11" title="11">        <span class="cf">if</span> j <span class="op">==</span> <span class="bu">len</span>(y):</a>
+<a class="sourceLine" id="cb10-12" title="12">            <span class="co"># no more elements in y</span></a>
+<a class="sourceLine" id="cb10-13" title="13">            <span class="cf">while</span> i <span class="op">&lt;</span> <span class="bu">len</span>(x):</a>
+<a class="sourceLine" id="cb10-14" title="14">                result.append(x[i])</a>
+<a class="sourceLine" id="cb10-15" title="15">                i <span class="op">+=</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb10-16" title="16">            <span class="cf">return</span> result</a>
+<a class="sourceLine" id="cb10-17" title="17">        <span class="cf">if</span> x[i] <span class="op">&lt;</span> y[j]:</a>
+<a class="sourceLine" id="cb10-18" title="18">            result.append(x[i])</a>
+<a class="sourceLine" id="cb10-19" title="19">            i <span class="op">+=</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb10-20" title="20">        <span class="cf">else</span>:</a>
+<a class="sourceLine" id="cb10-21" title="21">            result.append(y[j])</a>
+<a class="sourceLine" id="cb10-22" title="22">            j <span class="op">+=</span> <span class="dv">1</span></a></code></pre></div>
+<p>The function doesn’t do anything complicated, but it is rather long. It can, therefore, be hard to see, at a glance, what it is doing. It is simple enough: We move through <code>x</code> and <code>y</code>, using the indices <code>i</code> and <code>j</code>, pick the smallest of <code>x[i]</code> and <code>y[j]</code>, and append that to our result. If we have made it to the end of either <code>x</code> or <code>y</code>, the first two <code>if</code>-statements in the loop, we copy the remainder of the other list.</p>
+<p>A much simpler implementation of the same idea is this:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb11-1" title="1"><span class="kw">def</span> merge(x, y):</a>
+<a class="sourceLine" id="cb11-2" title="2">    <span class="cf">if</span> <span class="bu">len</span>(x) <span class="op">==</span> <span class="dv">0</span>: <span class="cf">return</span> y</a>
+<a class="sourceLine" id="cb11-3" title="3">    <span class="cf">if</span> <span class="bu">len</span>(y) <span class="op">==</span> <span class="dv">0</span>: <span class="cf">return</span> x</a>
+<a class="sourceLine" id="cb11-4" title="4">    <span class="cf">if</span> x[<span class="dv">0</span>] <span class="op">&lt;</span> y[<span class="dv">0</span>]:</a>
+<a class="sourceLine" id="cb11-5" title="5">        <span class="cf">return</span> [x[<span class="dv">0</span>]] <span class="op">+</span> merge(x[<span class="dv">1</span>:], y)</a>
+<a class="sourceLine" id="cb11-6" title="6">    <span class="cf">else</span>:</a>
+<a class="sourceLine" id="cb11-7" title="7">        <span class="cf">return</span> [y[<span class="dv">0</span>]] <span class="op">+</span> merge(x, y[<span class="dv">1</span>:])</a></code></pre></div>
+<p>Here we can directly see the two base cases and the recursive case—the recursive case is one of two recursive calls, depending on which list has the smallest element. The most straightforward recursive solution is usually <em>much</em> simpler than an iterative solution. It is often also a lot less efficient, even if we ignore the function call overhead.</p>
+<p>For reasons that I have not explained yet, slicing to get everything except the first element of a list, as we do when we call <code>x[1:]</code> and <code>y[1:]</code>, is an expensive operation. It takes time proportional to the length of the lists (minus one). There is another implementation of lists than the one Python uses, where this would be a constant time operation, but for Python <code>list</code> objects it is not. Therefore, the recursive call takes time <span class="math inline"><em>O</em>(<em>n</em>)</span>, where the lengths of <code>x</code> and <code>y</code> are in <span class="math inline"><em>O</em>(<em>n</em>)</span>, plus how long it might take to compute the recursive function, and the result is an <span class="math inline"><em>O</em>(<em>n</em><sup>2</sup>)</span> running time all in all. I won’t go into details about why we get this running time since we cover that in Chapter <strong>¿sec:divide-and-conquer?</strong>.</p>
+<p>The iterative implementation runs in time <span class="math inline"><em>O</em>(<em>n</em>)</span>—if you cannot see why immediately, try to work through the analysis. The recursive implementation runs in <span class="math inline"><em>O</em>(<em>n</em><sup>2</sup>)</span>. This isn’t a great advertisement for recursion. We generally do not want to trade efficiency for simplicity.</p>
+<p>We can get rid of the expensive slicing of the first elements by reintroducing the index variables and get this implementation:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb12-1" title="1"><span class="kw">def</span> merge(x, y, i <span class="op">=</span> <span class="dv">0</span>, j <span class="op">=</span> <span class="dv">0</span>):</a>
+<a class="sourceLine" id="cb12-2" title="2">    <span class="cf">if</span> i <span class="op">==</span> <span class="bu">len</span>(x): <span class="cf">return</span> y[j:]</a>
+<a class="sourceLine" id="cb12-3" title="3">    <span class="cf">if</span> j <span class="op">==</span> <span class="bu">len</span>(y): <span class="cf">return</span> x[i:]</a>
+<a class="sourceLine" id="cb12-4" title="4">    <span class="cf">if</span> x[i] <span class="op">&lt;</span> y[j]:</a>
+<a class="sourceLine" id="cb12-5" title="5">        <span class="cf">return</span> [x[i]] <span class="op">+</span> merge(x, y, i <span class="op">+</span> <span class="dv">1</span>, j)</a>
+<a class="sourceLine" id="cb12-6" title="6">    <span class="cf">else</span>:</a>
+<a class="sourceLine" id="cb12-7" title="7">        <span class="cf">return</span> [y[j]] <span class="op">+</span> merge(x, y, i, j <span class="op">+</span> <span class="dv">1</span>)</a></code></pre></div>
+<p>Unfortunately, this isn’t much better. We avoid the slicing, but concatenating two lists, as we do in the recursive case, is also an <span class="math inline"><em>O</em>(<em>n</em>)</span> operation, so we end up with the same <span class="math inline"><em>O</em>(<em>n</em><sup>2</sup>)</span> running time.</p>
+<p>To avoid both concatenation and slicing, we can do this:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb13-1" title="1"><span class="kw">def</span> merge(x, y, i <span class="op">=</span> <span class="dv">0</span>, j <span class="op">=</span> <span class="dv">0</span>, result <span class="op">=</span> []):</a>
+<a class="sourceLine" id="cb13-2" title="2">    <span class="cf">if</span> i <span class="op">==</span> <span class="bu">len</span>(x):</a>
+<a class="sourceLine" id="cb13-3" title="3">        <span class="co"># no more elements in x</span></a>
+<a class="sourceLine" id="cb13-4" title="4">        <span class="cf">while</span> j <span class="op">&lt;</span> <span class="bu">len</span>(y):</a>
+<a class="sourceLine" id="cb13-5" title="5">            result.append(y[j])</a>
+<a class="sourceLine" id="cb13-6" title="6">            j <span class="op">+=</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb13-7" title="7">        <span class="cf">return</span> result</a>
+<a class="sourceLine" id="cb13-8" title="8">    <span class="cf">if</span> j <span class="op">==</span> <span class="bu">len</span>(y):</a>
+<a class="sourceLine" id="cb13-9" title="9">        <span class="co"># no more elements in y</span></a>
+<a class="sourceLine" id="cb13-10" title="10">        <span class="cf">while</span> i <span class="op">&lt;</span> <span class="bu">len</span>(x):</a>
+<a class="sourceLine" id="cb13-11" title="11">            result.append(x[i])</a>
+<a class="sourceLine" id="cb13-12" title="12">            i <span class="op">+=</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb13-13" title="13">        <span class="cf">return</span> result</a>
+<a class="sourceLine" id="cb13-14" title="14">    <span class="cf">if</span> x[i] <span class="op">&lt;</span> y[j]:</a>
+<a class="sourceLine" id="cb13-15" title="15">        result.append(x[i])</a>
+<a class="sourceLine" id="cb13-16" title="16">        <span class="cf">return</span> merge(x, y, i <span class="op">+</span> <span class="dv">1</span>, j, result)</a>
+<a class="sourceLine" id="cb13-17" title="17">    <span class="cf">else</span>:</a>
+<a class="sourceLine" id="cb13-18" title="18">        result.append(y[j])</a>
+<a class="sourceLine" id="cb13-19" title="19">        <span class="cf">return</span> merge(x, y, i, j <span class="op">+</span> <span class="dv">1</span>, result)</a></code></pre></div>
+<p>This leaves us pretty much back where we started. We now have a recursive solution to the problem, but it is just as complex as the iterative function we started with.</p>
+<p>All is not lost, however. We can reconsider why we couldn’t use the simpler recursive solutions. The main problem here was concatenation—we could avoid the slicing simply by using indices. Maybe we can avoid the concatenation in some other way? Indeed we can:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb14-1" title="1"><span class="kw">def</span> merge_rec(x, y, i <span class="op">=</span> <span class="dv">0</span>, j <span class="op">=</span> <span class="dv">0</span>):</a>
+<a class="sourceLine" id="cb14-2" title="2">    <span class="cf">if</span> i <span class="op">==</span> <span class="bu">len</span>(x): <span class="cf">return</span> y[j:]</a>
+<a class="sourceLine" id="cb14-3" title="3">    <span class="cf">if</span> j <span class="op">==</span> <span class="bu">len</span>(y): <span class="cf">return</span> x[i:]</a>
+<a class="sourceLine" id="cb14-4" title="4">    <span class="cf">if</span> x[i] <span class="op">&lt;</span> y[j]:</a>
+<a class="sourceLine" id="cb14-5" title="5">        res <span class="op">=</span> merge_rec(x, y, i <span class="op">+</span> <span class="dv">1</span>, j)</a>
+<a class="sourceLine" id="cb14-6" title="6">        res.append(x[i])</a>
+<a class="sourceLine" id="cb14-7" title="7">        <span class="cf">return</span> res</a>
+<a class="sourceLine" id="cb14-8" title="8">    <span class="cf">else</span>:</a>
+<a class="sourceLine" id="cb14-9" title="9">        res <span class="op">=</span> merge_rec(x, y, i, j <span class="op">+</span> <span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb14-10" title="10">        res.append(y[j])</a>
+<a class="sourceLine" id="cb14-11" title="11">        <span class="cf">return</span> res</a>
+<a class="sourceLine" id="cb14-12" title="12"></a>
+<a class="sourceLine" id="cb14-13" title="13"><span class="kw">def</span> merge(x, y):</a>
+<a class="sourceLine" id="cb14-14" title="14">    <span class="cf">return</span> <span class="bu">list</span>(<span class="bu">reversed</span>(merge_rec(x, y)))</a></code></pre></div>
+<p>Since prepending one element to a list involves a concatenation operation, which is expensive, we replace it with an append operation, which is cheap.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> We construct the merged list in the reversed order, so we need to reverse it to get the right order once we are done with the merge. I have split this into two functions, one that recursively constructs the reversed result and one that reverses it to get the result in the right order. In the basis cases we still slice a list, but since this takes time proportional to the length of the list, it is not slower than the <code>while</code>-loops we used earlier to do the same thing. In fact, it is likely to be faster since slicing is a built-in operation in Python and implemented very efficiently.</p>
+<p>This solution is not quite as simple as the first recursive function, but we can make it almost so by moving the append operation to a function:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb15-1" title="1"><span class="kw">def</span> app(lst, x):</a>
+<a class="sourceLine" id="cb15-2" title="2">    lst.append(x)</a>
+<a class="sourceLine" id="cb15-3" title="3">    <span class="cf">return</span> lst</a>
+<a class="sourceLine" id="cb15-4" title="4"></a>
+<a class="sourceLine" id="cb15-5" title="5"><span class="kw">def</span> merge_rec(x, y, i <span class="op">=</span> <span class="dv">0</span>, j <span class="op">=</span> <span class="dv">0</span>):</a>
+<a class="sourceLine" id="cb15-6" title="6">    <span class="cf">if</span> i <span class="op">==</span> <span class="bu">len</span>(x): <span class="cf">return</span> y[j:]</a>
+<a class="sourceLine" id="cb15-7" title="7">    <span class="cf">if</span> j <span class="op">==</span> <span class="bu">len</span>(y): <span class="cf">return</span> x[i:]</a>
+<a class="sourceLine" id="cb15-8" title="8">    <span class="cf">if</span> x[i] <span class="op">&lt;</span> y[j]:</a>
+<a class="sourceLine" id="cb15-9" title="9">        <span class="cf">return</span> app(merge_rec(x, y, i <span class="op">+</span> <span class="dv">1</span>, j), x[i])</a>
+<a class="sourceLine" id="cb15-10" title="10">    <span class="cf">else</span>:</a>
+<a class="sourceLine" id="cb15-11" title="11">        <span class="cf">return</span> app(merge_rec(x, y, i, j <span class="op">+</span> <span class="dv">1</span>), y[j])</a></code></pre></div>
+<p>This solution is almost as simple as the first recursive function, and it runs in <span class="math inline"><em>O</em>(<em>n</em>)</span>; we have replaced the expensive operations in the first recursive function with constant time operations in this function. It is not as efficient as the iterative function. Function calls are constant time operations but expensive ones, and we use those extensively here. We also need to reverse the result, which adds additional computations. The iterative solution avoids any function call beyond the call to the <code>merge</code> function and directly construct the result list.</p>
+<p>It is the simplicity of the recursive solution, compared to the iterative version, that makes it easier to construct recursive algorithms. Once we have a recursive solution, we usually then want to replace it with an iterative solution. In the next section, we will start with a recursive solution and use that to guide us to an iterative solution. Usually, we end up with an implementation very similar to what we would get if we set out to implement an iterative solution in the first place, but starting with a recursive solution and then modifying it, step by step, until we have an efficient iterative solution makes the programming task more manageable. As an added benefit, it also makes it easier to test our implementation; we can use the simplest solution to check the more complicated solutions against (see Chapter <strong>¿sec:testing?</strong> for more details on approaches to testing). As we, stepwise, transform a function to make it more efficient, we can test each rewrite. Since it is easier to get a simple solution correct, and since it is easier to make incrementation changes to a working implementation than it is to construct a function from scratch, implementing efficient solutions using this approach is a good strategy. Building an efficient function by a series of changes from a simple to an efficient one is more often than the most effective way to get a fast and correct solution to a problem; aiming directly for a sophisticated, efficient solution is usually not a practical approach.</p>
+<p>Before we get to translating recursive functions into iterative ones, however, you should do some exercises to test that you have understood recursion.</p>
+<p><strong>Exercise:</strong> To compute the sum of the elements in a list, we can obviously do this iteratively:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb16-1" title="1">result <span class="op">=</span> <span class="dv">0</span></a>
+<a class="sourceLine" id="cb16-2" title="2"><span class="cf">for</span> e <span class="kw">in</span> x:</a>
+<a class="sourceLine" id="cb16-3" title="3">  result <span class="op">+=</span> e</a></code></pre></div>
+<p>Implement a recursive function that computes the sum of the elements of a list.</p>
+<p><strong>Exercise:</strong> We can find the smallest element in a non-empty list, <code>x</code>, like this:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb17-1" title="1">smallest <span class="op">=</span> x[<span class="dv">0</span>]</a>
+<a class="sourceLine" id="cb17-2" title="2"><span class="cf">for</span> e <span class="kw">in</span> x:</a>
+<a class="sourceLine" id="cb17-3" title="3">    smallest <span class="op">=</span> <span class="bu">min</span>(smallest, e)</a></code></pre></div>
+<p>s Write a recursive function for finding the smallest element in a list. To avoid copying the list using slices, you will want to have the function take an index parameter as an argument.</p>
+<p><strong>Exercise:</strong> Modify your function, so it returns <code>None</code> if the list is empty. The easiest way to do this is probably to include the “smallest element seen so far” as a parameter to the function, with a default value of <code>None</code>. To compute the smallest value and still handle <code>None</code> you can use this function:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb18-1" title="1"><span class="kw">def</span> my_min(x, y):</a>
+<a class="sourceLine" id="cb18-2" title="2">    <span class="cf">return</span> y <span class="cf">if</span> x <span class="kw">is</span> <span class="va">None</span> <span class="cf">else</span> <span class="bu">min</span>(x, y)</a></code></pre></div>
+<p><strong>Exercise:</strong> Write a recursive function that reverses a list.</p>
+<p><strong>Exercise:</strong> Recall the exercise where you had to translate a base-10 number into some other base <span class="math inline"><em>b</em></span> (where we restricted the base to be less than 16). We can get the last digit of a number <span class="math inline"><em>i</em></span>, in base <span class="math inline"><em>b</em></span> using this function:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb19-1" title="1"><span class="kw">def</span> get_last_digit(i, b):</a>
+<a class="sourceLine" id="cb19-2" title="2">    <span class="cf">return</span> digits[i <span class="op">%</span> b]</a></code></pre></div>
+<p>where we defined the <code>digits</code> list as</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb20-1" title="1">digits <span class="op">=</span> {}</a>
+<a class="sourceLine" id="cb20-2" title="2"></a>
+<a class="sourceLine" id="cb20-3" title="3"><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">0</span>,<span class="dv">10</span>):</a>
+<a class="sourceLine" id="cb20-4" title="4">    digits[i] <span class="op">=</span> <span class="bu">str</span>(i)</a>
+<a class="sourceLine" id="cb20-5" title="5"></a>
+<a class="sourceLine" id="cb20-6" title="6">digits[<span class="dv">10</span>] <span class="op">=</span> <span class="st">&#39;A&#39;</span></a>
+<a class="sourceLine" id="cb20-7" title="7">digits[<span class="dv">11</span>] <span class="op">=</span> <span class="st">&#39;B&#39;</span></a>
+<a class="sourceLine" id="cb20-8" title="8">digits[<span class="dv">12</span>] <span class="op">=</span> <span class="st">&#39;C&#39;</span></a>
+<a class="sourceLine" id="cb20-9" title="9">digits[<span class="dv">13</span>] <span class="op">=</span> <span class="st">&#39;D&#39;</span></a>
+<a class="sourceLine" id="cb20-10" title="10">digits[<span class="dv">14</span>] <span class="op">=</span> <span class="st">&#39;E&#39;</span></a>
+<a class="sourceLine" id="cb20-11" title="11">digits[<span class="dv">15</span>] <span class="op">=</span> <span class="st">&#39;F&#39;</span></a></code></pre></div>
+<p>We can then reduce the problem to the second-to-last digit by dividing <span class="math inline"><em>i</em></span> by <span class="math inline"><em>b</em></span>. Implement this idea using a recursive function.</p>
+<h2 id="sec:tail-recursion">Tail-calls</h2>
+<p>You can always translate an iterative algorithm into a recursive one, but since iterative algorithms are more efficient, you shouldn’t do this. Recursive algorithms are more straightforward, though, so you will often find yourself in the situation that you have an elegant recursive solution to a problem, and you want to translate it into a more efficient iterative solution. You cannot always translate a recursive function into an iterative one,<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> but this section is about the cases where you can.</p>
+<p>Functions that can always be translated into loops are so-called <em>tail-cakk</em> functions. In many programming languages, tail-recursive functions are automatically translated into loops—this is called the <em>tail call optimisation</em>—but Python is not one of them. Not to worry, though, the translation is so simple that you can always do it by hand with minimal effort.</p>
+<p>A function is <em>tail-recursive</em> when the recursive case only consists of a recursive call. Consider the factorial function:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb21-1" title="1"><span class="kw">def</span> factorial(n):</a>
+<a class="sourceLine" id="cb21-2" title="2">    <span class="cf">if</span> n <span class="op">==</span> <span class="dv">1</span>:</a>
+<a class="sourceLine" id="cb21-3" title="3">        <span class="cf">return</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb21-4" title="4">    <span class="cf">else</span>:</a>
+<a class="sourceLine" id="cb21-5" title="5">        <span class="cf">return</span> n <span class="op">*</span> factorial(n <span class="op">-</span> <span class="dv">1</span>)</a></code></pre></div>
+<p>The recursive case involves a recursive call but not as the single result of the recursive case. We make a recursive call, and then we multiply the result with <code>n</code>. Because we have to multiply the result of the recursive call with <code>n</code>, the function is not tail-recursive. We can translate it into a tail-recursive function by adding an accumulator to the function:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb22-1" title="1"><span class="kw">def</span> factorial(n, acc <span class="op">=</span> <span class="dv">1</span>):</a>
+<a class="sourceLine" id="cb22-2" title="2">    <span class="cf">if</span> n <span class="op">==</span> <span class="dv">1</span>:</a>
+<a class="sourceLine" id="cb22-3" title="3">        <span class="cf">return</span> acc</a>
+<a class="sourceLine" id="cb22-4" title="4">    <span class="cf">else</span>:</a>
+<a class="sourceLine" id="cb22-5" title="5">        <span class="cf">return</span> factorial(n <span class="op">-</span> <span class="dv">1</span>, n <span class="op">*</span> acc)</a></code></pre></div>
+<p>The accumulator handles the multiplication with <code>n</code>. We multiply the accumulator by <code>n</code> as we go down the recursion rather than multiply the result of recursive calls by <code>n</code> when we return from the recursion. Functions that only involve a single recursive call in the recursive case can always be translated into tail-recursive versions by adding an accumulator.</p>
+<p><strong>Exercise:</strong> Rewrite your recursive function for computing the sum of a list of numbers such that it becomes tail-recursive.</p>
+<p><strong>Exercise:</strong> Rewrite your recursive function for finding the smallest element in a list to a version that is tail-recursive.</p>
+<p>With tail-recursive functions, we do not need to do anything with the result of the recursive call. Not doing anything with the result of a recursive call is just another way of saying that a function is tail-recursive. The reason that this is important is that, when we do not need to do anything after the recursive call, then we can reuse the call frame for the recursive call. We can directly update the local variables to those we would use in the recursive call frame and go from there; we can replace a recursive call with a simple update of the function argument local variables.</p>
+<p>When we call a function we assign values to the function arguments. If we have a tail-recursive function, we can directly update the arguments we already have and then start executing the function body from the beginning again. If we wrap the function body in one big <code>while True</code> loop, we can replace the recursive function call with an update to the function arguments and then <code>continue</code> the loop. If the recursive case is put at the end of the loop, we do not even need to <code>continue</code>; we are at the end of the loop, so we return to the beginning right after we update the variables.</p>
+<p>For the factorial function, this transformation gives us:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb23-1" title="1"><span class="kw">def</span> factorial(n):</a>
+<a class="sourceLine" id="cb23-2" title="2">    acc <span class="op">=</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb23-3" title="3">    <span class="cf">while</span> <span class="va">True</span>:</a>
+<a class="sourceLine" id="cb23-4" title="4">        <span class="cf">if</span> n <span class="op">==</span> <span class="dv">1</span>:</a>
+<a class="sourceLine" id="cb23-5" title="5">            <span class="cf">return</span> acc</a>
+<a class="sourceLine" id="cb23-6" title="6">        n, acc <span class="op">=</span> n <span class="op">-</span> <span class="dv">1</span>, n <span class="op">*</span> acc</a></code></pre></div>
+<p>If you split the variable updates over multiple statements, you have to be careful about the order. When you update a variable, you affect expressions that depend on it. So you have to update the variables in the right order.</p>
+<p>This will work</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb24-1" title="1"><span class="kw">def</span> factorial(n):</a>
+<a class="sourceLine" id="cb24-2" title="2">    acc <span class="op">=</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb24-3" title="3">    <span class="cf">while</span> <span class="va">True</span>:</a>
+<a class="sourceLine" id="cb24-4" title="4">        <span class="cf">if</span> n <span class="op">==</span> <span class="dv">1</span>:</a>
+<a class="sourceLine" id="cb24-5" title="5">            <span class="cf">return</span> acc</a>
+<a class="sourceLine" id="cb24-6" title="6">        acc <span class="op">=</span> n <span class="op">*</span> acc</a>
+<a class="sourceLine" id="cb24-7" title="7">        n <span class="op">=</span> n <span class="op">-</span> <span class="dv">1</span></a></code></pre></div>
+<p>This will not:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb25-1" title="1"><span class="kw">def</span> factorial(n):</a>
+<a class="sourceLine" id="cb25-2" title="2">    acc <span class="op">=</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb25-3" title="3">    <span class="cf">while</span> <span class="va">True</span>:</a>
+<a class="sourceLine" id="cb25-4" title="4">        <span class="cf">if</span> n <span class="op">==</span> <span class="dv">1</span>:</a>
+<a class="sourceLine" id="cb25-5" title="5">            <span class="cf">return</span> acc</a>
+<a class="sourceLine" id="cb25-6" title="6">        n <span class="op">=</span> n <span class="op">-</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb25-7" title="7">        acc <span class="op">=</span> n <span class="op">*</span> acc</a></code></pre></div>
+<p>A parallel-assignment, as we did for the first iterative implementation of the factorial function, will usually work. If we never do any operations with side-effects, i.e., whenever we need to update a data structure such as a list, we create a new one instead, then parallel-assignment will work. If we actually modify a data structure, we cannot use parallel assignment so we must be careful that we perform the update operations in the same order as they would have been performed in a function call.</p>
+<p><strong>Exercise:</strong> Do this transformation for your tail-recursive summation function.</p>
+<p><strong>Exercise:</strong> Do this transformation for your tail-recursive “find minimum” function.</p>
+<p><strong>Exercise:</strong> Consider our recursive implementation of binary search:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb26-1" title="1"><span class="kw">def</span> bsearch(x, e, low <span class="op">=</span> <span class="dv">0</span>, high <span class="op">=</span> <span class="bu">len</span>(x)):</a>
+<a class="sourceLine" id="cb26-2" title="2">    <span class="cf">if</span> low <span class="op">&gt;=</span> high:</a>
+<a class="sourceLine" id="cb26-3" title="3">        <span class="cf">return</span> <span class="va">False</span></a>
+<a class="sourceLine" id="cb26-4" title="4">    mid <span class="op">=</span> (low <span class="op">+</span> high) <span class="op">//</span> <span class="dv">2</span></a>
+<a class="sourceLine" id="cb26-5" title="5">    <span class="cf">if</span> x[mid] <span class="op">==</span> e:</a>
+<a class="sourceLine" id="cb26-6" title="6">        <span class="cf">return</span> <span class="va">True</span></a>
+<a class="sourceLine" id="cb26-7" title="7">    <span class="cf">elif</span> x[mid] <span class="op">&lt;</span> e:</a>
+<a class="sourceLine" id="cb26-8" title="8">        <span class="cf">return</span> bsearch(x, e, mid <span class="op">+</span> <span class="dv">1</span>, high)</a>
+<a class="sourceLine" id="cb26-9" title="9">    <span class="cf">else</span>:</a>
+<a class="sourceLine" id="cb26-10" title="10">        <span class="cf">return</span> bsearch(x, e, low, mid)</a></code></pre></div>
+<p>This function is tail-recursive, so use the transformation to replace it with a loop. Compare it to the iterative solution we considered before this chapter.</p>
+<p>To see a more complex case of using an accumulator in a tail-recursive function, and then translate it into an iterative function, we can return to the problem of merging two lists. We left this problem with this recursive implementation:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb27-1" title="1"><span class="kw">def</span> app(lst, x):</a>
+<a class="sourceLine" id="cb27-2" title="2">    lst.append(x)</a>
+<a class="sourceLine" id="cb27-3" title="3">    <span class="cf">return</span> lst</a>
+<a class="sourceLine" id="cb27-4" title="4"></a>
+<a class="sourceLine" id="cb27-5" title="5"><span class="kw">def</span> merge_rec(x, y, i <span class="op">=</span> <span class="dv">0</span>, j <span class="op">=</span> <span class="dv">0</span>):</a>
+<a class="sourceLine" id="cb27-6" title="6">    <span class="cf">if</span> i <span class="op">==</span> <span class="bu">len</span>(x): <span class="cf">return</span> y[j:]</a>
+<a class="sourceLine" id="cb27-7" title="7">    <span class="cf">if</span> j <span class="op">==</span> <span class="bu">len</span>(y): <span class="cf">return</span> x[i:]</a>
+<a class="sourceLine" id="cb27-8" title="8">    <span class="cf">if</span> x[i] <span class="op">&lt;</span> y[j]:</a>
+<a class="sourceLine" id="cb27-9" title="9">        <span class="cf">return</span> app(merge_rec(x, y, i <span class="op">+</span> <span class="dv">1</span>, j), x[i])</a>
+<a class="sourceLine" id="cb27-10" title="10">    <span class="cf">else</span>:</a>
+<a class="sourceLine" id="cb27-11" title="11">        <span class="cf">return</span> app(merge_rec(x, y, i, j <span class="op">+</span> <span class="dv">1</span>), y[j])</a>
+<a class="sourceLine" id="cb27-12" title="12"></a>
+<a class="sourceLine" id="cb27-13" title="13"><span class="kw">def</span> merge(x, y):</a>
+<a class="sourceLine" id="cb27-14" title="14">    <span class="cf">return</span> <span class="bu">list</span>(<span class="bu">reversed</span>(merge_rec(x, y)))</a></code></pre></div>
+<p>The reason we had to construct the merged list in reverse order, and then reverse it when we are done, was actually because we didn’t use an accumulator. If we add an accumulator, we can build the merged list in the right order:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb28-1" title="1"><span class="kw">def</span> merge(x, y, i <span class="op">=</span> <span class="dv">0</span>, j <span class="op">=</span> <span class="dv">0</span>, acc <span class="op">=</span> <span class="va">None</span>):</a>
+<a class="sourceLine" id="cb28-2" title="2">    <span class="cf">if</span> acc <span class="kw">is</span> <span class="va">None</span>:</a>
+<a class="sourceLine" id="cb28-3" title="3">        acc <span class="op">=</span> []</a>
+<a class="sourceLine" id="cb28-4" title="4">    <span class="cf">if</span> i <span class="op">==</span> <span class="bu">len</span>(x): <span class="cf">return</span> acc <span class="op">+</span> y[j:]</a>
+<a class="sourceLine" id="cb28-5" title="5">    <span class="cf">if</span> j <span class="op">==</span> <span class="bu">len</span>(y): <span class="cf">return</span> acc <span class="op">+</span> x[i:]</a>
+<a class="sourceLine" id="cb28-6" title="6">    <span class="cf">if</span> x[i] <span class="op">&lt;</span> y[j]:</a>
+<a class="sourceLine" id="cb28-7" title="7">        <span class="cf">return</span> merge(x, y, i <span class="op">+</span> <span class="dv">1</span>, j, app(acc, x[i]))</a>
+<a class="sourceLine" id="cb28-8" title="8">    <span class="cf">else</span>:</a>
+<a class="sourceLine" id="cb28-9" title="9">        <span class="cf">return</span> merge(x, y, i, j <span class="op">+</span> <span class="dv">1</span>, app(acc, y[j]))</a></code></pre></div>
+<p>The way we handle the default value of the accumulator might look a bit weird, but it is crucial. If we set the default value of <code>acc</code> to an empty list, each call to <code>merge</code> that rely on the default parameter will get the <em>same</em> list. This means that if you call <code>merge</code> twice, the result of the first call will still be in the accumulator, and the new merge will be appended to it. This is not what we want, and it is because of this that we handle the default parameter the way we do.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>.</p>
+<p>This function is tail-recursive so we can translate it into a looping version. The <code>app</code> function simply append its second argument to its first, and it does this before the recursive call (because function arguments are evaluated before a function is called). Because of this, we can get rid of it and simply append instead. We have to be careful to append before we update the indices, though. The rewritten function looks like this:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb29-1" title="1"><span class="kw">def</span> merge(x, y, i <span class="op">=</span> <span class="dv">0</span>, j <span class="op">=</span> <span class="dv">0</span>, acc <span class="op">=</span> <span class="va">None</span>):</a>
+<a class="sourceLine" id="cb29-2" title="2">    <span class="cf">if</span> acc <span class="kw">is</span> <span class="va">None</span>:</a>
+<a class="sourceLine" id="cb29-3" title="3">        acc <span class="op">=</span> []</a>
+<a class="sourceLine" id="cb29-4" title="4">    <span class="cf">while</span> <span class="va">True</span>:</a>
+<a class="sourceLine" id="cb29-5" title="5">        <span class="cf">if</span> i <span class="op">==</span> <span class="bu">len</span>(x): <span class="cf">return</span> acc <span class="op">+</span> y[j:]</a>
+<a class="sourceLine" id="cb29-6" title="6">        <span class="cf">if</span> j <span class="op">==</span> <span class="bu">len</span>(y): <span class="cf">return</span> acc <span class="op">+</span> x[i:]</a>
+<a class="sourceLine" id="cb29-7" title="7">        <span class="cf">if</span> x[i] <span class="op">&lt;</span> y[j]:</a>
+<a class="sourceLine" id="cb29-8" title="8">            acc.append(x[i])</a>
+<a class="sourceLine" id="cb29-9" title="9">            i <span class="op">+=</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb29-10" title="10">        <span class="cf">else</span>:</a>
+<a class="sourceLine" id="cb29-11" title="11">            acc.append(y[j])</a>
+<a class="sourceLine" id="cb29-12" title="12">            j <span class="op">+=</span> <span class="dv">1</span></a></code></pre></div>
+<p>If you want to avoid copying the accumulator in the base cases, you can use the <code>extend</code> method on the accumulator list. Using <code>extend</code> and a slice on one of the input lists is unlikely to be slower than a <code>while</code>-loop where we move individual elements, since <code>extend</code> and slice are builtin operations and therefore highly optimised.</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb30-1" title="1"><span class="kw">def</span> merge(x, y, i <span class="op">=</span> <span class="dv">0</span>, j <span class="op">=</span> <span class="dv">0</span>, acc <span class="op">=</span> <span class="va">None</span>):</a>
+<a class="sourceLine" id="cb30-2" title="2">    <span class="cf">if</span> acc <span class="kw">is</span> <span class="va">None</span>:</a>
+<a class="sourceLine" id="cb30-3" title="3">        acc <span class="op">=</span> []</a>
+<a class="sourceLine" id="cb30-4" title="4">    <span class="cf">while</span> <span class="va">True</span>:</a>
+<a class="sourceLine" id="cb30-5" title="5">        <span class="cf">if</span> i <span class="op">==</span> <span class="bu">len</span>(x):</a>
+<a class="sourceLine" id="cb30-6" title="6">            acc.extend(y[j:])</a>
+<a class="sourceLine" id="cb30-7" title="7">            <span class="cf">return</span> acc</a>
+<a class="sourceLine" id="cb30-8" title="8">        <span class="cf">if</span> j <span class="op">==</span> <span class="bu">len</span>(y):</a>
+<a class="sourceLine" id="cb30-9" title="9">            acc.extend(x[i:])</a>
+<a class="sourceLine" id="cb30-10" title="10">            <span class="cf">return</span> acc</a>
+<a class="sourceLine" id="cb30-11" title="11">        <span class="cf">if</span> x[i] <span class="op">&lt;</span> y[j]:</a>
+<a class="sourceLine" id="cb30-12" title="12">            acc.append(x[i])</a>
+<a class="sourceLine" id="cb30-13" title="13">            i <span class="op">+=</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb30-14" title="14">        <span class="cf">else</span>:</a>
+<a class="sourceLine" id="cb30-15" title="15">            acc.append(y[j])</a>
+<a class="sourceLine" id="cb30-16" title="16">            j <span class="op">+=</span> <span class="dv">1</span></a></code></pre></div>
+<p>If in the first iterative solution, we used the expend method as well, we would have this solution. So, we end up back where we started. Hopefully, we have learned something along the way.</p>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>The way Python handles global and local variables, and how it handles call frames, is a bit different from what I explain below. Python runs in a so-called <em>virtual machine</em>, which is a program that understands Python better than the raw hardware does and that works as an intermediate between the two. The virtual machine runs as actual machine instructions on the CPU and Python runs on the virtual machine. My description of how calls work is almost correct, and all programming languages will do something similar to it, but the details can vary. See sec. <strong>¿sec:architecture?</strong> for what it means that Python runs on a virtual machine rather than on the raw hardware.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩</a></p></li>
+<li id="fn2" role="doc-endnote"><p>The way Python actually deals with local values, and how it deals with the results of local expressions differ from the explanation I give here. Python does use a stack for this, it actually uses several, but that is beyond the scope of this book. Programs that run on the raw hardware on your computer do not just use a stack. It is more efficient to put values in a CPU’s registers than put them in memory, and that is what is usually done. Python has a layer between the raw hardware and your programs, the virtual machine. The virtual machine runs on the actual hardware, and it uses registers to hold temporary values and for passing values between functions. Your program, on the other hand, runs on the virtual machine, and this machine uses a different approach. If your Python programs actually ran on the real CPU, the description here wouldn’t be far off of what would actually be happening with function calls.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩</a></p></li>
+<li id="fn3" role="doc-endnote"><p>Why appending is cheap while prepending is expensive comes down to how lists are implemented by Python. We return to this in sec. <strong>¿sec:dynamic-arrays?</strong>. For now, you just have to take my word for it.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩</a></p></li>
+<li id="fn4" role="doc-endnote"><p>In the interest of complete honesty, I am lying here. You can always translate a recursive function into an iterative one. It just requires some tricks we are not ready for here. I will show you how it can be done in sec. <strong>¿sec:thunks_and_trampolines?</strong>. The general solution, however, usually isn’t a particularly good idea. It is not efficient and more often than not you get a more efficient solution by implementing your own stack as a substitute for the recursion stack. If speed is not an issue, but stack size is, the general translation from recursion to iteration is more straightforward and therefore the preferred solution.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩</a></p></li>
+<li id="fn5" role="doc-endnote"><p>A slightly more <em>Pythonic</em> way of writing the <code>if</code> statement would be to use the <code>or</code> operator instead. You could write <code>ac = acc or []</code>. Because <code>or` will return the second argument if the first is `False`, and because `None` is interpreted as `False` in this context, you will get `[]` when `acc` is `None`. You will also get a new empty list if `acc` is an empty list because empty lists are also interpreted as `False</code>. We never recurse on an empty list, so that is not a problem.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩</a></p></li>
+</ol>
+</section>
+</body>
+</html>

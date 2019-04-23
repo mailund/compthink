@@ -1,18 +1,24 @@
 \documentclass[11pt, openright, twoside, onecolumn, final]{memoir} %final
 
+\usepackage[T1]{fontenc}
+\usepackage{baskervillef}
+%\usepackage[varqu,varl,var0]{inconsolata}
+\usepackage[scale=.95,type1]{cabin}
+\usepackage[baskerville,vvarbb]{newtxmath}
+\usepackage[cal=boondoxo]{mathalfa}
+
 \usepackage{nohyperref}  % This makes hyperref commands do nothing without errors
 \usepackage{url}
 
 \setstocksize{10in}{7in}
+%\setstocksize{9in}{6in}
 \settrimmedsize{\stockheight}{\stockwidth}{*}
 \usepackage{canoniclayout}
 \nonzeroparskip
 \setlength{\parindent}{0pt}
 
-%\usepackage{accanthis}
+
 \renewcommand*\rmdefault{dayrom}
-%\usepackage{helvet}%. Sans serif - Helvetica
-%\chapterstyle{ell}
 \chapterstyle{madsen}
 
 \usepackage[utf8]{inputenc}
@@ -27,7 +33,7 @@
 \setlength{\pdfpagewidth}{\paperwidth}
 \setlength{\pdfpageheight}{\paperheight}
 
-%\usepackage{listings}
+\usepackage{listings}
 $if(tables)$
 \usepackage{longtable,booktabs}
 $endif$
@@ -37,11 +43,16 @@ $endif$
 
 \setsecnumdepth{chapter}
 
+\makeatletter
+\renewcommand{\thefigure}{S\@arabic\c@figure}
+\makeatother
+
 \setlength\cftpartnumwidth{3em}
 \setlength\cftchapternumwidth{3em}
 \setlength\cftsectionindent{3em}
 \renewcommand\contentsname{Table of Contents}
 
+\usepackage{chngcntr}
 
 $if(highlighting-macros)$
 $highlighting-macros$
@@ -74,7 +85,7 @@ $if(series)$ {\large $series$}\\[50pt]$endif$ % Subtitle
 ~\vfill
 \thispagestyle{empty}
 {\Large $title$}\\[15pt] % Book title
-\noindent Copyright \copyright\ $year$ Thomas Mailund\\ % Copyright notice
+\noindent Copyright $year$ Thomas Mailund\\ % Copyright notice
 $if(piccopyright)$\\[5pt]$piccopyright$\\ $endif$
 \clearpage
 
@@ -95,8 +106,9 @@ $endif$
 %----------------------------------------------------------------------------------------
 
 \mainmatter
+\counterwithout{figure}{chapter}
+
 \pagestyle{plain}                %% page numbering
-%\pagestyle{Ruled}
 $body$
 
 %----------------------------------------------------------------------------------------

@@ -1,0 +1,68 @@
+# Functions {#sec:functions}
+
+So far, we have implemented algorithms where we have a reference to our input before we run our computations and where we print the output of the algorithm. Our algorithm is the code between the input and the output. But what happens if, for example, we need to sort more than one list, or if we need to search a list for more than one key?
+
+With the approach we have seen so far, we would need to copy the entire code for each time we need to run an algorithm. This will give us many copies of the same code, so what if there is an error in the code? We would need to fix the code each time we have a copy—and remember where each copy is in our program. This is not efficient, and writing large programs this way is infeasible. We need a mechanism to write implement algorithms once and reuse the implementation whenever we need to use the algorithm. Since the input and output of each use of the algorithms will vary each time we execute it, we need a mechanism for handling this as well.
+
+Once approach to reusing implementations is *functions*. A function is a piece of code that we can invoke from multiple places in a program. We can tell it what its input should be, so we can vary that from call to call of the function. Each time we invoke a function, and it finishes its computation, our program will continue from the place where we called the function.
+
+**FIXME:** I do *not* have a good example here!
+
+Consider a program where we have a list representing some set we are interested in. It could, for example, be a list of students who have passed the exam of a specific class. We have another list of students who wish to sign up for another class that has the first class as a prerequisite. To find out which students to admit into the class, we want to know the intersection of the two sets.
+
+There are different ways to compute the intersection of two sets. 
+
+One approach to computing the intersection of two lists
+
+One implementation could look like this:
+
+```python
+x = ['Peter', 'Paul', 'James']
+y = ['Paul', 'James', 'Mark']
+
+# Selection sort x
+for i in range(len(x)):
+	min_idx, min_val = i, x[i]
+	for j in range(i, len(x)):
+		if x[j] < min_val:
+			min_idx, min_val = j, x[j]
+	x[i], x[min_idx] = min_val, x[i]
+
+# Selection sort y
+for i in range(len(y)):
+	min_idx, min_val = i, y[i]
+	for j in range(i, len(y)):
+		if y[j] < min_val:
+			min_idx, min_val = j, y[j]
+	y[i], y[min_idx] = min_val, y[i]
+
+intersection = []
+
+while x and y:
+    largest_x = x[-1]
+    largest_y = y[-1]
+    if largest_x == largest_y:
+        intersection.append(largest_x)
+        x.pop()
+        y.pop()
+
+    elif largest_x < largest_y:
+        y.pop()
+    else:
+        x.pop()
+```
+
+```{.python .numberLines}
+eligible_students = ['Peter', 'Paul', 'James']
+applying_students = ['Peter', 'Paul', 'James', 'Mark']
+
+accepted_students = []
+for student in applying_students:
+    if search(eligible_students, student):
+        accepted_students.append(student)
+print(accepted_students)
+```
+
+Line 6 is where something magical is happening. We want to search in `eligible_students` to see if the `student` is there. This requires a search algorithm.^[In this case a linear search since the students are not sorted, but we could have done that first and then used a binary search.] 
+
+```python
