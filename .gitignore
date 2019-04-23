@@ -1,5 +1,5 @@
 book.pdf
 book.epub
-
+book/*
 chapters/.ipynb_checkpoints/Introducing_Python-checkpoint.ipynb
 .Rproj.user

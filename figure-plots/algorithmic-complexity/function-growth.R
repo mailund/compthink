@@ -31,7 +31,9 @@ veryslow <- rbind(quad, cub, exp) %>% mutate(
 plot_time <- function(x) {
   ggplot(x, aes(x = x, y = time, linetype = growth)) +
   scale_linetype("Growth") +
-  geom_line() + theme_minimal() + xlab("n") + ylab("Time")
+  geom_line() + theme_minimal() + xlab("n") + ylab("Time") + theme(
+    text = element_text(family = "Luminari")
+  )
 }
 
 (fast %>% plot_time()) + (slow %>% plot_time()) + (slower %>% plot_time()) + (veryslow %>% plot_time())
