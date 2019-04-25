@@ -1,5 +1,7 @@
 ks = [2,5,3,6,8,3]
 
+## FIXME: something doesn't work here.
+ 
 def cost(i,j):
     print("called with (", i, j, ")")
     if j <= i + 1: return 1

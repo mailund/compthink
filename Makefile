@@ -10,12 +10,13 @@ PANDOC_OPTS :=      --standalone --toc -f markdown+smart \
 										--filter pandoc-crossref \
                     --filter pandoc-citeproc \
                     --default-image-extension=pdf \
-                    --highlight-style monochrome \
                     --variable links-as-notes \
                     --variable secnumdepth=section \
                     --toc-depth=2 \
                     --template=templates/7x10.tex \
-										--resource-path=book
+										--resource-path=book \
+                    --highlight-style monochrome \
+
 
 all: book.pdf
 
